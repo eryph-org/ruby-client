@@ -1,0 +1,18 @@
+# ComputeClient::ValidateConfigRequest
+
+## Properties
+
+| Name | Type | Description | Notes |
+| ---- | ---- | ----------- | ----- |
+| **configuration** | **Object** |  |  |
+
+## Example
+
+```ruby
+require 'compute_client'
+
+instance = ComputeClient::ValidateConfigRequest.new(
+  configuration: null
+)
+```
+

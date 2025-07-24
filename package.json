@@ -1,0 +1,45 @@
+{
+  "name": "ruby-computeclient",
+  "version": "0.1.0",
+  "description": "Eryph Ruby Compute Client monorepo",
+  "private": true,
+  "packageManager": "pnpm@10.5.2",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "changeset": "changeset",
+    "changeset:version": "changeset version && pnpm sync:versions",
+    "changeset:publish": "pnpm build:gems && pnpm publish:gems",
+    "changeset:status": "changeset status",
+    "sync:versions": "pnpm -r run sync:version",
+    "generate:client": "powershell -ExecutionPolicy Bypass -File generate.ps1",
+    "build:gems": "ruby scripts/build-gems.rb",
+    "publish:gems": "ruby scripts/publish-gems.rb",
+    "test": "bundle exec rake spec"
+  },
+  "keywords": [
+    "eryph",
+    "ruby",
+    "api-client",
+    "compute",
+    "oauth2"
+  ],
+  "author": "Eryph Team <support@eryph.io>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eryph-org/ruby-computeclient.git"
+  },
+  "homepage": "https://eryph.io",
+  "bugs": {
+    "url": "https://github.com/eryph-org/ruby-computeclient/issues"
+  },
+  "dependencies": {
+    "@openapitools/openapi-generator-cli": "^2.20.5"
+  },
+  "devDependencies": {
+    "@changesets/changelog-github": "^0.5.0",
+    "@changesets/cli": "^2.27.10"
+  }
+}

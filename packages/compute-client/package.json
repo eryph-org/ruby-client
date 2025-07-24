@@ -1,0 +1,26 @@
+{
+  "name": "@eryph/compute-client",
+  "version": "0.1.0",
+  "description": "Ruby client for Eryph Compute API (NPM package for changeset management)",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "sync:version": "node sync-version.js"
+  },
+  "keywords": [
+    "eryph",
+    "ruby",
+    "compute",
+    "api-client"
+  ],
+  "author": "Eryph Team <support@eryph.io>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eryph-org/ruby-computeclient.git",
+    "directory": "packages/compute-client"
+  },
+  "dependencies": {
+    "@eryph/clientruntime": "workspace:*"
+  }
+}
