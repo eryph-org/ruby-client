@@ -9,18 +9,15 @@ module Eryph
       # @return [String] configuration name used for this client
       attr_reader :config_name
 
-      # @return [String, nil] endpoint name used for lookup
-      attr_reader :endpoint_name
-
       # @return [ClientRuntime::TokenProvider] token provider for authentication
       attr_reader :token_provider
 
       # @return [Logger] logger instance
       attr_reader :logger
 
-      # Initialize a new compute client using configuration-based credentials
-      # @param config_name [String] configuration name
-      # @param endpoint_name [String, nil] endpoint name for lookup
+      # Initialize compute client with automatic or specific credential discovery
+      # @param config_name [String, nil] configuration name for specific config, nil for automatic discovery
+      # @param client_id [String, nil] specific client ID to use
       # @param logger [Logger, nil] logger instance
       # @param scopes [Array<String>] OAuth2 scopes
       # @param ssl_config [Hash] SSL configuration options
@@ -29,66 +26,51 @@ module Eryph
       # @option ssl_config [Boolean] :verify_hostname (true) whether to verify hostname
       # @option ssl_config [String] :ca_file path to CA certificate file
       # @option ssl_config [OpenSSL::X509::Certificate] :ca_cert CA certificate object
-      def initialize(config_name, endpoint_name: nil, logger: nil, scopes: nil, ssl_config: {}, environment: nil)
-        @config_name = config_name
-        @endpoint_name = endpoint_name || determine_compute_endpoint_name
+      def initialize(config_name = nil, client_id: nil, logger: nil, scopes: nil, ssl_config: {}, environment: nil)
         @logger = logger || default_logger
         @ssl_config = ssl_config || {}
+        @environment = environment || ClientRuntime::Environment.new
         
-        # Set up authentication using ClientRuntime
-        # For authentication, we always need the identity endpoint
-        @credentials_lookup = ClientRuntime.create_credentials_lookup(
-          config_name: @config_name, 
-          endpoint_name: 'identity',
-          environment: environment
-        )
+        # Discover credentials based on parameters
+        reader = ClientRuntime::ConfigStoresReader.new(@environment)
         
-        credentials = @credentials_lookup.find_credentials
+        if client_id && config_name
+          # Specific client in specific config - no fallback
+          lookup = ClientRuntime::ClientCredentialsLookup.new(reader, config_name)
+          @credentials = lookup.get_credentials_by_client_id(client_id, config_name)
+          raise ClientRuntime::CredentialsNotFoundError, "Client '#{client_id}' not found in configuration '#{config_name}'" unless @credentials
+          
+        elsif client_id
+          # Find client in any config
+          @credentials = find_client_in_any_config(reader, client_id)
+          raise ClientRuntime::CredentialsNotFoundError, "Client '#{client_id}' not found in any configuration" unless @credentials
+          
+        elsif config_name
+          # Default client in specific config
+          lookup = ClientRuntime::ClientCredentialsLookup.new(reader, config_name)
+          @credentials = lookup.find_credentials
+          
+        else
+          # Automatic discovery
+          lookup = ClientRuntime::ClientCredentialsLookup.new(reader)
+          @credentials = lookup.find_credentials
+        end
+        
+        @config_name = @credentials.configuration
+        
+        # Get compute endpoint for the discovered configuration
+        endpoint_lookup = ClientRuntime::EndpointLookup.new(reader, @config_name)
+        @compute_endpoint = endpoint_lookup.get_endpoint('compute')
+        raise ClientRuntime::ConfigurationError, "Compute endpoint not found in configuration '#{@config_name}'" unless @compute_endpoint
+        
+        # Create token provider
         @token_provider = ClientRuntime::TokenProvider.new(
-          credentials,
+          @credentials,
           scopes: scopes || default_scopes,
-          http_config: { logger: @logger }.merge(ssl_config)
+          http_config: { logger: @logger }.merge(@ssl_config)
         )
-
-        # Generated client is loaded on-demand when individual API clients are created
       end
 
-      # Create a new compute client using explicit credentials
-      # @param endpoint [String] compute API endpoint URL
-      # @param client_id [String] OAuth2 client ID
-      # @param private_key [String, OpenSSL::PKey::RSA] private key for authentication
-      # @param logger [Logger, nil] logger instance
-      # @param scopes [Array<String>] OAuth2 scopes
-      # @return [Client] new client instance
-      def self.new_with_credentials(endpoint:, client_id:, private_key:, logger: nil, scopes: nil)
-        # Construct token endpoint from compute endpoint
-        base_url = endpoint.sub(/\/compute\/?$/, '')
-        token_endpoint = "#{base_url}/connect/token"
-        
-        # Create credentials directly
-        credentials = ClientRuntime::ClientCredentials.new(
-          client_id: client_id,
-          client_name: "Direct Client",
-          private_key: private_key,
-          token_endpoint: token_endpoint
-        )
-
-        # Create instance with explicit credentials
-        client = allocate
-        client.instance_variable_set(:@config_name, 'direct')
-        client.instance_variable_set(:@endpoint_name, 'compute')
-        client.instance_variable_set(:@compute_endpoint, endpoint)
-        client.instance_variable_set(:@logger, logger || client.send(:default_logger))
-        client.instance_variable_set(:@token_provider, ClientRuntime::TokenProvider.new(
-          credentials,
-          scopes: scopes || client.send(:default_scopes),
-          http_config: { logger: client.instance_variable_get(:@logger) }
-        ))
-        # Generated client is loaded on-demand when individual API clients are created
-        client.send(:initialize_instance_variables)
-        
-        client
-      end
 
       # Test the connection and authentication
       # @return [Boolean] true if connection and authentication work
@@ -164,9 +146,7 @@ module Eryph
       # Get the compute endpoint URL being used by this client
       # @return [String] the compute endpoint URL
       def compute_endpoint_url
-        get_compute_endpoint
-      rescue => e
-        "Error getting endpoint: #{e.message}"
+        @compute_endpoint
       end
 
       # Wait for an operation to complete with optional callbacks for progress tracking
@@ -320,19 +300,20 @@ module Eryph
 
       private
 
-      def initialize_instance_variables
-        # Initialize instance variables for direct credential clients
-        # This is called from the self.new_with_credentials method
-      end
-
-      def determine_compute_endpoint_name
-        # Determine the appropriate endpoint name for compute API lookup
-        case @config_name&.downcase
-        when 'zero'
-          'compute'
-        else
-          'compute'
+      # Search for client ID across all configurations
+      # @param reader [ConfigStoresReader] configuration reader
+      # @param client_id [String] client ID to find
+      # @return [ClientCredentials, nil] credentials if found, nil otherwise
+      def find_client_in_any_config(reader, client_id)
+        configs = @environment.windows? ? ['default', 'zero', 'local'] : ['default', 'local']
+        
+        configs.each do |config|
+          lookup = ClientRuntime::ClientCredentialsLookup.new(reader, config)
+          creds = lookup.get_credentials_by_client_id(client_id, config)
+          return creds if creds
         end
+        
+        nil
       end
 
       def default_scopes
@@ -372,9 +353,8 @@ module Eryph
       end
 
       def create_generated_api_client
-        # Get the compute API endpoint using endpoint lookup
-        compute_endpoint = get_compute_endpoint
-        compute_uri = URI.parse(compute_endpoint)
+        # Use the stored compute endpoint
+        compute_uri = URI.parse(@compute_endpoint)
         
         # Create and configure the generated API client
         config = Eryph::ComputeClient::Configuration.new
@@ -410,20 +390,6 @@ module Eryph
         api_client
       end
 
-      def get_compute_endpoint
-        # Reuse the existing credentials lookup's endpoint lookup
-        endpoint_lookup = @credentials_lookup.instance_variable_get(:@endpoint_lookup)
-        
-        # Get the compute endpoint, with fallback to 'compute' if endpoint_name is nil
-        endpoint_name = @endpoint_name || 'compute'
-        compute_endpoint = endpoint_lookup.get_endpoint(endpoint_name)
-        
-        unless compute_endpoint
-          raise "Compute endpoint '#{endpoint_name}' not found in configuration '#{@config_name}'"
-        end
-        
-        compute_endpoint
-      end
     end
 
     # Wrapper for API clients that handles errors and converts them to ProblemDetailsError

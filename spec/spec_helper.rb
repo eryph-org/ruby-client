@@ -1,7 +1,8 @@
 require 'simplecov'
 SimpleCov.start do
   add_filter '/spec/'
-  add_filter '/lib/eryph/compute/generated/'
+  add_filter '/generated/'
+  add_filter 'generated'
   
   add_group 'Client Runtime', 'lib/eryph/clientruntime'
   add_group 'Compute Client', 'lib/eryph/compute'

@@ -10,11 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial release of Eryph Ruby compute client
 - OAuth2 authentication with JWT support
+- **Automatic credential discovery** - Tries multiple configurations (default → zero → local) without requiring explicit config name
+- **Client ID-based discovery** - Find specific client across all configurations
+- **Enhanced Client constructor** - Support for `client_id` parameter and automatic discovery
 - System client credential detection for eryph-zero
 - Complete Compute API coverage via OpenAPI generation
 - Configuration-based endpoint management
 - SSL/TLS configuration support
 - Comprehensive error handling and logging
+- **Cross-platform admin privilege detection** - Windows Administrator and Linux root support
 
 ### Changed
 

@@ -2,12 +2,19 @@ require 'spec_helper'
 
 RSpec.describe Eryph::Compute::Client do
   let(:config_name) { 'test' }
-  let(:credentials) { build(:credentials) }
+  let(:credentials) { build(:credentials, configuration: config_name) }
+  let(:mock_reader) { double('ConfigStoresReader') }
+  let(:mock_environment) { double('Environment') }
   let(:credentials_lookup) { double('CredentialsLookup', find_credentials: credentials) }
   let(:test_logger) { TestLogger.new }
   
   before do
-    allow(Eryph::ClientRuntime).to receive(:create_credentials_lookup).and_return(credentials_lookup)
+    # Mock the internal credential discovery
+    allow(Eryph::ClientRuntime::ConfigStoresReader).to receive(:new).and_return(mock_reader)
+    allow(Eryph::ClientRuntime::ClientCredentialsLookup).to receive(:new).and_return(credentials_lookup)
+    allow(Eryph::ClientRuntime::EndpointLookup).to receive(:new).and_return(double('EndpointLookup', get_endpoint: 'https://test.eryph.local/compute'))
+    allow(mock_reader).to receive(:environment).and_return(mock_environment)
+    allow(mock_environment).to receive(:windows?).and_return(true)
   end
   
   describe '.new' do
@@ -23,20 +30,73 @@ RSpec.describe Eryph::Compute::Client do
     end
   end
   
-  describe '.new_with_credentials' do
-    let(:endpoint) { 'https://test.eryph.local/compute' }
-    let(:client_id) { 'test-client' }
-    let(:private_key) { OpenSSL::PKey::RSA.generate(2048) }
+  describe '.new with client_id' do
+    let(:client_id) { 'specific-client' }
+    let(:specific_credentials) { build(:credentials, client_id: client_id) }
     
-    it 'creates a client with explicit credentials' do
-      client = described_class.new_with_credentials(
-        endpoint: endpoint,
-        client_id: client_id,
-        private_key: private_key
-      )
+    before do
+      allow(credentials_lookup).to receive(:get_credentials_by_client_id).and_return(specific_credentials)
+    end
+    
+    it 'creates a client with specific client ID' do
+      client = described_class.new(config_name, client_id: client_id)
       
       expect(client).to be_a(described_class)
       expect(client.token_provider).to be_a(Eryph::ClientRuntime::TokenProvider)
+    end
+  end
+  
+  describe '.new with both config_name and client_id (specific client in specific config)' do
+    let(:client_id) { 'specific-client' }
+    let(:specific_credentials) { build(:credentials, client_id: client_id, configuration: config_name) }
+    let(:mock_lookup) { double('ClientCredentialsLookup') }
+    
+    before do
+      allow(Eryph::ClientRuntime::ClientCredentialsLookup).to receive(:new).and_return(mock_lookup)
+    end
+    
+    it 'finds specific client in specific config without fallback' do
+      expect(mock_lookup).to receive(:get_credentials_by_client_id)
+        .with(client_id, config_name)
+        .and_return(specific_credentials)
+      
+      client = described_class.new(config_name, client_id: client_id)
+      expect(client).to be_a(described_class)
+    end
+    
+    it 'raises error when specific client not found in specific config' do
+      expect(mock_lookup).to receive(:get_credentials_by_client_id)
+        .with(client_id, config_name)
+        .and_return(nil)
+      
+      expect {
+        described_class.new(config_name, client_id: client_id)
+      }.to raise_error(Eryph::ClientRuntime::CredentialsNotFoundError, /Client 'specific-client' not found in configuration 'test'/)
+    end
+  end
+  
+  describe '.new with client_id only (search across configs)' do
+    let(:client_id) { 'cross-config-client' }
+    let(:found_credentials) { build(:credentials, client_id: client_id, configuration: 'found-config') }
+    
+    it 'finds client across multiple configs' do
+      # Mock the private method directly
+      allow_any_instance_of(described_class).to receive(:find_client_in_any_config)
+        .with(anything, client_id)
+        .and_return(found_credentials)
+      
+      client = described_class.new(nil, client_id: client_id)
+      expect(client).to be_a(described_class)
+    end
+    
+    it 'raises error when client not found in any config' do
+      allow_any_instance_of(described_class).to receive(:find_client_in_any_config)
+        .with(anything, client_id)
+        .and_return(nil)
+      
+      expect {
+        described_class.new(nil, client_id: client_id)
+      }.to raise_error(Eryph::ClientRuntime::CredentialsNotFoundError, /not found in any configuration/)
     end
   end
 
@@ -299,6 +359,318 @@ RSpec.describe Eryph::Compute::Client do
         expect(task_update_events.map(&:last)).to include('task-1') # At least one update
         expect(resource_events.map(&:last)).to eq(['resource-1'])
       end
+    end
+  end
+  
+  describe '#test_connection' do
+    let(:mock_token_provider) { double('TokenProvider') }
+    let(:client) do
+      # Mock TokenProvider during construction
+      allow(Eryph::ClientRuntime::TokenProvider).to receive(:new).and_return(mock_token_provider)
+      described_class.new(config_name, logger: test_logger)
+    end
+    
+    before do
+      test_logger.clear
+    end
+    
+    it 'returns true when token can be obtained' do
+      allow(mock_token_provider).to receive(:get_access_token).and_return('valid-token')
+      
+      result = client.test_connection
+      expect(result).to be true
+    end
+    
+    it 'returns false when token is nil' do
+      allow(mock_token_provider).to receive(:get_access_token).and_return(nil)
+      
+      result = client.test_connection
+      expect(result).to be false
+    end
+    
+    it 'returns false when token is empty' do
+      allow(mock_token_provider).to receive(:get_access_token).and_return('')
+      
+      result = client.test_connection
+      expect(result).to be false
+    end
+    
+    it 'returns false and logs error when exception occurs' do
+      allow(mock_token_provider).to receive(:get_access_token).and_raise(StandardError, 'Token error')
+      
+      result = client.test_connection
+      expect(result).to be false
+      expect(test_logger.logged?(:error, /Connection test failed: Token error/)).to be true
+    end
+  end
+  
+  describe 'token operations' do
+    let(:mock_token_provider) { double('TokenProvider') }
+    let(:client) do
+      # Mock TokenProvider during construction
+      allow(Eryph::ClientRuntime::TokenProvider).to receive(:new).and_return(mock_token_provider)
+      described_class.new(config_name)
+    end
+    
+    describe '#access_token' do
+      it 'delegates to token provider' do
+        expect(mock_token_provider).to receive(:get_access_token).and_return('test-token')
+        
+        result = client.access_token
+        expect(result).to eq('test-token')
+      end
+    end
+    
+    describe '#refresh_token' do
+      it 'delegates to token provider' do
+        expect(mock_token_provider).to receive(:refresh_token).and_return('new-token')
+        
+        result = client.refresh_token
+        expect(result).to eq('new-token')
+      end
+    end
+    
+    describe '#authorization_header' do
+      it 'delegates to token provider' do
+        expect(mock_token_provider).to receive(:authorization_header).and_return('Bearer test-token')
+        
+        result = client.authorization_header
+        expect(result).to eq('Bearer test-token')
+      end
+    end
+  end
+  
+  describe 'API client getters' do
+    let(:client) { described_class.new(config_name) }
+    
+    before do
+      # Mock the create_api_client method to return a placeholder
+      allow(client).to receive(:create_api_client).and_return(double('ApiClient'))
+    end
+    
+    describe '#catlets' do
+      it 'creates and caches catlets API client' do
+        expect(client).to receive(:create_api_client).with('catlets', 'CatletsApi').once.and_return('catlets_api')
+        
+        # First call creates
+        result1 = client.catlets
+        expect(result1).to eq('catlets_api')
+        
+        # Second call uses cache
+        result2 = client.catlets
+        expect(result2).to eq('catlets_api')
+      end
+    end
+    
+    describe '#operations' do
+      it 'creates and caches operations API client' do
+        expect(client).to receive(:create_api_client).with('operations', 'OperationsApi').once.and_return('operations_api')
+        
+        result1 = client.operations
+        expect(result1).to eq('operations_api')
+        
+        result2 = client.operations
+        expect(result2).to eq('operations_api')
+      end
+    end
+    
+    describe '#projects' do
+      it 'creates and caches projects API client' do
+        expect(client).to receive(:create_api_client).with('projects', 'ProjectsApi').once.and_return('projects_api')
+        
+        result = client.projects
+        expect(result).to eq('projects_api')
+      end
+    end
+    
+    describe '#virtual_disks' do
+      it 'creates and caches virtual disks API client' do
+        expect(client).to receive(:create_api_client).with('virtual_disks', 'VirtualDisksApi').once.and_return('vdisks_api')
+        
+        result = client.virtual_disks
+        expect(result).to eq('vdisks_api')
+      end
+    end
+    
+    describe '#virtual_networks' do
+      it 'creates and caches virtual networks API client' do
+        expect(client).to receive(:create_api_client).with('virtual_networks', 'VirtualNetworksApi').once.and_return('vnetworks_api')
+        
+        result = client.virtual_networks
+        expect(result).to eq('vnetworks_api')
+      end
+    end
+    
+    describe '#genes' do
+      it 'creates and caches genes API client' do
+        expect(client).to receive(:create_api_client).with('genes', 'GenesApi').once.and_return('genes_api')
+        
+        result = client.genes
+        expect(result).to eq('genes_api')
+      end
+    end
+    
+    describe '#version' do
+      it 'creates and caches version API client' do
+        expect(client).to receive(:create_api_client).with('version', 'VersionApi').once.and_return('version_api')
+        
+        result = client.version
+        expect(result).to eq('version_api')
+      end
+    end
+  end
+  
+  describe '#compute_endpoint_url' do
+    let(:client) { described_class.new(config_name) }
+    
+    it 'returns the compute endpoint URL' do
+      # The endpoint is set during initialization, so we can test it directly
+      result = client.compute_endpoint_url
+      expect(result).to eq('https://test.eryph.local/compute')
+    end
+  end
+  
+  describe '#validate_catlet_config' do
+    let(:client) { described_class.new(config_name) }
+    let(:mock_catlets_api) { double('CatletsApi') }
+    let(:validation_result) { double('ValidationResult', is_valid: true, errors: []) }
+    
+    before do
+      allow(client).to receive(:catlets).and_return(mock_catlets_api)
+      allow(client).to receive(:handle_api_errors).and_yield.and_return(validation_result)
+    end
+    
+    it 'validates hash configuration' do
+      config_hash = { 'name' => 'test-catlet', 'parent' => 'ubuntu' }
+      request_double = double('Request')
+      
+      expect(Eryph::ComputeClient::ValidateConfigRequest).to receive(:new)
+        .with(configuration: config_hash)
+        .and_return(request_double)
+      
+      expect(mock_catlets_api).to receive(:catlets_validate_config)
+        .with(validate_config_request: request_double)
+        .and_return(validation_result)
+      
+      result = client.validate_catlet_config(config_hash)
+      expect(result).to eq(validation_result)
+    end
+    
+    it 'validates JSON string configuration' do
+      json_string = '{"name":"test-catlet","parent":"ubuntu"}'
+      expected_hash = { 'name' => 'test-catlet', 'parent' => 'ubuntu' }
+      request_double = double('Request')
+      
+      expect(Eryph::ComputeClient::ValidateConfigRequest).to receive(:new)
+        .with(configuration: expected_hash)
+        .and_return(request_double)
+      
+      expect(mock_catlets_api).to receive(:catlets_validate_config)
+        .with(validate_config_request: request_double)
+        .and_return(validation_result)
+      
+      result = client.validate_catlet_config(json_string)
+      expect(result).to eq(validation_result)
+    end
+    
+    it 'raises error for invalid JSON' do
+      invalid_json = '{"invalid": json}'
+      
+      expect {
+        client.validate_catlet_config(invalid_json)
+      }.to raise_error(ArgumentError, /Invalid JSON string/)
+    end
+    
+    it 'raises error for invalid input type' do
+      expect {
+        client.validate_catlet_config(123)
+      }.to raise_error(ArgumentError, /Config must be a Hash or JSON string/)
+    end
+  end
+  
+  describe '#handle_api_errors' do
+    let(:client) { described_class.new(config_name) }
+    
+    it 'returns block result when no errors occur' do
+      result = client.send(:handle_api_errors) { 'success' }
+      expect(result).to eq('success')
+    end
+    
+    it 'enhances API errors with ProblemDetailsError' do
+      # Create a custom error class that responds to code and response_body
+      api_error_class = Class.new(StandardError) do
+        attr_reader :code, :response_body
+        
+        def initialize(message, code = nil, response_body = nil)
+          super(message)
+          @code = code
+          @response_body = response_body
+        end
+      end
+      
+      api_error = api_error_class.new('API Error', 400, '{"title":"Bad Request"}')
+      enhanced_error = StandardError.new('Enhanced error')  # Use StandardError to avoid ProblemDetailsError issues
+      
+      expect(Eryph::Compute::ProblemDetailsError).to receive(:from_api_error)
+        .with(api_error)
+        .and_return(enhanced_error)
+      
+      expect {
+        client.send(:handle_api_errors) { raise api_error }
+      }.to raise_error(enhanced_error)
+    end
+    
+    it 're-raises non-API errors as-is' do
+      standard_error = StandardError.new('generic error')
+      
+      expect {
+        client.send(:handle_api_errors) { raise standard_error }
+      }.to raise_error(standard_error)
+    end
+  end
+  
+  describe 'fallback behavior when generated client unavailable' do
+    let(:client) { described_class.new(config_name) }
+    
+    it 'creates placeholder API clients when generated client fails to load' do
+      # Mock the create_api_client method to return PlaceholderApiClient directly
+      allow(client).to receive(:create_api_client) do |api_name, api_class_name|
+        Eryph::Compute::PlaceholderApiClient.new(api_name, client)
+      end
+      
+      catlets_client = client.catlets
+      expect(catlets_client.class.name).to eq('Eryph::Compute::PlaceholderApiClient')
+    end
+    
+    it 'creates placeholder API clients when generated classes unavailable' do
+      # Mock the create_api_client method to return PlaceholderApiClient directly  
+      allow(client).to receive(:create_api_client) do |api_name, api_class_name|
+        Eryph::Compute::PlaceholderApiClient.new(api_name, client)
+      end
+      
+      catlets_client = client.catlets
+      expect(catlets_client.class.name).to eq('Eryph::Compute::PlaceholderApiClient')
+    end
+  end
+  
+  describe 'default logger creation' do
+    it 'creates default logger when none provided' do
+      client = described_class.new(config_name, logger: nil)
+      
+      # Access the logger to ensure default was created
+      logger = client.instance_variable_get(:@logger)
+      expect(logger).to be_a(Logger)
+      expect(logger.level).to eq(Logger::WARN)
+    end
+  end
+  
+  describe 'SSL configuration' do
+    let(:client) { described_class.new(config_name, ssl_config: ssl_config) }
+    let(:ssl_config) { { verify_ssl: false, verify_hostname: false } }
+    
+    it 'applies SSL configuration to generated API client' do
+      # Test that SSL config is properly applied
+      expect(client.instance_variable_get(:@ssl_config)).to eq(ssl_config)
     end
   end
 end

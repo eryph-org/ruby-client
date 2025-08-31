@@ -1,4 +1,4 @@
---output-dir build/docs/ruby-api
+--output-dir docs/ruby-api
 --no-private
 --markup markdown
 --markup-provider kramdown

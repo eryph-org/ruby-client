@@ -3,10 +3,11 @@ FactoryBot.define do
     initialize_with { OpenSSL::PKey::RSA.generate(2048) }
   end
   
-  factory :credentials, class: 'Eryph::ClientRuntime::ClientCredentials' do
+  factory :client_credentials, class: 'Eryph::ClientRuntime::ClientCredentials', aliases: [:credentials] do
     client_id { 'test-client-id' }
     client_name { 'Test Client' }
     token_endpoint { 'https://test.eryph.local/identity/connect/token' }
+    configuration { 'default' }
     
     transient do
       # Generate a test RSA key pair
@@ -23,7 +24,8 @@ FactoryBot.define do
         client_id: client_id,
         client_name: client_name,
         private_key: private_key,
-        token_endpoint: token_endpoint
+        token_endpoint: token_endpoint,
+        configuration: configuration
       )
     end
     
@@ -31,6 +33,7 @@ FactoryBot.define do
       token_endpoint { 'https://localhost:8080/identity/connect/token' }
       client_id { 'system-client' }
       client_name { 'System Client' }
+      configuration { 'zero' }
     end
     
     trait :invalid do

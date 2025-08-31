@@ -81,7 +81,7 @@ namespace :docs do
     puts "📚 Generating YARD documentation..."
     
     # Ensure output directory exists
-    FileUtils.mkdir_p('build/docs')
+    FileUtils.mkdir_p('docs')
     
     # Generate YARD docs (uses .yardopts configuration)
     begin
@@ -92,16 +92,16 @@ namespace :docs do
       exit 1
     end
     
-    puts "  ✅ YARD documentation generated to build/docs/ruby-api/"
+    puts "  ✅ YARD documentation generated to docs/ruby-api/"
   end
   
-  desc "Copy OpenAPI documentation to build/docs/api/"
+  desc "Copy OpenAPI documentation to docs/api/"
   task :copy_api do
     require 'fileutils'
     puts "📋 Copying OpenAPI documentation..."
     
     source_dir = 'lib/eryph/compute/generated/docs'
-    target_dir = 'build/docs/api'
+    target_dir = 'docs/api'
     
     unless Dir.exist?(source_dir)
       puts "⚠️  Warning: Generated docs not found at #{source_dir}"
@@ -155,11 +155,11 @@ namespace :docs do
     puts "📖 Creating documentation guides..."
     
     # Create guides directory
-    guides_dir = 'build/docs/guides'
+    guides_dir = 'docs/guides'
     FileUtils.mkdir_p(guides_dir)
     
     # Create examples directory
-    examples_dir = 'build/docs/examples'
+    examples_dir = 'docs/examples'
     FileUtils.mkdir_p(examples_dir)
     
     # Create examples README
@@ -198,9 +198,9 @@ namespace :docs do
     require 'fileutils'
     puts "📄 Creating main documentation README..."
     
-    FileUtils.mkdir_p('build/docs')
+    FileUtils.mkdir_p('docs')
     
-    File.write('build/docs/README.md', <<~MARKDOWN)
+    File.write('docs/README.md', <<~MARKDOWN)
       # Eryph Ruby Client Libraries
       
       Official Ruby client libraries for Eryph APIs, providing clean, idiomatic Ruby interfaces with built-in OAuth2 authentication.
@@ -302,11 +302,11 @@ namespace :docs do
     puts "🎉 Documentation build complete!"
     puts
     puts "📁 Generated documentation structure:"
-    puts "   build/docs/README.md         - Main documentation"
-    puts "   build/docs/ruby-api/         - Ruby API reference (YARD)"
-    puts "   build/docs/api/              - REST API reference (OpenAPI)"
-    puts "   build/docs/guides/           - User guides"
-    puts "   build/docs/examples/         - Code examples"
+    puts "   docs/README.md         - Main documentation"
+    puts "   docs/ruby-api/         - Ruby API reference (YARD)"
+    puts "   docs/api/              - REST API reference (OpenAPI)"
+    puts "   docs/guides/           - User guides"
+    puts "   docs/examples/         - Code examples"
     puts
     puts "🌐 To serve locally:"
     puts "   rake docs:serve"
@@ -317,7 +317,7 @@ namespace :docs do
     require 'webrick'
     
     port = ENV['PORT'] || 8080
-    doc_root = File.expand_path('build/docs')
+    doc_root = File.expand_path('docs')
     
     unless Dir.exist?(doc_root)
       puts "❌ Documentation not found. Run 'rake docs:build' first."
@@ -343,7 +343,7 @@ namespace :docs do
   task :clean do
     require 'fileutils'
     puts "🧹 Cleaning documentation..."
-    FileUtils.rm_rf('build/docs')
+    FileUtils.rm_rf('docs')
     puts "  ✅ Documentation cleaned"
   end
 end

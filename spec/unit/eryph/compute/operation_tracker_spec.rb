@@ -444,4 +444,178 @@ RSpec.describe Eryph::Compute::OperationTracker do
       expect(test_logger.logged?(:error, /Error in log_entry callback: Test callback error/)).to be true
     end
   end
+  
+  describe '#track' do
+    context 'with block-based callbacks' do
+      it 'sets up temporary callbacks and restores original ones' do
+        log_entry = double('LogEntry', id: 'log-1', timestamp: Time.now, message: 'Test log')
+        task = double('Task', id: 'task-1', name: 'Test task')
+        resource = double('Resource', id: 'resource-1', resource_type: 'Catlet')
+        
+        completed_operation = double('Operation',
+          id: operation_id,
+          status: 'Completed',
+          status_message: 'Success',
+          log_entries: [log_entry],
+          tasks: [task],
+          resources: [resource]
+        )
+
+        # Mock both calls for poll method
+        expect(operations_api).to receive(:operations_get)
+          .with(operation_id, expand: 'logs,tasks,resources', log_time_stamp: instance_of(Time), debug_return_type: 'String')
+          .and_return('raw-json')
+        
+        expect(operations_api).to receive(:operations_get)
+          .with(operation_id, expand: 'logs,tasks,resources', log_time_stamp: instance_of(Time))
+          .and_return(completed_operation)
+
+        # Set up original callbacks
+        original_log_calls = []
+        original_task_calls = []
+        subject
+          .on_log_entry { |log| original_log_calls << "original-#{log.id}" }
+          .on_task_new { |task| original_task_calls << "original-#{task.id}" }
+
+        # Track events during wait block
+        block_events = []
+        
+        result = subject.track(timeout: 10, poll_interval: 0.1) do |event_type, data|
+          case event_type
+          when :status
+            block_events << [event_type, data.status]
+          else
+            block_events << [event_type, data.id]
+          end
+        end
+
+        expect(result).to be_a(Eryph::Compute::OperationResult)
+        expect(block_events).to include([:log_entry, 'log-1'])
+        expect(block_events).to include([:task_new, 'task-1'])
+        expect(block_events).to include([:resource_new, 'resource-1'])
+        expect(block_events).to include([:status, 'Completed'])
+        
+        # Original callbacks should NOT have been called during block-based wait
+        expect(original_log_calls).to be_empty
+        expect(original_task_calls).to be_empty
+      end
+      
+      it 'calls track without block when no block given' do
+        completed_operation = double('Operation',
+          id: operation_id,
+          status: 'Completed',
+          status_message: 'Success',
+          log_entries: [],
+          tasks: [],
+          resources: []
+        )
+
+        expect(operations_api).to receive(:operations_get)
+          .with(operation_id, expand: 'logs,tasks,resources', log_time_stamp: instance_of(Time))
+          .and_return(completed_operation)
+
+        result = subject.track(timeout: 10, poll_interval: 0.1)
+        expect(result).to be_a(Eryph::Compute::OperationResult)
+      end
+    end
+  end
+  
+  describe 'debug logging' do
+    it 'logs debug message when raw JSON capture fails' do
+      allow(operations_api).to receive(:operations_get)
+        .with(operation_id, expand: 'logs,tasks,resources', log_time_stamp: instance_of(Time), debug_return_type: 'String')
+        .and_raise(StandardError, 'Raw JSON capture failed')
+      
+      completed_operation = double('Operation',
+        id: operation_id,
+        status: 'Completed',
+        status_message: 'Success',
+        log_entries: [],
+        tasks: [],
+        resources: []
+      )
+
+      allow(operations_api).to receive(:operations_get)
+        .with(operation_id, expand: 'logs,tasks,resources', log_time_stamp: instance_of(Time))
+        .and_return(completed_operation)
+
+      result = subject.track_to_completion(timeout: 10, poll_interval: 0.1)
+      
+      expect(result).to be_a(Eryph::Compute::OperationResult)
+      expect(test_logger.logged?(:debug, /Failed to capture raw JSON: Raw JSON capture failed/)).to be true
+    end
+  end
+  
+  describe '#reset_state' do
+    it 'clears processed IDs and resets timestamp' do
+      # First, process some items to populate the sets
+      log_entry = double('LogEntry', id: 'log-1', timestamp: Time.now, message: 'Test')
+      task = double('Task', id: 'task-1', name: 'Test task')
+      resource = double('Resource', id: 'resource-1', resource_type: 'Catlet')
+      
+      first_operation = double('Operation',
+        id: operation_id,
+        status: 'Running',
+        status_message: 'In progress',
+        log_entries: [log_entry],
+        tasks: [task],
+        resources: [resource]
+      )
+
+      # Mock both calls for poll method
+      expect(operations_api).to receive(:operations_get)
+        .with(operation_id, expand: 'logs,tasks,resources', log_time_stamp: instance_of(Time), debug_return_type: 'String')
+        .and_return('raw-json')
+      
+      expect(operations_api).to receive(:operations_get)
+        .with(operation_id, expand: 'logs,tasks,resources', log_time_stamp: instance_of(Time))
+        .and_return(first_operation)
+
+      # Process first operation to populate tracking sets using poll
+      subject.poll
+      expect(subject.stats[:processed_logs]).to eq(1)
+      expect(subject.stats[:processed_tasks]).to eq(1)
+      expect(subject.stats[:processed_resources]).to eq(1)
+
+      # Now reset
+      result = subject.reset_state
+      
+      # Check that stats are cleared
+      expect(subject.stats[:processed_logs]).to eq(0)
+      expect(subject.stats[:processed_tasks]).to eq(0)
+      expect(subject.stats[:processed_resources]).to eq(0)
+      
+      # Should return self for chaining
+      expect(result).to eq(subject)
+    end
+  end
+  
+  describe 'string representation' do
+    it 'provides meaningful to_s representation' do
+      # Process some items first to get stats
+      log_entry = double('LogEntry', id: 'log-1', timestamp: Time.now, message: 'Test')
+      operation = double('Operation',
+        id: operation_id,
+        status: 'Running',
+        log_entries: [log_entry],
+        tasks: [],
+        resources: []
+      )
+
+      allow(operations_api).to receive(:operations_get)
+        .and_return(operation)
+
+      subject.current_state
+      
+      result = subject.to_s
+      expect(result).to include('OperationTracker')
+      expect(result).to include('test-op-123')
+      expect(result).to include('stats=')
+    end
+    
+    it 'provides inspect method that delegates to to_s' do
+      result = subject.inspect
+      expect(result).to eq(subject.to_s)
+    end
+  end
 end

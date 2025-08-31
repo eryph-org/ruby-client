@@ -1,0 +1,2404 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  Class: Eryph::Compute::Client
+  
+    &mdash; Eryph Ruby Client API
+  
+</title>
+
+  <link rel="stylesheet" href="../../css/style.css" type="text/css" />
+
+  <link rel="stylesheet" href="../../css/common.css" type="text/css" />
+
+<script type="text/javascript">
+  pathId = "Eryph::Compute::Client";
+  relpath = '../../';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="../../js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="../../js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="../../class_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="../../_index.html">Index (C)</a> &raquo;
+    <span class='title'><span class='object_link'><a href="../../Eryph.html" title="Eryph (module)">Eryph</a></span></span> &raquo; <span class='title'><span class='object_link'><a href="../Compute.html" title="Eryph::Compute (module)">Compute</a></span></span>
+     &raquo; 
+    <span class="title">Client</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="class_list_link"
+        href="../../class_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><h1>Class: Eryph::Compute::Client
+  
+  
+  
+</h1>
+<div class="box_info">
+  
+  <dl>
+    <dt>Inherits:</dt>
+    <dd>
+      <span class="inheritName">Object</span>
+      
+        <ul class="fullTree">
+          <li>Object</li>
+          
+            <li class="next">Eryph::Compute::Client</li>
+          
+        </ul>
+        <a href="#" class="inheritanceTree">show all</a>
+      
+    </dd>
+  </dl>
+  
+
+  
+  
+  
+  
+  
+
+  
+
+  
+  <dl>
+    <dt>Defined in:</dt>
+    <dd>lib/eryph/compute/client.rb</dd>
+  </dl>
+  
+</div>
+
+<h2>Overview</h2><div class="docstring">
+  <div class="discussion">
+    <p>Main client class for the Eryph Compute API
+Provides a high-level interface to the compute API with automatic authentication</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+
+
+
+  <h2>Instance Attribute Summary <small><a href="#" class="summary_toggle">collapse</a></small></h2>
+  <ul class="summary">
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#config_name-instance_method" title="#config_name (instance method)">#<strong>config_name</strong>  &#x21d2; String </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+      <span class="note title readonly">readonly</span>
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Configuration name used for this client.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#logger-instance_method" title="#logger (instance method)">#<strong>logger</strong>  &#x21d2; Logger </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+      <span class="note title readonly">readonly</span>
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Logger instance.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#token_provider-instance_method" title="#token_provider (instance method)">#<strong>token_provider</strong>  &#x21d2; ClientRuntime::TokenProvider </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+      <span class="note title readonly">readonly</span>
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Token provider for authentication.</p>
+</div></span>
+  
+</li>
+
+    
+  </ul>
+
+
+
+
+  
+    <h2>
+      Instance Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#access_token-instance_method" title="#access_token (instance method)">#<strong>access_token</strong>  &#x21d2; String </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Get the current access token.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#authorization_header-instance_method" title="#authorization_header (instance method)">#<strong>authorization_header</strong>  &#x21d2; String </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Get the authorization header for HTTP requests.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#catlets-instance_method" title="#catlets (instance method)">#<strong>catlets</strong>  &#x21d2; Eryph::ComputeClient::CatletsApi, PlaceholderApiClient </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Access the catlets API.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#compute_endpoint_url-instance_method" title="#compute_endpoint_url (instance method)">#<strong>compute_endpoint_url</strong>  &#x21d2; String </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Get the compute endpoint URL being used by this client.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#genes-instance_method" title="#genes (instance method)">#<strong>genes</strong>  &#x21d2; Eryph::ComputeClient::GenesApi, PlaceholderApiClient </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Access the genes API.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#handle_api_errors-instance_method" title="#handle_api_errors (instance method)">#<strong>handle_api_errors</strong> { ... } &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Execute a block and convert ApiError to ProblemDetailsError when appropriate.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#initialize-instance_method" title="#initialize (instance method)">#<strong>initialize</strong>(config_name = nil, client_id: nil, logger: nil, scopes: nil, ssl_config: {}, environment: nil)  &#x21d2; Client </a>
+    
+
+    
+  </span>
+  
+  
+    <span class="note title constructor">constructor</span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Initialize compute client with automatic or specific credential discovery.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#operations-instance_method" title="#operations (instance method)">#<strong>operations</strong>  &#x21d2; Eryph::ComputeClient::OperationsApi, PlaceholderApiClient </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Access the operations API.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#projects-instance_method" title="#projects (instance method)">#<strong>projects</strong>  &#x21d2; Eryph::ComputeClient::ProjectsApi, PlaceholderApiClient </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Access the projects API.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#refresh_token-instance_method" title="#refresh_token (instance method)">#<strong>refresh_token</strong>  &#x21d2; String </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Refresh the authentication token.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#test_connection-instance_method" title="#test_connection (instance method)">#<strong>test_connection</strong>  &#x21d2; Boolean </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Test the connection and authentication.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#validate_catlet_config-instance_method" title="#validate_catlet_config (instance method)">#<strong>validate_catlet_config</strong>(config)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Validate a catlet configuration using the quick validation endpoint.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#version-instance_method" title="#version (instance method)">#<strong>version</strong>  &#x21d2; Eryph::ComputeClient::VersionApi, PlaceholderApiClient </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Access the version API.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#virtual_disks-instance_method" title="#virtual_disks (instance method)">#<strong>virtual_disks</strong>  &#x21d2; Eryph::ComputeClient::VirtualDisksApi, PlaceholderApiClient </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Access the virtual disks API.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#virtual_networks-instance_method" title="#virtual_networks (instance method)">#<strong>virtual_networks</strong>  &#x21d2; Eryph::ComputeClient::VirtualNetworksApi, PlaceholderApiClient </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Access the virtual networks API.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#wait_for_operation-instance_method" title="#wait_for_operation (instance method)">#<strong>wait_for_operation</strong>(operation_id, timeout: 300, poll_interval: 5) {|event_type, data| ... } &#x21d2; OperationResult </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Wait for an operation to complete with optional callbacks for progress tracking.</p>
+</div></span>
+  
+</li>
+
+      
+    </ul>
+  
+
+<div id="constructor_details" class="method_details_list">
+  <h2>Constructor Details</h2>
+  
+    <div class="method_details first">
+  <h3 class="signature first" id="initialize-instance_method">
+  
+    #<strong>initialize</strong>(config_name = nil, client_id: nil, logger: nil, scopes: nil, ssl_config: {}, environment: nil)  &#x21d2; <tt><span class='object_link'><a href="" title="Eryph::Compute::Client (class)">Client</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Initialize compute client with automatic or specific credential discovery</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>config_name</span>
+      
+      
+        <span class='type'>(<tt>String</tt>, <tt>nil</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>configuration name for specific config, nil for automatic discovery</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>client_id</span>
+      
+      
+        <span class='type'>(<tt>String</tt>, <tt>nil</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>specific client ID to use</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>logger</span>
+      
+      
+        <span class='type'>(<tt>Logger</tt>, <tt>nil</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>logger instance</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>scopes</span>
+      
+      
+        <span class='type'>(<tt>Array&lt;String&gt;</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>OAuth2 scopes</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>ssl_config</span>
+      
+      
+        <span class='type'>(<tt>Hash</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>{}</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>SSL configuration options</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>environment</span>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="../ClientRuntime/Environment.html" title="Eryph::ClientRuntime::Environment (class)">ClientRuntime::Environment</a></span></tt>, <tt>nil</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>environment instance for dependency injection</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <p class="tag_title">Options Hash (<tt>ssl_config:</tt>):</p>
+    <ul class="option">
+      
+        <li>
+          <span class="name">:verify_ssl</span>
+          <span class="type">(<tt>Boolean</tt>)</span>
+          <span class="default">
+            
+              &mdash; default:
+              <tt>true</tt>
+            
+          </span>
+          
+            &mdash; <div class='inline'><p>whether to verify SSL certificates</p>
+</div>
+          
+        </li>
+      
+        <li>
+          <span class="name">:verify_hostname</span>
+          <span class="type">(<tt>Boolean</tt>)</span>
+          <span class="default">
+            
+              &mdash; default:
+              <tt>true</tt>
+            
+          </span>
+          
+            &mdash; <div class='inline'><p>whether to verify hostname</p>
+</div>
+          
+        </li>
+      
+        <li>
+          <span class="name">:ca_file</span>
+          <span class="type">(<tt>String</tt>)</span>
+          <span class="default">
+            
+          </span>
+          
+            &mdash; <div class='inline'><p>path to CA certificate file</p>
+</div>
+          
+        </li>
+      
+        <li>
+          <span class="name">:ca_cert</span>
+          <span class="type">(<tt>OpenSSL::X509::Certificate</tt>)</span>
+          <span class="default">
+            
+          </span>
+          
+            &mdash; <div class='inline'><p>CA certificate object</p>
+</div>
+          
+        </li>
+      
+    </ul>
+  
+    
+    
+
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="../ClientRuntime/ConfigurationError.html" title="Eryph::ClientRuntime::ConfigurationError (class)">ClientRuntime::ConfigurationError</a></span></tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/compute/client.rb', line 29</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='id identifier rubyid_config_name'>config_name</span> <span class='op'>=</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>client_id:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>logger:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>scopes:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>ssl_config:</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='comma'>,</span> <span class='label'>environment:</span> <span class='kw'>nil</span><span class='rparen'>)</span>
+  <span class='ivar'>@logger</span> <span class='op'>=</span> <span class='id identifier rubyid_logger'>logger</span> <span class='op'>||</span> <span class='id identifier rubyid_default_logger'>default_logger</span>
+  <span class='ivar'>@ssl_config</span> <span class='op'>=</span> <span class='id identifier rubyid_ssl_config'>ssl_config</span> <span class='op'>||</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
+  <span class='ivar'>@environment</span> <span class='op'>=</span> <span class='id identifier rubyid_environment'>environment</span> <span class='op'>||</span> <span class='const'><span class='object_link'><a href="../ClientRuntime.html" title="Eryph::ClientRuntime (module)">ClientRuntime</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../ClientRuntime/Environment.html" title="Eryph::ClientRuntime::Environment (class)">Environment</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span>
+  
+  <span class='comment'># Discover credentials based on parameters
+</span>  <span class='id identifier rubyid_reader'>reader</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="../ClientRuntime.html" title="Eryph::ClientRuntime (module)">ClientRuntime</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../ClientRuntime/ConfigStoresReader.html" title="Eryph::ClientRuntime::ConfigStoresReader (class)">ConfigStoresReader</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="../ClientRuntime/ConfigStoresReader.html#initialize-instance_method" title="Eryph::ClientRuntime::ConfigStoresReader#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='ivar'>@environment</span><span class='rparen'>)</span>
+  
+  <span class='kw'>if</span> <span class='id identifier rubyid_client_id'>client_id</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_config_name'>config_name</span>
+    <span class='comment'># Specific client in specific config - no fallback
+</span>    <span class='id identifier rubyid_lookup'>lookup</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="../ClientRuntime.html" title="Eryph::ClientRuntime (module)">ClientRuntime</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../ClientRuntime/ClientCredentialsLookup.html" title="Eryph::ClientRuntime::ClientCredentialsLookup (class)">ClientCredentialsLookup</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="../ClientRuntime/ClientCredentialsLookup.html#initialize-instance_method" title="Eryph::ClientRuntime::ClientCredentialsLookup#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_reader'>reader</span><span class='comma'>,</span> <span class='id identifier rubyid_config_name'>config_name</span><span class='rparen'>)</span>
+    <span class='ivar'>@credentials</span> <span class='op'>=</span> <span class='id identifier rubyid_lookup'>lookup</span><span class='period'>.</span><span class='id identifier rubyid_get_credentials_by_client_id'>get_credentials_by_client_id</span><span class='lparen'>(</span><span class='id identifier rubyid_client_id'>client_id</span><span class='comma'>,</span> <span class='id identifier rubyid_config_name'>config_name</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="../ClientRuntime.html" title="Eryph::ClientRuntime (module)">ClientRuntime</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../ClientRuntime/CredentialsNotFoundError.html" title="Eryph::ClientRuntime::CredentialsNotFoundError (class)">CredentialsNotFoundError</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Client &#39;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_client_id'>client_id</span><span class='embexpr_end'>}</span><span class='tstring_content'>&#39; not found in configuration &#39;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_config_name'>config_name</span><span class='embexpr_end'>}</span><span class='tstring_content'>&#39;</span><span class='tstring_end'>&quot;</span></span> <span class='kw'>unless</span> <span class='ivar'>@credentials</span>
+    
+  <span class='kw'>elsif</span> <span class='id identifier rubyid_client_id'>client_id</span>
+    <span class='comment'># Find client in any config
+</span>    <span class='ivar'>@credentials</span> <span class='op'>=</span> <span class='id identifier rubyid_find_client_in_any_config'>find_client_in_any_config</span><span class='lparen'>(</span><span class='id identifier rubyid_reader'>reader</span><span class='comma'>,</span> <span class='id identifier rubyid_client_id'>client_id</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="../ClientRuntime.html" title="Eryph::ClientRuntime (module)">ClientRuntime</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../ClientRuntime/CredentialsNotFoundError.html" title="Eryph::ClientRuntime::CredentialsNotFoundError (class)">CredentialsNotFoundError</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Client &#39;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_client_id'>client_id</span><span class='embexpr_end'>}</span><span class='tstring_content'>&#39; not found in any configuration</span><span class='tstring_end'>&quot;</span></span> <span class='kw'>unless</span> <span class='ivar'>@credentials</span>
+    
+  <span class='kw'>elsif</span> <span class='id identifier rubyid_config_name'>config_name</span>
+    <span class='comment'># Default client in specific config
+</span>    <span class='id identifier rubyid_lookup'>lookup</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="../ClientRuntime.html" title="Eryph::ClientRuntime (module)">ClientRuntime</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../ClientRuntime/ClientCredentialsLookup.html" title="Eryph::ClientRuntime::ClientCredentialsLookup (class)">ClientCredentialsLookup</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="../ClientRuntime/ClientCredentialsLookup.html#initialize-instance_method" title="Eryph::ClientRuntime::ClientCredentialsLookup#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_reader'>reader</span><span class='comma'>,</span> <span class='id identifier rubyid_config_name'>config_name</span><span class='rparen'>)</span>
+    <span class='ivar'>@credentials</span> <span class='op'>=</span> <span class='id identifier rubyid_lookup'>lookup</span><span class='period'>.</span><span class='id identifier rubyid_find_credentials'>find_credentials</span>
+    
+  <span class='kw'>else</span>
+    <span class='comment'># Automatic discovery
+</span>    <span class='id identifier rubyid_lookup'>lookup</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="../ClientRuntime.html" title="Eryph::ClientRuntime (module)">ClientRuntime</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../ClientRuntime/ClientCredentialsLookup.html" title="Eryph::ClientRuntime::ClientCredentialsLookup (class)">ClientCredentialsLookup</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="../ClientRuntime/ClientCredentialsLookup.html#initialize-instance_method" title="Eryph::ClientRuntime::ClientCredentialsLookup#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_reader'>reader</span><span class='rparen'>)</span>
+    <span class='ivar'>@credentials</span> <span class='op'>=</span> <span class='id identifier rubyid_lookup'>lookup</span><span class='period'>.</span><span class='id identifier rubyid_find_credentials'>find_credentials</span>
+  <span class='kw'>end</span>
+  
+  <span class='ivar'>@config_name</span> <span class='op'>=</span> <span class='ivar'>@credentials</span><span class='period'>.</span><span class='id identifier rubyid_configuration'>configuration</span>
+  
+  <span class='comment'># Get compute endpoint for the discovered configuration
+</span>  <span class='id identifier rubyid_endpoint_lookup'>endpoint_lookup</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="../ClientRuntime.html" title="Eryph::ClientRuntime (module)">ClientRuntime</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../ClientRuntime/EndpointLookup.html" title="Eryph::ClientRuntime::EndpointLookup (class)">EndpointLookup</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="../ClientRuntime/EndpointLookup.html#initialize-instance_method" title="Eryph::ClientRuntime::EndpointLookup#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_reader'>reader</span><span class='comma'>,</span> <span class='ivar'>@config_name</span><span class='rparen'>)</span>
+  <span class='ivar'>@compute_endpoint</span> <span class='op'>=</span> <span class='id identifier rubyid_endpoint_lookup'>endpoint_lookup</span><span class='period'>.</span><span class='id identifier rubyid_get_endpoint'>get_endpoint</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>compute</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="../ClientRuntime.html" title="Eryph::ClientRuntime (module)">ClientRuntime</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../ClientRuntime/ConfigurationError.html" title="Eryph::ClientRuntime::ConfigurationError (class)">ConfigurationError</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Compute endpoint not found in configuration &#39;</span><span class='embexpr_beg'>#{</span><span class='ivar'>@config_name</span><span class='embexpr_end'>}</span><span class='tstring_content'>&#39;</span><span class='tstring_end'>&quot;</span></span> <span class='kw'>unless</span> <span class='ivar'>@compute_endpoint</span>
+  
+  <span class='comment'># Create token provider
+</span>  <span class='ivar'>@token_provider</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="../ClientRuntime.html" title="Eryph::ClientRuntime (module)">ClientRuntime</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../ClientRuntime/TokenProvider.html" title="Eryph::ClientRuntime::TokenProvider (class)">TokenProvider</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="../ClientRuntime/TokenProvider.html#initialize-instance_method" title="Eryph::ClientRuntime::TokenProvider#initialize (method)">new</a></span></span><span class='lparen'>(</span>
+    <span class='ivar'>@credentials</span><span class='comma'>,</span>
+    <span class='label'>scopes:</span> <span class='id identifier rubyid_scopes'>scopes</span> <span class='op'>||</span> <span class='id identifier rubyid_default_scopes'>default_scopes</span><span class='comma'>,</span>
+    <span class='label'>http_config:</span> <span class='lbrace'>{</span> <span class='label'>logger:</span> <span class='ivar'>@logger</span> <span class='rbrace'>}</span><span class='period'>.</span><span class='id identifier rubyid_merge'>merge</span><span class='lparen'>(</span><span class='ivar'>@ssl_config</span><span class='rparen'>)</span>
+  <span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+  
+</div>
+
+  <div id="instance_attr_details" class="attr_details">
+    <h2>Instance Attribute Details</h2>
+    
+      
+      <span id=""></span>
+      <div class="method_details first">
+  <h3 class="signature first" id="config_name-instance_method">
+  
+    #<strong>config_name</strong>  &#x21d2; <tt>String</tt>  <span class="extras">(readonly)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns configuration name used for this client.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>configuration name used for this client</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+10
+11
+12</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/compute/client.rb', line 10</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_config_name'>config_name</span>
+  <span class='ivar'>@config_name</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id=""></span>
+      <div class="method_details ">
+  <h3 class="signature " id="logger-instance_method">
+  
+    #<strong>logger</strong>  &#x21d2; <tt>Logger</tt>  <span class="extras">(readonly)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns logger instance.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Logger</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>logger instance</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+16
+17
+18</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/compute/client.rb', line 16</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_logger'>logger</span>
+  <span class='ivar'>@logger</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id=""></span>
+      <div class="method_details ">
+  <h3 class="signature " id="token_provider-instance_method">
+  
+    #<strong>token_provider</strong>  &#x21d2; <tt><span class='object_link'><a href="../ClientRuntime/TokenProvider.html" title="Eryph::ClientRuntime::TokenProvider (class)">ClientRuntime::TokenProvider</a></span></tt>  <span class="extras">(readonly)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns token provider for authentication.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="../ClientRuntime/TokenProvider.html" title="Eryph::ClientRuntime::TokenProvider (class)">ClientRuntime::TokenProvider</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>token provider for authentication</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+13
+14
+15</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/compute/client.rb', line 13</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_token_provider'>token_provider</span>
+  <span class='ivar'>@token_provider</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+
+  <div id="instance_method_details" class="method_details_list">
+    <h2>Instance Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="access_token-instance_method">
+  
+    #<strong>access_token</strong>  &#x21d2; <tt>String</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Get the current access token</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>access token</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+88
+89
+90</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/compute/client.rb', line 88</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_access_token'>access_token</span>
+  <span class='ivar'>@token_provider</span><span class='period'>.</span><span class='id identifier rubyid_get_access_token'>get_access_token</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="authorization_header-instance_method">
+  
+    #<strong>authorization_header</strong>  &#x21d2; <tt>String</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Get the authorization header for HTTP requests</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>authorization header value</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+100
+101
+102</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/compute/client.rb', line 100</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_authorization_header'>authorization_header</span>
+  <span class='ivar'>@token_provider</span><span class='period'>.</span><span class='id identifier rubyid_authorization_header'>authorization_header</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="catlets-instance_method">
+  
+    #<strong>catlets</strong>  &#x21d2; <tt>Eryph::ComputeClient::CatletsApi</tt>, <tt><span class='object_link'><a href="PlaceholderApiClient.html" title="Eryph::Compute::PlaceholderApiClient (class)">PlaceholderApiClient</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Access the catlets API</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Eryph::ComputeClient::CatletsApi</tt>, <tt><span class='object_link'><a href="PlaceholderApiClient.html" title="Eryph::Compute::PlaceholderApiClient (class)">PlaceholderApiClient</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>catlets API client</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+106
+107
+108</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/compute/client.rb', line 106</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_catlets'>catlets</span>
+  <span class='ivar'>@catlets</span> <span class='op'>||=</span> <span class='id identifier rubyid_create_api_client'>create_api_client</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>catlets</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>CatletsApi</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="compute_endpoint_url-instance_method">
+  
+    #<strong>compute_endpoint_url</strong>  &#x21d2; <tt>String</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Get the compute endpoint URL being used by this client</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the compute endpoint URL</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+148
+149
+150</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/compute/client.rb', line 148</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_compute_endpoint_url'>compute_endpoint_url</span>
+  <span class='ivar'>@compute_endpoint</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="genes-instance_method">
+  
+    #<strong>genes</strong>  &#x21d2; <tt>Eryph::ComputeClient::GenesApi</tt>, <tt><span class='object_link'><a href="PlaceholderApiClient.html" title="Eryph::Compute::PlaceholderApiClient (class)">PlaceholderApiClient</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Access the genes API</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Eryph::ComputeClient::GenesApi</tt>, <tt><span class='object_link'><a href="PlaceholderApiClient.html" title="Eryph::Compute::PlaceholderApiClient (class)">PlaceholderApiClient</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>genes API client</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+136
+137
+138</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/compute/client.rb', line 136</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_genes'>genes</span>
+  <span class='ivar'>@genes</span> <span class='op'>||=</span> <span class='id identifier rubyid_create_api_client'>create_api_client</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>genes</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>GenesApi</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="handle_api_errors-instance_method">
+  
+    #<strong>handle_api_errors</strong> { ... } &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Execute a block and convert ApiError to ProblemDetailsError when appropriate</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Yields:</p>
+<ul class="yield">
+  
+    <li>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        
+        <div class='inline'><p>the block to execute</p>
+</div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        
+        <div class='inline'><p>the result of the block</p>
+</div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="ProblemDetailsError.html" title="Eryph::Compute::ProblemDetailsError (class)">ProblemDetailsError</a></span></tt>, <tt>Exception</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the error with enhanced information</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/compute/client.rb', line 288</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_handle_api_errors'>handle_api_errors</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='kw'>yield</span>
+<span class='kw'>rescue</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_e'>e</span>
+  <span class='comment'># Check if this looks like an API error (has code and response_body)
+</span>  <span class='kw'>if</span> <span class='id identifier rubyid_e'>e</span><span class='period'>.</span><span class='id identifier rubyid_respond_to?'>respond_to?</span><span class='lparen'>(</span><span class='symbol'>:code</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_e'>e</span><span class='period'>.</span><span class='id identifier rubyid_respond_to?'>respond_to?</span><span class='lparen'>(</span><span class='symbol'>:response_body</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_enhanced_error'>enhanced_error</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="ProblemDetailsError.html" title="Eryph::Compute::ProblemDetailsError (class)">ProblemDetailsError</a></span></span><span class='period'>.</span><span class='id identifier rubyid_from_api_error'><span class='object_link'><a href="ProblemDetailsError.html#from_api_error-class_method" title="Eryph::Compute::ProblemDetailsError.from_api_error (method)">from_api_error</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_e'>e</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_raise'>raise</span> <span class='id identifier rubyid_enhanced_error'>enhanced_error</span>
+  <span class='kw'>else</span>
+    <span class='comment'># Re-raise non-API errors as-is
+</span>    <span class='id identifier rubyid_raise'>raise</span> <span class='id identifier rubyid_e'>e</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="operations-instance_method">
+  
+    #<strong>operations</strong>  &#x21d2; <tt>Eryph::ComputeClient::OperationsApi</tt>, <tt><span class='object_link'><a href="PlaceholderApiClient.html" title="Eryph::Compute::PlaceholderApiClient (class)">PlaceholderApiClient</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Access the operations API</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Eryph::ComputeClient::OperationsApi</tt>, <tt><span class='object_link'><a href="PlaceholderApiClient.html" title="Eryph::Compute::PlaceholderApiClient (class)">PlaceholderApiClient</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>operations API client</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+112
+113
+114</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/compute/client.rb', line 112</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_operations'>operations</span>
+  <span class='ivar'>@operations</span> <span class='op'>||=</span> <span class='id identifier rubyid_create_api_client'>create_api_client</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>operations</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>OperationsApi</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="projects-instance_method">
+  
+    #<strong>projects</strong>  &#x21d2; <tt>Eryph::ComputeClient::ProjectsApi</tt>, <tt><span class='object_link'><a href="PlaceholderApiClient.html" title="Eryph::Compute::PlaceholderApiClient (class)">PlaceholderApiClient</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Access the projects API</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Eryph::ComputeClient::ProjectsApi</tt>, <tt><span class='object_link'><a href="PlaceholderApiClient.html" title="Eryph::Compute::PlaceholderApiClient (class)">PlaceholderApiClient</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>projects API client</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+118
+119
+120</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/compute/client.rb', line 118</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_projects'>projects</span>
+  <span class='ivar'>@projects</span> <span class='op'>||=</span> <span class='id identifier rubyid_create_api_client'>create_api_client</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>projects</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>ProjectsApi</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="refresh_token-instance_method">
+  
+    #<strong>refresh_token</strong>  &#x21d2; <tt>String</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Refresh the authentication token</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>new access token</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+94
+95
+96</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/compute/client.rb', line 94</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_refresh_token'>refresh_token</span>
+  <span class='ivar'>@token_provider</span><span class='period'>.</span><span class='id identifier rubyid_refresh_token'>refresh_token</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="test_connection-instance_method">
+  
+    #<strong>test_connection</strong>  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Test the connection and authentication</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>true if connection and authentication work</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+77
+78
+79
+80
+81
+82
+83
+84</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/compute/client.rb', line 77</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_test_connection'>test_connection</span>
+  <span class='comment'># For now, just test if we can get a token
+</span>  <span class='id identifier rubyid_token'>token</span> <span class='op'>=</span> <span class='ivar'>@token_provider</span><span class='period'>.</span><span class='id identifier rubyid_get_access_token'>get_access_token</span>
+  <span class='op'>!</span><span class='id identifier rubyid_token'>token</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='op'>&amp;&amp;</span> <span class='op'>!</span><span class='id identifier rubyid_token'>token</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span>
+<span class='kw'>rescue</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_e'>e</span>
+  <span class='ivar'>@logger</span><span class='period'>.</span><span class='id identifier rubyid_error'>error</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Connection test failed: </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_e'>e</span><span class='period'>.</span><span class='id identifier rubyid_message'>message</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>false</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="validate_catlet_config-instance_method">
+  
+    #<strong>validate_catlet_config</strong>(config)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Validate a catlet configuration using the quick validation endpoint</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>config</span>
+      
+      
+        <span class='type'>(<tt>Hash</tt>, <tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>catlet configuration as Ruby hash or JSON string</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Object</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>validation result with is_valid and errors</p>
+</div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="ProblemDetailsError.html" title="Eryph::Compute::ProblemDetailsError (class)">ProblemDetailsError</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>if validation fails due to API error</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/compute/client.rb', line 260</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_validate_catlet_config'>validate_catlet_config</span><span class='lparen'>(</span><span class='id identifier rubyid_config'>config</span><span class='rparen'>)</span>
+  <span class='comment'># Convert input to hash if it&#39;s a JSON string
+</span>  <span class='id identifier rubyid_config_hash'>config_hash</span> <span class='op'>=</span> <span class='kw'>case</span> <span class='id identifier rubyid_config'>config</span>
+  <span class='kw'>when</span> <span class='const'>String</span>
+    <span class='kw'>begin</span>
+      <span class='const'>JSON</span><span class='period'>.</span><span class='id identifier rubyid_parse'>parse</span><span class='lparen'>(</span><span class='id identifier rubyid_config'>config</span><span class='rparen'>)</span>
+    <span class='kw'>rescue</span> <span class='const'>JSON</span><span class='op'>::</span><span class='const'>ParserError</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_e'>e</span>
+      <span class='id identifier rubyid_raise'>raise</span> <span class='const'>ArgumentError</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Invalid JSON string: </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_e'>e</span><span class='period'>.</span><span class='id identifier rubyid_message'>message</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+    <span class='kw'>end</span>
+  <span class='kw'>when</span> <span class='const'>Hash</span>
+    <span class='id identifier rubyid_config'>config</span>
+  <span class='kw'>else</span>
+    <span class='id identifier rubyid_raise'>raise</span> <span class='const'>ArgumentError</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Config must be a Hash or JSON string, got </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_config'>config</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+
+  <span class='comment'># Create the validation request
+</span>  <span class='id identifier rubyid_request'>request</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="../../Eryph.html" title="Eryph (module)">Eryph</a></span></span><span class='op'>::</span><span class='const'>ComputeClient</span><span class='op'>::</span><span class='const'>ValidateConfigRequest</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='label'>configuration:</span> <span class='id identifier rubyid_config_hash'>config_hash</span><span class='rparen'>)</span>
+  
+  <span class='comment'># Call the validation endpoint
+</span>  <span class='id identifier rubyid_handle_api_errors'>handle_api_errors</span> <span class='kw'>do</span>
+    <span class='id identifier rubyid_catlets'>catlets</span><span class='period'>.</span><span class='id identifier rubyid_catlets_validate_config'>catlets_validate_config</span><span class='lparen'>(</span><span class='label'>validate_config_request:</span> <span class='id identifier rubyid_request'>request</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="version-instance_method">
+  
+    #<strong>version</strong>  &#x21d2; <tt>Eryph::ComputeClient::VersionApi</tt>, <tt><span class='object_link'><a href="PlaceholderApiClient.html" title="Eryph::Compute::PlaceholderApiClient (class)">PlaceholderApiClient</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Access the version API</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Eryph::ComputeClient::VersionApi</tt>, <tt><span class='object_link'><a href="PlaceholderApiClient.html" title="Eryph::Compute::PlaceholderApiClient (class)">PlaceholderApiClient</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>version API client</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+142
+143
+144</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/compute/client.rb', line 142</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_version'>version</span>
+  <span class='ivar'>@version</span> <span class='op'>||=</span> <span class='id identifier rubyid_create_api_client'>create_api_client</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>version</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>VersionApi</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="virtual_disks-instance_method">
+  
+    #<strong>virtual_disks</strong>  &#x21d2; <tt>Eryph::ComputeClient::VirtualDisksApi</tt>, <tt><span class='object_link'><a href="PlaceholderApiClient.html" title="Eryph::Compute::PlaceholderApiClient (class)">PlaceholderApiClient</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Access the virtual disks API</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Eryph::ComputeClient::VirtualDisksApi</tt>, <tt><span class='object_link'><a href="PlaceholderApiClient.html" title="Eryph::Compute::PlaceholderApiClient (class)">PlaceholderApiClient</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>virtual disks API client</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+124
+125
+126</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/compute/client.rb', line 124</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_virtual_disks'>virtual_disks</span>
+  <span class='ivar'>@virtual_disks</span> <span class='op'>||=</span> <span class='id identifier rubyid_create_api_client'>create_api_client</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>virtual_disks</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>VirtualDisksApi</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="virtual_networks-instance_method">
+  
+    #<strong>virtual_networks</strong>  &#x21d2; <tt>Eryph::ComputeClient::VirtualNetworksApi</tt>, <tt><span class='object_link'><a href="PlaceholderApiClient.html" title="Eryph::Compute::PlaceholderApiClient (class)">PlaceholderApiClient</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Access the virtual networks API</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Eryph::ComputeClient::VirtualNetworksApi</tt>, <tt><span class='object_link'><a href="PlaceholderApiClient.html" title="Eryph::Compute::PlaceholderApiClient (class)">PlaceholderApiClient</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>virtual networks API client</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+130
+131
+132</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/compute/client.rb', line 130</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_virtual_networks'>virtual_networks</span>
+  <span class='ivar'>@virtual_networks</span> <span class='op'>||=</span> <span class='id identifier rubyid_create_api_client'>create_api_client</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>virtual_networks</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>VirtualNetworksApi</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="wait_for_operation-instance_method">
+  
+    #<strong>wait_for_operation</strong>(operation_id, timeout: 300, poll_interval: 5) {|event_type, data| ... } &#x21d2; <tt><span class='object_link'><a href="OperationResult.html" title="Eryph::Compute::OperationResult (class)">OperationResult</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Wait for an operation to complete with optional callbacks for progress tracking</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>operation_id</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the operation ID to wait for</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>timeout</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>300</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>timeout in seconds (default: 300)</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>poll_interval</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>5</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>polling interval in seconds (default: 5)</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Yields:</p>
+<ul class="yield">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>event_type</tt>, <tt>data</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>callback for operation events</p>
+</div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Yield Parameters:</p>
+<ul class="yieldparam">
+  
+    <li>
+      
+        <span class='name'>event_type</span>
+      
+      
+        <span class='type'>(<tt>Symbol</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>:log_entry, :task_new, :task_update, :resource_new, :status</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>data</span>
+      
+      
+        <span class='type'>(<tt>Object</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the event data (log entry, task, resource, or operation)</p>
+</div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="OperationResult.html" title="Eryph::Compute::OperationResult (class)">OperationResult</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the completed operation result wrapper</p>
+</div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Timeout::Error</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>if the operation times out</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/compute/client.rb', line 161</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_wait_for_operation'>wait_for_operation</span><span class='lparen'>(</span><span class='id identifier rubyid_operation_id'>operation_id</span><span class='comma'>,</span> <span class='label'>timeout:</span> <span class='int'>300</span><span class='comma'>,</span> <span class='label'>poll_interval:</span> <span class='int'>5</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='ivar'>@logger</span><span class='period'>.</span><span class='id identifier rubyid_info'>info</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Waiting for operation </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_operation_id'>operation_id</span><span class='embexpr_end'>}</span><span class='tstring_content'> to complete (timeout: </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_timeout'>timeout</span><span class='embexpr_end'>}</span><span class='tstring_content'>s)...</span><span class='tstring_end'>&quot;</span></span>
+  
+  <span class='id identifier rubyid_start_time'>start_time</span> <span class='op'>=</span> <span class='const'>Time</span><span class='period'>.</span><span class='id identifier rubyid_now'>now</span>
+  <span class='id identifier rubyid_last_timestamp'>last_timestamp</span> <span class='op'>=</span> <span class='const'>Time</span><span class='period'>.</span><span class='id identifier rubyid_parse'>parse</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>2018-01-01</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_processed_log_ids'>processed_log_ids</span> <span class='op'>=</span> <span class='const'>Set</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span>
+  <span class='id identifier rubyid_processed_task_ids'>processed_task_ids</span> <span class='op'>=</span> <span class='const'>Set</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span>  
+  <span class='id identifier rubyid_processed_resource_ids'>processed_resource_ids</span> <span class='op'>=</span> <span class='const'>Set</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span>
+  
+  <span class='id identifier rubyid_loop'>loop</span> <span class='kw'>do</span>
+    <span class='comment'># Get raw JSON using debug_return_type to work around discriminated union bug
+</span>    <span class='id identifier rubyid_raw_json'>raw_json</span> <span class='op'>=</span> <span class='kw'>nil</span>
+    <span class='kw'>begin</span>
+      <span class='id identifier rubyid_raw_json'>raw_json</span> <span class='op'>=</span> <span class='id identifier rubyid_operations'>operations</span><span class='period'>.</span><span class='id identifier rubyid_operations_get'>operations_get</span><span class='lparen'>(</span>
+        <span class='id identifier rubyid_operation_id'>operation_id</span><span class='comma'>,</span> 
+        <span class='label'>expand:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>logs,tasks,resources</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>
+        <span class='label'>log_time_stamp:</span> <span class='id identifier rubyid_last_timestamp'>last_timestamp</span><span class='comma'>,</span>
+        <span class='label'>debug_return_type:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>String</span><span class='tstring_end'>&#39;</span></span>
+      <span class='rparen'>)</span>
+      <span class='ivar'>@logger</span><span class='period'>.</span><span class='id identifier rubyid_debug'>debug</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Raw JSON captured: </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_raw_json'>raw_json</span> <span class='op'>?</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>YES</span><span class='tstring_end'>&#39;</span></span> <span class='op'>:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>NO</span><span class='tstring_end'>&#39;</span></span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+    <span class='kw'>rescue</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_e'>e</span>
+      <span class='ivar'>@logger</span><span class='period'>.</span><span class='id identifier rubyid_debug'>debug</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Failed to capture raw JSON: </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_e'>e</span><span class='period'>.</span><span class='id identifier rubyid_message'>message</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+    <span class='kw'>end</span>
+    
+    <span class='comment'># Get normal deserialized operation
+</span>    <span class='id identifier rubyid_operation'>operation</span> <span class='op'>=</span> <span class='id identifier rubyid_operations'>operations</span><span class='period'>.</span><span class='id identifier rubyid_operations_get'>operations_get</span><span class='lparen'>(</span>
+      <span class='id identifier rubyid_operation_id'>operation_id</span><span class='comma'>,</span> 
+      <span class='label'>expand:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>logs,tasks,resources</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> 
+      <span class='label'>log_time_stamp:</span> <span class='id identifier rubyid_last_timestamp'>last_timestamp</span>
+    <span class='rparen'>)</span>
+    
+    <span class='comment'># Process NEW log entries only
+</span>    <span class='kw'>if</span> <span class='id identifier rubyid_operation'>operation</span><span class='period'>.</span><span class='id identifier rubyid_log_entries'>log_entries</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_block_given?'>block_given?</span>
+      <span class='id identifier rubyid_operation'>operation</span><span class='period'>.</span><span class='id identifier rubyid_log_entries'>log_entries</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_log_entry'>log_entry</span><span class='op'>|</span>
+        <span class='kw'>next</span> <span class='kw'>if</span> <span class='id identifier rubyid_processed_log_ids'>processed_log_ids</span><span class='period'>.</span><span class='id identifier rubyid_include?'>include?</span><span class='lparen'>(</span><span class='id identifier rubyid_log_entry'>log_entry</span><span class='period'>.</span><span class='id identifier rubyid_id'>id</span><span class='rparen'>)</span>
+        
+        <span class='id identifier rubyid_processed_log_ids'>processed_log_ids</span><span class='period'>.</span><span class='id identifier rubyid_add'>add</span><span class='lparen'>(</span><span class='id identifier rubyid_log_entry'>log_entry</span><span class='period'>.</span><span class='id identifier rubyid_id'>id</span><span class='rparen'>)</span>
+        <span class='id identifier rubyid_last_timestamp'>last_timestamp</span> <span class='op'>=</span> <span class='id identifier rubyid_log_entry'>log_entry</span><span class='period'>.</span><span class='id identifier rubyid_timestamp'>timestamp</span> <span class='kw'>if</span> <span class='id identifier rubyid_log_entry'>log_entry</span><span class='period'>.</span><span class='id identifier rubyid_timestamp'>timestamp</span> <span class='op'>&gt;</span> <span class='id identifier rubyid_last_timestamp'>last_timestamp</span>
+        
+        <span class='comment'># Callback for new log entry
+</span>        <span class='kw'>yield</span><span class='lparen'>(</span><span class='symbol'>:log_entry</span><span class='comma'>,</span> <span class='id identifier rubyid_log_entry'>log_entry</span><span class='rparen'>)</span>
+      <span class='kw'>end</span>
+    <span class='kw'>end</span>
+    
+    <span class='comment'># Process NEW and UPDATED tasks (tasks can appear and change during execution)
+</span>    <span class='kw'>if</span> <span class='id identifier rubyid_operation'>operation</span><span class='period'>.</span><span class='id identifier rubyid_tasks'>tasks</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_block_given?'>block_given?</span>
+      <span class='id identifier rubyid_operation'>operation</span><span class='period'>.</span><span class='id identifier rubyid_tasks'>tasks</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_task'>task</span><span class='op'>|</span>
+        <span class='kw'>if</span> <span class='op'>!</span><span class='id identifier rubyid_processed_task_ids'>processed_task_ids</span><span class='period'>.</span><span class='id identifier rubyid_include?'>include?</span><span class='lparen'>(</span><span class='id identifier rubyid_task'>task</span><span class='period'>.</span><span class='id identifier rubyid_id'>id</span><span class='rparen'>)</span>
+          <span class='id identifier rubyid_processed_task_ids'>processed_task_ids</span><span class='period'>.</span><span class='id identifier rubyid_add'>add</span><span class='lparen'>(</span><span class='id identifier rubyid_task'>task</span><span class='period'>.</span><span class='id identifier rubyid_id'>id</span><span class='rparen'>)</span>
+          <span class='comment'># Callback for new task
+</span>          <span class='kw'>yield</span><span class='lparen'>(</span><span class='symbol'>:task_new</span><span class='comma'>,</span> <span class='id identifier rubyid_task'>task</span><span class='rparen'>)</span>
+        <span class='kw'>else</span>
+          <span class='comment'># Callback for task update (status/progress changes)
+</span>          <span class='kw'>yield</span><span class='lparen'>(</span><span class='symbol'>:task_update</span><span class='comma'>,</span> <span class='id identifier rubyid_task'>task</span><span class='rparen'>)</span>
+        <span class='kw'>end</span>
+      <span class='kw'>end</span>
+    <span class='kw'>end</span>
+    
+    <span class='comment'># Process NEW resources (resources appear as they&#39;re created)
+</span>    <span class='kw'>if</span> <span class='id identifier rubyid_operation'>operation</span><span class='period'>.</span><span class='id identifier rubyid_resources'>resources</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_block_given?'>block_given?</span>
+      <span class='id identifier rubyid_operation'>operation</span><span class='period'>.</span><span class='id identifier rubyid_resources'>resources</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_resource'>resource</span><span class='op'>|</span>
+        <span class='kw'>next</span> <span class='kw'>if</span> <span class='id identifier rubyid_processed_resource_ids'>processed_resource_ids</span><span class='period'>.</span><span class='id identifier rubyid_include?'>include?</span><span class='lparen'>(</span><span class='id identifier rubyid_resource'>resource</span><span class='period'>.</span><span class='id identifier rubyid_id'>id</span><span class='rparen'>)</span>
+        
+        <span class='id identifier rubyid_processed_resource_ids'>processed_resource_ids</span><span class='period'>.</span><span class='id identifier rubyid_add'>add</span><span class='lparen'>(</span><span class='id identifier rubyid_resource'>resource</span><span class='period'>.</span><span class='id identifier rubyid_id'>id</span><span class='rparen'>)</span>
+        <span class='comment'># Callback for new resource
+</span>        <span class='kw'>yield</span><span class='lparen'>(</span><span class='symbol'>:resource_new</span><span class='comma'>,</span> <span class='id identifier rubyid_resource'>resource</span><span class='rparen'>)</span>
+      <span class='kw'>end</span>
+    <span class='kw'>end</span>
+    
+    <span class='comment'># Status update callback
+</span>    <span class='kw'>yield</span><span class='lparen'>(</span><span class='symbol'>:status</span><span class='comma'>,</span> <span class='id identifier rubyid_operation'>operation</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_block_given?'>block_given?</span>
+    
+    <span class='kw'>case</span> <span class='id identifier rubyid_operation'>operation</span><span class='period'>.</span><span class='id identifier rubyid_status'>status</span>
+    <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>Completed</span><span class='tstring_end'>&#39;</span></span>
+      <span class='ivar'>@logger</span><span class='period'>.</span><span class='id identifier rubyid_info'>info</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Operation </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_operation_id'>operation_id</span><span class='embexpr_end'>}</span><span class='tstring_content'> completed successfully!</span><span class='tstring_end'>&quot;</span></span>
+      <span class='kw'>return</span> <span class='const'><span class='object_link'><a href="OperationResult.html" title="Eryph::Compute::OperationResult (class)">OperationResult</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="OperationResult.html#initialize-instance_method" title="Eryph::Compute::OperationResult#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_operation'>operation</span><span class='comma'>,</span> <span class='kw'>self</span><span class='comma'>,</span> <span class='id identifier rubyid_raw_json'>raw_json</span><span class='rparen'>)</span>
+    <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>Failed</span><span class='tstring_end'>&#39;</span></span>
+      <span class='ivar'>@logger</span><span class='period'>.</span><span class='id identifier rubyid_error'>error</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Operation </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_operation_id'>operation_id</span><span class='embexpr_end'>}</span><span class='tstring_content'> failed: </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_operation'>operation</span><span class='period'>.</span><span class='id identifier rubyid_status_message'>status_message</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+      <span class='kw'>return</span> <span class='const'><span class='object_link'><a href="OperationResult.html" title="Eryph::Compute::OperationResult (class)">OperationResult</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="OperationResult.html#initialize-instance_method" title="Eryph::Compute::OperationResult#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_operation'>operation</span><span class='comma'>,</span> <span class='kw'>self</span><span class='comma'>,</span> <span class='id identifier rubyid_raw_json'>raw_json</span><span class='rparen'>)</span>
+    <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>Running</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>Queued</span><span class='tstring_end'>&#39;</span></span>
+      <span class='id identifier rubyid_elapsed'>elapsed</span> <span class='op'>=</span> <span class='const'>Time</span><span class='period'>.</span><span class='id identifier rubyid_now'>now</span> <span class='op'>-</span> <span class='id identifier rubyid_start_time'>start_time</span>
+      <span class='kw'>if</span> <span class='id identifier rubyid_elapsed'>elapsed</span> <span class='op'>&gt;</span> <span class='id identifier rubyid_timeout'>timeout</span>
+        <span class='ivar'>@logger</span><span class='period'>.</span><span class='id identifier rubyid_error'>error</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Operation </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_operation_id'>operation_id</span><span class='embexpr_end'>}</span><span class='tstring_content'> timed out after </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_timeout'>timeout</span><span class='embexpr_end'>}</span><span class='tstring_content'> seconds</span><span class='tstring_end'>&quot;</span></span>
+        <span class='id identifier rubyid_raise'>raise</span> <span class='const'>Timeout</span><span class='op'>::</span><span class='const'>Error</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Operation </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_operation_id'>operation_id</span><span class='embexpr_end'>}</span><span class='tstring_content'> timed out after </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_timeout'>timeout</span><span class='embexpr_end'>}</span><span class='tstring_content'> seconds</span><span class='tstring_end'>&quot;</span></span>
+      <span class='kw'>end</span>
+      
+      <span class='ivar'>@logger</span><span class='period'>.</span><span class='id identifier rubyid_debug'>debug</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Operation </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_operation_id'>operation_id</span><span class='embexpr_end'>}</span><span class='tstring_content'> status: </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_operation'>operation</span><span class='period'>.</span><span class='id identifier rubyid_status'>status</span><span class='embexpr_end'>}</span><span class='tstring_content'> (</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_elapsed'>elapsed</span><span class='period'>.</span><span class='id identifier rubyid_round'>round</span><span class='lparen'>(</span><span class='int'>1</span><span class='rparen'>)</span><span class='embexpr_end'>}</span><span class='tstring_content'>s elapsed)</span><span class='tstring_end'>&quot;</span></span>
+      <span class='id identifier rubyid_sleep'>sleep</span> <span class='id identifier rubyid_poll_interval'>poll_interval</span>
+    <span class='kw'>else</span>
+      <span class='ivar'>@logger</span><span class='period'>.</span><span class='id identifier rubyid_warn'>warn</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Operation </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_operation_id'>operation_id</span><span class='embexpr_end'>}</span><span class='tstring_content'> has unknown status: </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_operation'>operation</span><span class='period'>.</span><span class='id identifier rubyid_status'>status</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+      <span class='kw'>return</span> <span class='const'><span class='object_link'><a href="OperationResult.html" title="Eryph::Compute::OperationResult (class)">OperationResult</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="OperationResult.html#initialize-instance_method" title="Eryph::Compute::OperationResult#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_operation'>operation</span><span class='comma'>,</span> <span class='kw'>self</span><span class='rparen'>)</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+
+      <div id="footer">
+  Generated on Sun Aug 31 15:42:18 2025 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.37 (ruby-3.4.4).
+</div>
+
+    </div>
+  </body>
+</html>

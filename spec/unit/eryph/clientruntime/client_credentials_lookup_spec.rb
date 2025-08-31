@@ -3,606 +3,577 @@ require 'spec_helper'
 RSpec.describe Eryph::ClientRuntime::ClientCredentialsLookup do
   let(:mock_environment) { double('Environment') }
   let(:mock_reader) { double('ConfigStoresReader') }
-  let(:mock_endpoint_lookup) { double('EndpointLookup') }
   let(:config_name) { 'test' }
-  let(:endpoint_name) { 'identity' }
   let(:private_key_content) { build(:rsa_private_key).to_pem }
+  let(:mock_client_data) do
+    {
+      'id' => 'test-client-id',
+      'name' => 'My Client'
+    }
+  end
 
   before do
     allow(mock_reader).to receive(:environment).and_return(mock_environment)
+    allow(mock_environment).to receive(:windows?).and_return(true)
+    allow(mock_environment).to receive(:linux?).and_return(false)
   end
 
-  subject { described_class.new(mock_reader, mock_endpoint_lookup, config_name, endpoint_name) }
-
   describe '#initialize' do
-    it 'stores all dependencies' do
-      lookup = described_class.new(mock_reader, mock_endpoint_lookup, 'custom', 'compute')
-      
-      expect(lookup.instance_variable_get(:@reader)).to eq(mock_reader)
-      expect(lookup.instance_variable_get(:@endpoint_lookup)).to eq(mock_endpoint_lookup)
-      expect(lookup.instance_variable_get(:@config_name)).to eq('custom')
-      expect(lookup.instance_variable_get(:@endpoint_name)).to eq('compute')
+    context 'with config name' do
+      subject { described_class.new(mock_reader, config_name) }
+
+      it 'stores reader and config name' do
+        expect(subject.reader).to eq(mock_reader)
+        expect(subject.config_name).to eq(config_name)
+      end
     end
 
-    it 'handles nil endpoint name' do
-      lookup = described_class.new(mock_reader, mock_endpoint_lookup, config_name, nil)
-      
-      expect(lookup.instance_variable_get(:@endpoint_name)).to be_nil
+    context 'without config name (automatic discovery)' do
+      subject { described_class.new(mock_reader) }
+
+      it 'stores reader with nil config name' do
+        expect(subject.reader).to eq(mock_reader)
+        expect(subject.config_name).to be_nil
+      end
+    end
+  end
+
+  describe '#find_credentials' do
+    context 'with specific config name' do
+      subject { described_class.new(mock_reader, config_name) }
+
+      context 'when default client exists' do
+        before do
+          allow(subject).to receive(:get_default_credentials).and_return(build(:client_credentials))
+        end
+
+        it 'returns credentials' do
+          result = subject.find_credentials
+          expect(result).to be_a(Eryph::ClientRuntime::ClientCredentials)
+        end
+      end
+
+      context 'when no default client exists' do
+        before do
+          allow(subject).to receive(:get_default_credentials).and_return(nil)
+        end
+
+        it 'raises CredentialsNotFoundError' do
+          expect { subject.find_credentials }.to raise_error(
+            Eryph::ClientRuntime::CredentialsNotFoundError,
+            "No default client found in configuration 'test'"
+          )
+        end
+      end
+    end
+
+    context 'without config name (automatic discovery)' do
+      subject { described_class.new(mock_reader) }
+
+      context 'on Windows' do
+        before do
+          allow(mock_environment).to receive(:windows?).and_return(true)
+        end
+
+        it 'tries default, zero, local configs in order' do
+          expect(subject).to receive(:find_credentials_in_configs).with('default', 'zero', 'local')
+          subject.find_credentials
+        end
+      end
+
+      context 'on Unix' do
+        before do
+          allow(mock_environment).to receive(:windows?).and_return(false)
+        end
+
+        it 'tries default, local configs in order' do
+          expect(subject).to receive(:find_credentials_in_configs).with('default', 'local')
+          subject.find_credentials
+        end
+      end
+    end
+  end
+
+  describe '#find_credentials_in_configs' do
+    subject { described_class.new(mock_reader) }
+
+    context 'when first config has credentials' do
+      before do
+        allow(subject).to receive(:get_default_credentials).with('default').and_return(build(:client_credentials))
+      end
+
+      it 'returns credentials from first config' do
+        result = subject.find_credentials_in_configs('default', 'zero')
+        expect(result).to be_a(Eryph::ClientRuntime::ClientCredentials)
+      end
+
+      it 'does not check subsequent configs' do
+        expect(subject).not_to receive(:get_default_credentials).with('zero')
+        subject.find_credentials_in_configs('default', 'zero')
+      end
+    end
+
+    context 'when no config has credentials' do
+      before do
+        allow(subject).to receive(:get_default_credentials).and_return(nil)
+        allow(subject).to receive(:get_system_client_credentials).and_return(nil)
+      end
+
+      it 'raises NoUserCredentialsError' do
+        expect { subject.find_credentials_in_configs('default', 'zero') }.to raise_error(
+          Eryph::ClientRuntime::NoUserCredentialsError,
+          'No credentials found. Please configure an eryph client.'
+        )
+      end
+    end
+
+    context 'when zero config has system client' do
+      before do
+        allow(subject).to receive(:get_default_credentials).and_return(nil)
+        allow(subject).to receive(:get_system_client_credentials).with('zero').and_return(build(:client_credentials))
+      end
+
+      it 'returns system client credentials' do
+        result = subject.find_credentials_in_configs('default', 'zero')
+        expect(result).to be_a(Eryph::ClientRuntime::ClientCredentials)
+      end
+    end
+  end
+
+  describe '#get_default_credentials' do
+    subject { described_class.new(mock_reader, config_name) }
+
+    context 'when client exists' do
+      before do
+        allow(mock_reader).to receive(:get_default_client).and_return(mock_client_data)
+        allow(subject).to receive(:build_credentials).and_return(build(:client_credentials))
+      end
+
+      it 'builds and returns credentials' do
+        result = subject.get_default_credentials(config_name)
+        expect(result).to be_a(Eryph::ClientRuntime::ClientCredentials)
+      end
+    end
+
+    context 'when client does not exist' do
+      before do
+        allow(mock_reader).to receive(:get_default_client).and_return(nil)
+      end
+
+      it 'returns nil' do
+        result = subject.get_default_credentials(config_name)
+        expect(result).to be_nil
+      end
+    end
+  end
+
+  describe '#get_credentials_by_client_id' do
+    subject { described_class.new(mock_reader, config_name) }
+    let(:client_id) { 'specific-client' }
+
+    context 'when client exists' do
+      before do
+        allow(mock_reader).to receive(:get_client).and_return(mock_client_data)
+        allow(subject).to receive(:build_credentials).and_return(build(:client_credentials))
+      end
+
+      it 'builds and returns credentials' do
+        result = subject.get_credentials_by_client_id(client_id, config_name)
+        expect(result).to be_a(Eryph::ClientRuntime::ClientCredentials)
+      end
+    end
+
+    context 'when client does not exist' do
+      before do
+        allow(mock_reader).to receive(:get_client).and_return(nil)
+      end
+
+      it 'returns nil' do
+        result = subject.get_credentials_by_client_id(client_id, config_name)
+        expect(result).to be_nil
+      end
+    end
+  end
+
+  describe '#get_credentials_by_client_name' do
+    subject { described_class.new(mock_reader, config_name) }
+    let(:client_name) { 'My Client' }
+
+    context 'when client exists' do
+      before do
+        allow(mock_reader).to receive(:get_all_clients).and_return([mock_client_data])
+        allow(subject).to receive(:build_credentials).and_return(build(:client_credentials))
+      end
+
+      it 'builds and returns credentials' do
+        result = subject.get_credentials_by_client_name(client_name, config_name)
+        expect(result).to be_a(Eryph::ClientRuntime::ClientCredentials)
+      end
+    end
+
+    context 'when client does not exist' do
+      before do
+        allow(mock_reader).to receive(:get_all_clients).and_return([])
+      end
+
+      it 'returns nil' do
+        result = subject.get_credentials_by_client_name(client_name, config_name)
+        expect(result).to be_nil
+      end
+    end
+  end
+
+  describe '#get_system_client_credentials' do
+    subject { described_class.new(mock_reader) }
+
+    context 'for zero config on Windows' do
+      before do
+        allow(mock_environment).to receive(:windows?).and_return(true)
+        allow(mock_environment).to receive(:linux?).and_return(false)
+        allow(mock_environment).to receive(:admin_user?).and_return(true)
+      end
+
+      context 'when eryph-zero is running' do
+        let(:mock_provider_info) { double('LocalIdentityProviderInfo') }
+        let(:system_creds) do
+          {
+            'id' => 'system-client',
+            'identity_endpoint' => 'https://localhost:8080/identity',
+            'private_key' => build(:rsa_private_key)
+          }
+        end
+
+        before do
+          allow(Eryph::ClientRuntime::LocalIdentityProviderInfo).to receive(:new).and_return(mock_provider_info)
+          allow(mock_provider_info).to receive(:running?).and_return(true)
+          allow(mock_provider_info).to receive(:system_client_credentials).and_return(system_creds)
+        end
+
+        it 'returns system client credentials' do
+          result = subject.get_system_client_credentials('zero')
+          expect(result).to be_a(Eryph::ClientRuntime::ClientCredentials)
+          expect(result.client_id).to eq('system-client')
+        end
+      end
+
+      context 'when not running as admin' do
+        before do
+          allow(mock_environment).to receive(:admin_user?).and_return(false)
+        end
+
+        it 'raises NoUserCredentialsError with admin message' do
+          expect { subject.get_system_client_credentials('zero') }.to raise_error(
+            Eryph::ClientRuntime::NoUserCredentialsError,
+            /requires Administrator privileges/
+          )
+        end
+      end
+    end
+
+    context 'for unsupported config' do
+      it 'returns nil' do
+        result = subject.get_system_client_credentials('unsupported')
+        expect(result).to be_nil
+      end
     end
   end
 
   describe '#credentials_available?' do
+    subject { described_class.new(mock_reader, config_name) }
+
     context 'when credentials can be found' do
       before do
-        allow(subject).to receive(:find_credentials).and_return(double('ClientCredentials'))
+        allow(subject).to receive(:find_credentials).and_return(build(:client_credentials))
       end
 
       it 'returns true' do
         result = subject.credentials_available?
-
         expect(result).to be true
       end
     end
 
     context 'when credentials cannot be found' do
       before do
-        allow(subject).to receive(:find_credentials).and_raise(Eryph::ClientRuntime::CredentialsNotFoundError, 'Not found')
+        allow(subject).to receive(:find_credentials).and_raise(Eryph::ClientRuntime::CredentialsNotFoundError)
       end
 
       it 'returns false' do
         result = subject.credentials_available?
+        expect(result).to be false
+      end
+    end
 
+    context 'when NoUserCredentialsError is raised' do
+      before do
+        allow(subject).to receive(:find_credentials).and_raise(Eryph::ClientRuntime::NoUserCredentialsError)
+      end
+
+      it 'returns false' do
+        result = subject.credentials_available?
         expect(result).to be false
       end
     end
   end
 
-  describe '#find_credentials' do
-    let(:mock_config) { double('ConfigStore') }
-    let(:mock_clients) { [mock_client] }
-    let(:mock_client) { double('ClientConfiguration') }
-    let(:mock_credentials) { double('ClientCredentials') }
-
-    context 'when credentials are found' do
-      before do
-        allow(mock_reader).to receive(:get_default_client).with(config_name).and_return(mock_client_hash)
-        allow(mock_reader).to receive(:get_client_private_key).with(mock_client_hash).and_return(private_key_content)
-        allow(mock_endpoint_lookup).to receive(:get_endpoint).with('identity').and_return('https://test.eryph.local/identity')
-      end
-
-      let(:mock_client_hash) { {'id' => 'test-client', 'name' => 'Test Client'} }
-      
-      it 'returns the first matching credentials' do
-        result = subject.find_credentials
-
-        expect(result).to be_a(Eryph::ClientRuntime::ClientCredentials)
-        expect(result.client_id).to eq('test-client')
-        expect(result.client_name).to eq('Test Client')
-      end
-
-      it 'works with multiple client configurations' do
-        # Should use default client first
-        allow(mock_reader).to receive(:get_all_clients).with(config_name).and_return([mock_client_hash])
-        
-        result = subject.find_credentials
-
-        expect(result).to be_a(Eryph::ClientRuntime::ClientCredentials)
-        expect(mock_reader).to have_received(:get_default_client).with(config_name)
-      end
-    end
-
-    context 'when config store is not found' do
-      it 'raises CredentialsNotFoundError' do
-        allow(mock_reader).to receive(:get_default_client).with(config_name).and_return(nil)
-        allow(mock_reader).to receive(:get_all_clients).with(config_name).and_return([])
-
-        expect {
-          subject.find_credentials
-        }.to raise_error(Eryph::ClientRuntime::CredentialsNotFoundError, 
-                        /No client configuration found for config 'test'/)
-      end
-    end
-
-    context 'when no client configurations exist' do
-      it 'raises CredentialsNotFoundError' do
-        allow(mock_reader).to receive(:get_default_client).with(config_name).and_return(nil)
-        allow(mock_reader).to receive(:get_all_clients).with(config_name).and_return([])
-
-        expect {
-          subject.find_credentials
-        }.to raise_error(Eryph::ClientRuntime::CredentialsNotFoundError, 
-                        /No client configuration found for config 'test'/)
-      end
-    end
-
-    context 'when client configurations is nil' do
-      it 'raises CredentialsNotFoundError' do
-        allow(mock_reader).to receive(:get_default_client).with(config_name).and_return(nil)
-        allow(mock_reader).to receive(:get_all_clients).with(config_name).and_return([])
-
-        expect {
-          subject.find_credentials
-        }.to raise_error(Eryph::ClientRuntime::CredentialsNotFoundError, 
-                        /No client configuration found for config 'test'/)
-      end
-    end
-
-    context 'when client private key cannot be retrieved' do
-      it 'raises CredentialsNotFoundError' do
-        allow(mock_reader).to receive(:get_default_client).with(config_name).and_return({'id' => 'test-client'})
-        allow(mock_reader).to receive(:get_client_private_key).and_return(nil)
-
-        expect {
-          subject.find_credentials
-        }.to raise_error(Eryph::ClientRuntime::CredentialsNotFoundError, 
-                        /No private key found for client 'test-client'/)
-      end
-    end
-
-    context 'when get_client_private_key raises an error' do
-      it 'raises CredentialsNotFoundError with original error' do
-        original_error = StandardError.new("Key file not found")
-        allow(mock_reader).to receive(:get_default_client).with(config_name).and_return({'id' => 'test-client'})
-        allow(mock_reader).to receive(:get_client_private_key).and_raise(original_error)
-
-        expect {
-          subject.find_credentials
-        }.to raise_error(StandardError, "Key file not found")
-      end
-    end
-
-    context 'when get_default_client raises an error' do
-      it 'propagates the error' do
-        allow(mock_reader).to receive(:get_default_client).and_raise(StandardError.new("Config read error"))
-
-        expect {
-          subject.find_credentials
-        }.to raise_error(StandardError, "Config read error")
-      end
-    end
-
-    context 'with different config and endpoint names' do
-      subject { described_class.new(mock_reader, mock_endpoint_lookup, 'production', 'compute') }
-
-      it 'uses the correct config name in error messages' do
-        allow(mock_reader).to receive(:get_default_client).with('production').and_return(nil)
-        allow(mock_reader).to receive(:get_all_clients).with('production').and_return([])
-
-        expect {
-          subject.find_credentials
-        }.to raise_error(Eryph::ClientRuntime::CredentialsNotFoundError, 
-                        /No client configuration found for config 'production'/)
-      end
-    end
-  end
-
-  describe 'zero configuration support' do
-    let(:zero_subject) { described_class.new(mock_reader, mock_endpoint_lookup, 'zero', endpoint_name) }
-    let(:mock_provider_info) { double('LocalIdentityProviderInfo') }
-    let(:system_credentials) do
+  describe 'ClientCredentials constructor validation' do
+    let(:valid_params) do
       {
-        'id' => 'system-client',
-        'name' => 'Eryph Zero System Client', 
-        'private_key' => build(:rsa_private_key).to_pem,
-        'identity_endpoint' => 'https://localhost:8080/identity'
+        client_id: 'test-client',
+        private_key: test_rsa_key,
+        token_endpoint: 'https://test.eryph.local/identity/connect/token',
+        configuration: 'test'
       }
     end
 
-    before do
-      allow(Eryph::ClientRuntime::LocalIdentityProviderInfo).to receive(:new).and_return(mock_provider_info)
-    end
-
-    context 'when zero configuration has system credentials' do
-      it 'attempts to use system client credentials' do
-        # Mock the normal client lookup methods (fail)
-        allow(mock_reader).to receive(:get_default_client).with('zero').and_return(nil)
-        allow(mock_reader).to receive(:get_all_clients).with('zero').and_return([])
-        
-        # Then try system credentials (succeeds)
-        allow(mock_provider_info).to receive(:running?).and_return(true)
-        allow(mock_provider_info).to receive(:system_client_credentials).and_return(system_credentials)
-        allow(mock_reader).to receive(:get_client_private_key).and_return(system_credentials['private_key'])
-        allow(mock_endpoint_lookup).to receive(:get_endpoint).and_return('https://localhost:8080/connect/token')
-
-        result = zero_subject.find_credentials
-
-        expect(Eryph::ClientRuntime::LocalIdentityProviderInfo).to have_received(:new).at_least(:once)
-        expect(mock_provider_info).to have_received(:system_client_credentials).at_least(:once)
-        expect(result).not_to be_nil
-      end
-
-      it 'creates ClientCredentials from system credentials hash' do
-        # Mock the normal client lookup methods (fail)
-        allow(mock_reader).to receive(:get_default_client).with('zero').and_return(nil)
-        allow(mock_reader).to receive(:get_all_clients).with('zero').and_return([])
-        allow(mock_provider_info).to receive(:running?).and_return(true)
-        allow(mock_provider_info).to receive(:system_client_credentials).and_return(system_credentials)
-        allow(mock_reader).to receive(:get_client_private_key).and_return(system_credentials['private_key'])
-        allow(mock_endpoint_lookup).to receive(:get_endpoint).and_return(nil)  # Force using direct identity endpoint
-        
-        mock_system_creds = double('SystemCredentials')
-        expect(Eryph::ClientRuntime::ClientCredentials).to receive(:new).with(
-          client_id: 'system-client',
-          client_name: 'Eryph Zero System Client',
-          private_key: system_credentials['private_key'],
-          token_endpoint: 'https://localhost:8080/identity/connect/token'
-        ).and_return(mock_system_creds)
-
-        result = zero_subject.find_credentials
-
-        expect(result).to eq(mock_system_creds)
-      end
-    end
-
-    context 'when zero configuration has no system credentials' do
-      it 'raises CredentialsNotFoundError' do
-        # Mock the normal client lookup methods (fail)
-        allow(mock_reader).to receive(:get_default_client).with('zero').and_return(nil)
-        allow(mock_reader).to receive(:get_all_clients).with('zero').and_return([])
-        allow(mock_provider_info).to receive(:running?).and_return(true)
-        allow(mock_provider_info).to receive(:system_client_credentials).and_return(nil)
-
-        expect {
-          zero_subject.find_credentials
-        }.to raise_error(Eryph::ClientRuntime::CredentialsNotFoundError, 
-                        /No client configuration found for config 'zero'/)
-      end
-    end
-
-    context 'when system credentials are invalid' do
-      it 'raises CredentialsNotFoundError for missing id' do
-        invalid_credentials = system_credentials.except('id')
-        # Mock the normal client lookup methods (fail)
-        allow(mock_reader).to receive(:get_default_client).with('zero').and_return(nil)
-        allow(mock_reader).to receive(:get_all_clients).with('zero').and_return([])
-        allow(mock_provider_info).to receive(:running?).and_return(true)
-        allow(mock_provider_info).to receive(:system_client_credentials).and_return(invalid_credentials)
-        allow(mock_reader).to receive(:get_client_private_key).and_return(private_key_content)
-        allow(mock_endpoint_lookup).to receive(:get_endpoint).and_return('https://localhost:8080/connect/token')
-
-        expect {
-          zero_subject.find_credentials
-        }.to raise_error(Eryph::ClientRuntime::CredentialsNotFoundError, 
-                        /Invalid credentials found/)
-      end
-
-      it 'raises CredentialsNotFoundError for missing private_key' do
-        invalid_credentials = system_credentials.except('private_key')
-        # Mock the normal client lookup methods (fail)
-        allow(mock_reader).to receive(:get_default_client).with('zero').and_return(nil)
-        allow(mock_reader).to receive(:get_all_clients).with('zero').and_return([])
-        allow(mock_provider_info).to receive(:running?).and_return(true)
-        allow(mock_provider_info).to receive(:system_client_credentials).and_return(invalid_credentials)
-        allow(mock_reader).to receive(:get_client_private_key).and_return(nil)
-        allow(mock_endpoint_lookup).to receive(:get_endpoint).and_return('https://localhost:8080/connect/token')
-
-        expect {
-          zero_subject.find_credentials
-        }.to raise_error(Eryph::ClientRuntime::CredentialsNotFoundError, 
-                        /No private key found for client/)
-      end
-
-      it 'raises CredentialsNotFoundError for missing identity_endpoint' do
-        invalid_credentials = system_credentials.except('identity_endpoint')
-        # Mock the normal client lookup methods (fail)
-        allow(mock_reader).to receive(:get_default_client).with('zero').and_return(nil)
-        allow(mock_reader).to receive(:get_all_clients).with('zero').and_return([])
-        allow(mock_provider_info).to receive(:running?).and_return(true)
-        allow(mock_provider_info).to receive(:system_client_credentials).and_return(invalid_credentials)
-        allow(mock_reader).to receive(:get_client_private_key).and_return(private_key_content)
-        allow(mock_endpoint_lookup).to receive(:get_endpoint).and_return(nil)
-
-        expect {
-          zero_subject.find_credentials
-        }.to raise_error(Eryph::ClientRuntime::CredentialsNotFoundError, 
-                        /No identity endpoint found for config/)
-      end
-    end
-
-    context 'when LocalIdentityProviderInfo creation fails' do
-      it 'propagates the error' do
-        # Mock the normal client lookup methods (fail)
-        allow(mock_reader).to receive(:get_default_client).with('zero').and_return(nil)
-        allow(mock_reader).to receive(:get_all_clients).with('zero').and_return([])
-        allow(Eryph::ClientRuntime::LocalIdentityProviderInfo).to receive(:new)
-          .and_raise(StandardError.new("Provider error"))
-
-        expect {
-          zero_subject.find_credentials
-        }.to raise_error(StandardError, "Provider error")
-      end
-    end
-  end
-
-  describe 'non-zero configuration' do
-    it 'does not attempt system credentials for non-zero configs' do
-      allow(mock_reader).to receive(:get_default_client).with(config_name).and_return(nil)
-      allow(mock_reader).to receive(:get_all_clients).with(config_name).and_return([])
-
-      expect(Eryph::ClientRuntime::LocalIdentityProviderInfo).not_to receive(:new)
-
+    it 'raises ArgumentError for nil client_id' do
       expect {
-        subject.find_credentials
-      }.to raise_error(Eryph::ClientRuntime::CredentialsNotFoundError)
+        Eryph::ClientRuntime::ClientCredentials.new(
+          client_id: nil,
+          client_name: 'Test Client',
+          private_key: private_key_content,
+          token_endpoint: 'https://test.eryph.local/identity/connect/token',
+          configuration: 'test'
+        )
+      }.to raise_error(ArgumentError, /client_id cannot be nil or empty/)
+    end
+
+    it 'raises ArgumentError for empty client_id' do
+      expect {
+        Eryph::ClientRuntime::ClientCredentials.new(
+          client_id: '',
+          client_name: 'Test Client',
+          private_key: private_key_content,
+          token_endpoint: 'https://test.eryph.local/identity/connect/token',
+          configuration: 'test'
+        )
+      }.to raise_error(ArgumentError, /client_id cannot be nil or empty/)
+    end
+
+    it 'raises ArgumentError for nil token_endpoint' do
+      expect {
+        Eryph::ClientRuntime::ClientCredentials.new(
+          client_id: 'test-client',
+          client_name: 'Test Client',
+          private_key: private_key_content,
+          token_endpoint: nil,
+          configuration: 'test'
+        )
+      }.to raise_error(ArgumentError, /token_endpoint cannot be nil or empty/)
+    end
+
+    it 'raises ArgumentError for nil private_key' do
+      expect {
+        Eryph::ClientRuntime::ClientCredentials.new(
+          client_id: 'test-client',
+          client_name: 'Test Client',
+          private_key: nil,
+          token_endpoint: 'https://test.eryph.local/identity/connect/token',
+          configuration: 'test'
+        )
+      }.to raise_error(ArgumentError, /private_key cannot be nil/)
+    end
+
+    it 'raises ArgumentError for empty private_key string' do
+      expect {
+        Eryph::ClientRuntime::ClientCredentials.new(
+          client_id: 'test-client',
+          client_name: 'Test Client',
+          private_key: '',
+          token_endpoint: 'https://test.eryph.local/identity/connect/token',
+          configuration: 'test'
+        )
+      }.to raise_error(ArgumentError, /private_key cannot be empty/)
+    end
+
+    it 'raises ArgumentError for invalid private_key format' do
+      expect {
+        Eryph::ClientRuntime::ClientCredentials.new(
+          client_id: 'test-client',
+          client_name: 'Test Client',
+          private_key: 'invalid-key-format',
+          token_endpoint: 'https://test.eryph.local/identity/connect/token',
+          configuration: 'test'
+        )
+      }.to raise_error(ArgumentError, /Invalid RSA private key/)
     end
   end
 
-  describe '#find_token_endpoint (private)' do
-    context 'for zero configuration' do
-      let(:zero_subject) { described_class.new(mock_reader, mock_endpoint_lookup, 'zero', endpoint_name) }
+  describe 'system client edge cases' do
+    subject { described_class.new(mock_reader) }
 
-      it 'uses direct identity endpoint from system client' do
-        client_with_endpoint = {
-          'id' => 'system-client',
-          '_identity_endpoint' => 'https://localhost:8080/identity'
-        }
-        allow(zero_subject).to receive(:find_client).and_return(client_with_endpoint)
-
-        result = zero_subject.send(:find_token_endpoint)
-
-        expect(result).to eq('https://localhost:8080/identity/connect/token')
-      end
-
-      it 'strips trailing slash from identity endpoint' do
-        client_with_endpoint = {
-          'id' => 'system-client',
-          '_identity_endpoint' => 'https://localhost:8080/identity/'
-        }
-        allow(zero_subject).to receive(:find_client).and_return(client_with_endpoint)
-
-        result = zero_subject.send(:find_token_endpoint)
-
-        expect(result).to eq('https://localhost:8080/identity/connect/token')
-      end
-
-      it 'falls back to endpoint lookup when no direct endpoint' do
-        client_without_endpoint = { 'id' => 'system-client' }
-        allow(zero_subject).to receive(:find_client).and_return(client_without_endpoint)
-        allow(zero_subject).to receive(:determine_endpoint_name).and_return('identity')
-        allow(mock_endpoint_lookup).to receive(:get_endpoint).with('identity').and_return('https://fallback.example.com')
-
-        result = zero_subject.send(:find_token_endpoint)
-
-        expect(result).to eq('https://fallback.example.com/connect/token')
-      end
-
-      it 'falls back to endpoint lookup when client is nil' do
-        allow(zero_subject).to receive(:find_client).and_return(nil)
-        allow(zero_subject).to receive(:determine_endpoint_name).and_return('identity')
-        allow(mock_endpoint_lookup).to receive(:get_endpoint).with('identity').and_return('https://fallback.example.com')
-
-        result = zero_subject.send(:find_token_endpoint)
-
-        expect(result).to eq('https://fallback.example.com/connect/token')
-      end
-    end
-
-    context 'for regular configuration' do
-      it 'uses endpoint lookup with provided endpoint name' do
-        lookup_with_endpoint = described_class.new(mock_reader, mock_endpoint_lookup, config_name, 'custom-endpoint')
-        allow(mock_endpoint_lookup).to receive(:get_endpoint).with('custom-endpoint').and_return('https://custom.example.com')
-
-        result = lookup_with_endpoint.send(:find_token_endpoint)
-
-        expect(result).to eq('https://custom.example.com/connect/token')
-      end
-
-      it 'uses endpoint lookup with determined endpoint name when none provided' do
-        lookup_without_endpoint = described_class.new(mock_reader, mock_endpoint_lookup, config_name, nil)
-        allow(lookup_without_endpoint).to receive(:determine_endpoint_name).and_return('identity')
-        allow(mock_endpoint_lookup).to receive(:get_endpoint).with('identity').and_return('https://determined.example.com')
-
-        result = lookup_without_endpoint.send(:find_token_endpoint)
-
-        expect(result).to eq('https://determined.example.com/connect/token')
-      end
-
-      it 'strips trailing slash from endpoint URL' do
-        allow(mock_endpoint_lookup).to receive(:get_endpoint).with(endpoint_name).and_return('https://example.com/')
-
-        result = subject.send(:find_token_endpoint)
-
-        expect(result).to eq('https://example.com/connect/token')
-      end
-
-      it 'returns nil when endpoint lookup fails' do
-        allow(mock_endpoint_lookup).to receive(:get_endpoint).with(endpoint_name).and_return(nil)
-
-        result = subject.send(:find_token_endpoint)
-
-        expect(result).to be_nil
-      end
-    end
-  end
-
-  describe '#determine_endpoint_name (private)' do
-    it 'returns identity for zero configuration' do
-      zero_subject = described_class.new(mock_reader, mock_endpoint_lookup, 'zero', nil)
-
-      result = zero_subject.send(:determine_endpoint_name)
-
-      expect(result).to eq('identity')
-    end
-
-    it 'returns identity for ZERO configuration (case insensitive)' do
-      zero_subject = described_class.new(mock_reader, mock_endpoint_lookup, 'ZERO', nil)
-
-      result = zero_subject.send(:determine_endpoint_name)
-
-      expect(result).to eq('identity')
-    end
-
-    it 'returns identity for regular configuration' do
-      result = subject.send(:determine_endpoint_name)
-
-      expect(result).to eq('identity')
-    end
-
-    it 'returns identity for custom configuration names' do
-      custom_subject = described_class.new(mock_reader, mock_endpoint_lookup, 'production', nil)
-
-      result = custom_subject.send(:determine_endpoint_name)
-
-      expect(result).to eq('identity')
-    end
-  end
-
-  describe '#find_zero_client (private)' do
-    let(:zero_subject) { described_class.new(mock_reader, mock_endpoint_lookup, 'zero', endpoint_name) }
-    let(:mock_provider_info) { double('LocalIdentityProviderInfo') }
-    let(:system_credentials) do
-      {
-        'id' => 'system-client',
-        'name' => 'Eryph Zero System Client',
-        'private_key' => 'test_private_key',
-        'identity_endpoint' => 'https://localhost:8080/identity'
-      }
-    end
-
-    before do
-      allow(Eryph::ClientRuntime::LocalIdentityProviderInfo).to receive(:new)
-        .with(mock_reader.environment, 'zero')
-        .and_return(mock_provider_info)
-    end
-
-    context 'when identity provider is running' do
+    context 'for zero config on non-Windows platform' do
       before do
-        allow(mock_provider_info).to receive(:running?).and_return(true)
+        allow(mock_environment).to receive(:windows?).and_return(false)
+        allow(mock_environment).to receive(:linux?).and_return(true)
       end
 
-      it 'creates virtual store for system client credentials' do
-        allow(mock_provider_info).to receive(:system_client_credentials).and_return(system_credentials)
-
-        result = zero_subject.send(:find_zero_client)
-
-        expect(result['id']).to eq('system-client')
-        expect(result['name']).to eq('Eryph Zero System Client')
-        expect(result['_identity_endpoint']).to eq('https://localhost:8080/identity')
-        expect(result['_store']).to be_truthy
-      end
-
-      it 'virtual store returns private key for correct client ID' do
-        allow(mock_provider_info).to receive(:system_client_credentials).and_return(system_credentials)
-
-        result = zero_subject.send(:find_zero_client)
-        virtual_store = result['_store']
-
-        private_key = virtual_store.get_private_key('system-client')
-        expect(private_key).to eq('test_private_key')
-      end
-
-      it 'virtual store returns nil for incorrect client ID' do
-        allow(mock_provider_info).to receive(:system_client_credentials).and_return(system_credentials)
-
-        result = zero_subject.send(:find_zero_client)
-        virtual_store = result['_store']
-
-        private_key = virtual_store.get_private_key('wrong-id')
-        expect(private_key).to be_nil
-      end
-
-      it 'returns nil when system client credentials unavailable' do
-        allow(mock_provider_info).to receive(:system_client_credentials).and_return(nil)
-
-        result = zero_subject.send(:find_zero_client)
-
+      it 'returns nil when zero config requested on Linux' do
+        result = subject.send(:get_system_client_credentials, 'zero')
         expect(result).to be_nil
       end
     end
 
-    context 'when identity provider is not running' do
-      it 'returns nil' do
-        allow(mock_provider_info).to receive(:running?).and_return(false)
-
-        result = zero_subject.send(:find_zero_client)
-
-        expect(result).to be_nil
-      end
-    end
-  end
-
-  describe 'complete integration scenarios' do
-    let(:zero_subject) { described_class.new(mock_reader, mock_endpoint_lookup, 'zero', endpoint_name) }
-
-    context 'zero configuration with running identity provider' do
-      let(:mock_provider_info) { double('LocalIdentityProviderInfo') }
-      let(:system_credentials) do
-        {
-          'id' => 'system-client',
-          'name' => 'Eryph Zero System Client',
-          'private_key' => build(:rsa_private_key).to_pem,
-          'identity_endpoint' => 'https://localhost:8080/identity'
-        }
-      end
-
+    context 'for Windows admin privilege checking' do
       before do
-        # Mock the regular config lookup to fail
-        allow(mock_reader).to receive(:get_default_client).with('zero').and_return(nil)
-        allow(mock_reader).to receive(:get_all_clients).with('zero').and_return([])
+        allow(mock_environment).to receive(:windows?).and_return(true)
+        allow(mock_environment).to receive(:linux?).and_return(false)
+        allow(mock_environment).to receive(:admin_user?).and_return(false)
+      end
 
-        # Mock the zero-config fallback to succeed
-        allow(Eryph::ClientRuntime::LocalIdentityProviderInfo).to receive(:new)
-          .with(mock_reader.environment, 'zero')
-          .and_return(mock_provider_info)
-        allow(mock_provider_info).to receive(:running?).and_return(true)
-        allow(mock_provider_info).to receive(:system_client_credentials).and_return(system_credentials)
+      it 'raises NoUserCredentialsError when Windows user is not admin' do
+        expect {
+          subject.send(:get_system_client_credentials, 'zero')
+        }.to raise_error(Eryph::ClientRuntime::NoUserCredentialsError, /requires Administrator privileges/)
+      end
+    end
+
+    context 'for Linux root privilege checking' do
+      before do
+        allow(mock_environment).to receive(:windows?).and_return(false)
+        allow(mock_environment).to receive(:linux?).and_return(true)
+        allow(mock_environment).to receive(:admin_user?).and_return(false)
+      end
+
+      it 'raises NoUserCredentialsError when Linux user is not root' do
+        expect {
+          subject.send(:get_system_client_credentials, 'local')
+        }.to raise_error(Eryph::ClientRuntime::NoUserCredentialsError, /requires root privileges/)
+      end
+    end
+
+    context 'for unsupported OS' do
+      before do
+        allow(mock_environment).to receive(:windows?).and_return(false)
+        allow(mock_environment).to receive(:linux?).and_return(false)
+      end
+
+      it 'returns nil for unsupported operating system' do
+        result = subject.send(:get_system_client_credentials, 'zero')
+        expect(result).to be_nil
+      end
+    end
+
+    context 'for unsupported config names' do
+      before do
+        allow(mock_environment).to receive(:windows?).and_return(true)
+      end
+
+      it 'returns nil for default config' do
+        result = subject.send(:get_system_client_credentials, 'default')
+        expect(result).to be_nil
+      end
+
+      it 'returns nil for custom config' do
+        result = subject.send(:get_system_client_credentials, 'custom')
+        expect(result).to be_nil
+      end
+    end
+
+    context 'when provider is not running' do
+      before do
+        allow(mock_environment).to receive(:windows?).and_return(true)
+        allow(mock_environment).to receive(:admin_user?).and_return(true)
         
-        # Mock get_client_private_key for any client hash (including the system client virtual hash)
-        allow(mock_reader).to receive(:get_client_private_key).and_return(private_key_content)
+        provider_info = double('LocalIdentityProviderInfo', running?: false)
+        allow(Eryph::ClientRuntime::LocalIdentityProviderInfo).to receive(:new).and_return(provider_info)
       end
 
-      it 'successfully creates credentials from system client' do
-        result = zero_subject.find_credentials
-
-        expect(result).to be_a(Eryph::ClientRuntime::ClientCredentials)
-        expect(result.client_id).to eq('system-client')
-        expect(result.client_name).to eq('Eryph Zero System Client')
-        expect(result.token_endpoint).to eq('https://localhost:8080/identity/connect/token')
+      it 'returns nil when identity provider is not running' do
+        result = subject.send(:get_system_client_credentials, 'zero')
+        expect(result).to be_nil
       end
     end
 
-    context 'error scenarios in find_credentials' do
+    context 'when system credentials are not available' do
       before do
-        allow(mock_reader).to receive(:get_default_client).and_return(mock_client_hash)
-        allow(mock_reader).to receive(:get_client_private_key).and_return('valid-key')
-        allow(mock_endpoint_lookup).to receive(:get_endpoint).and_return('https://example.com')
+        allow(mock_environment).to receive(:windows?).and_return(true)
+        allow(mock_environment).to receive(:admin_user?).and_return(true)
+        
+        provider_info = double('LocalIdentityProviderInfo', running?: true, system_client_credentials: nil)
+        allow(Eryph::ClientRuntime::LocalIdentityProviderInfo).to receive(:new).and_return(provider_info)
       end
 
-      let(:mock_client_hash) { { 'id' => 'test-client', 'name' => 'Test Client' } }
+      it 'returns nil when system credentials are not available' do
+        result = subject.send(:get_system_client_credentials, 'zero')
+        expect(result).to be_nil
+      end
+    end
+  end
 
-      it 'raises error when ClientCredentials construction fails' do
-        # Mock ClientCredentials to raise ArgumentError
-        allow(Eryph::ClientRuntime::ClientCredentials).to receive(:new)
-          .and_raise(ArgumentError.new('Invalid key format'))
+  describe 'build_credentials edge cases' do
+    subject { described_class.new(mock_reader) }
+    
+    let(:test_client) { { 'id' => 'test-client', 'name' => 'Test Client' } }
 
-        expect {
-          subject.find_credentials
-        }.to raise_error(Eryph::ClientRuntime::CredentialsNotFoundError, /Invalid credentials found: Invalid key format/)
+    context 'when private key is not available' do
+      before do
+        allow(mock_reader).to receive(:get_client_private_key).with(test_client).and_return(nil)
       end
 
-      it 'raises error when no private key found' do
-        allow(mock_reader).to receive(:get_client_private_key).and_return(nil)
+      it 'returns nil when private key cannot be retrieved' do
+        result = subject.send(:build_credentials, test_client, 'test')
+        expect(result).to be_nil
+      end
+    end
 
-        expect {
-          subject.find_credentials
-        }.to raise_error(Eryph::ClientRuntime::CredentialsNotFoundError, /No private key found for client 'test-client'/)
+    context 'when token endpoint is not available' do
+      before do
+        allow(mock_reader).to receive(:get_client_private_key).with(test_client).and_return(private_key_content)
+        allow(subject).to receive(:get_token_endpoint).with('test').and_return(nil)
       end
 
-      it 'raises error when no token endpoint found' do
-        allow(mock_endpoint_lookup).to receive(:get_endpoint).and_return(nil)
+      it 'returns nil when token endpoint cannot be retrieved' do
+        result = subject.send(:build_credentials, test_client, 'test')
+        expect(result).to be_nil
+      end
+    end
 
-        expect {
-          subject.find_credentials
-        }.to raise_error(Eryph::ClientRuntime::CredentialsNotFoundError, /No identity endpoint found for config 'test'/)
+    context 'when ClientCredentials constructor raises ArgumentError' do
+      before do
+        allow(mock_reader).to receive(:get_client_private_key).with(test_client).and_return(private_key_content)
+        allow(subject).to receive(:get_token_endpoint).with('test').and_return('https://test.local/token')
+        
+        # Mock ClientCredentials.new to raise ArgumentError
+        allow(Eryph::ClientRuntime::ClientCredentials).to receive(:new).and_raise(ArgumentError, 'Invalid credentials')
       end
 
-      it 'raises error when no client configuration found' do
-        allow(mock_reader).to receive(:get_default_client).and_return(nil)
-        allow(mock_reader).to receive(:get_all_clients).and_return([])
+      it 'returns nil when credentials construction fails' do
+        result = subject.send(:build_credentials, test_client, 'test')
+        expect(result).to be_nil
+      end
+    end
+  end
 
+  describe 'get_token_endpoint edge cases' do
+    subject { described_class.new(mock_reader) }
+
+    context 'when endpoint lookup fails' do
+      before do
+        endpoint_lookup = double('EndpointLookup', get_endpoint: nil)
+        allow(Eryph::ClientRuntime::EndpointLookup).to receive(:new).and_return(endpoint_lookup)
+      end
+
+      it 'returns nil when identity endpoint cannot be found' do
+        result = subject.send(:get_token_endpoint, 'test')
+        expect(result).to be_nil
+      end
+    end
+  end
+
+  describe 'zero config specific error paths' do
+    subject { described_class.new(mock_reader, 'zero') }
+
+    context 'when zero config has no default client but system client unavailable' do
+      before do
+        allow(mock_reader).to receive(:get_default_client).with('zero').and_return(nil)
+        allow(mock_environment).to receive(:windows?).and_return(true)
+        allow(subject).to receive(:get_system_client_credentials).and_return(nil)
+      end
+
+      it 'raises CredentialsNotFoundError' do
         expect {
           subject.find_credentials
-        }.to raise_error(Eryph::ClientRuntime::CredentialsNotFoundError, /No client configuration found for config 'test'/)
+        }.to raise_error(Eryph::ClientRuntime::CredentialsNotFoundError, /No default client found in configuration 'zero'/)
       end
     end
   end

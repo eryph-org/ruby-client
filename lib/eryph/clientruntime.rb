@@ -20,6 +20,9 @@ module Eryph
     # Error raised when credentials cannot be found
     class CredentialsNotFoundError < AuthenticationError; end
 
+    # Error raised when no user credentials found (for automatic discovery)
+    class NoUserCredentialsError < CredentialsNotFoundError; end
+
     # Error raised when token request fails
     class TokenRequestError < AuthenticationError; end
 
@@ -27,42 +30,24 @@ module Eryph
     class ConfigurationError < StandardError; end
 
     class << self
-      # Create a client credentials lookup for the specified configuration
-      # @param config_name [String] configuration name (default: 'default')
-      # @param endpoint_name [String] endpoint name for lookup
-      # @param environment [Environment] environment instance for dependency injection (for testing)
+      # Create a client credentials lookup instance
+      # @param config_name [String, nil] configuration name for specific lookup, nil for automatic discovery
+      # @param environment [Environment] environment instance for dependency injection
       # @return [ClientCredentialsLookup] configured lookup instance
-      def create_credentials_lookup(config_name: 'default', endpoint_name: nil, environment: nil)
+      def create_credentials_lookup(config_name: nil, environment: nil)
         environment ||= Environment.new
         reader = ConfigStoresReader.new(environment)
-        endpoint_lookup = EndpointLookup.new(reader, config_name)
-        
-        ClientCredentialsLookup.new(reader, endpoint_lookup, config_name, endpoint_name)
-      end
-
-      # Get an access token for the specified configuration and endpoint
-      # @param config_name [String] configuration name (default: 'default')
-      # @param endpoint_name [String] endpoint name for lookup
-      # @param scopes [Array<String>] OAuth2 scopes
-      # @param environment [Environment] environment instance for dependency injection (for testing)
-      # @return [String] access token
-      # @raise [AuthenticationError] if authentication fails
-      def get_access_token(config_name: 'default', endpoint_name: nil, scopes: ['compute:read', 'compute:write'], environment: nil)
-        lookup = create_credentials_lookup(config_name: config_name, endpoint_name: endpoint_name, environment: environment)
-        credentials = lookup.find_credentials
-        provider = TokenProvider.new(credentials, scopes: scopes)
-        provider.get_access_token
+        ClientCredentialsLookup.new(reader, config_name)
       end
 
       # Test if credentials are available for the specified configuration
-      # @param config_name [String] configuration name (default: 'default')
-      # @param endpoint_name [String] endpoint name for lookup
+      # @param config_name [String, nil] configuration name, nil for automatic discovery
       # @return [Boolean] true if credentials are available
-      def credentials_available?(config_name: 'default', endpoint_name: nil)
-        lookup = create_credentials_lookup(config_name: config_name, endpoint_name: endpoint_name)
+      def credentials_available?(config_name: nil)
+        lookup = create_credentials_lookup(config_name: config_name)
         lookup.find_credentials
         true
-      rescue CredentialsNotFoundError
+      rescue CredentialsNotFoundError, NoUserCredentialsError
         false
       end
 
@@ -77,7 +62,7 @@ module Eryph
 
       # Get endpoints from running eryph-zero instance
       # @param identity_provider_name [String] identity provider name
-      # @return [Hash] endpoint name -> URI mapping
+      # @return [Hash] endpoint name -> URL mapping
       def zero_endpoints(identity_provider_name: 'zero')
         environment = Environment.new
         provider_info = LocalIdentityProviderInfo.new(environment, identity_provider_name)

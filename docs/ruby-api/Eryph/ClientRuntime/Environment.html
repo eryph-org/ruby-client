@@ -1,0 +1,2698 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  Class: Eryph::ClientRuntime::Environment
+  
+    &mdash; Eryph Ruby Client API
+  
+</title>
+
+  <link rel="stylesheet" href="../../css/style.css" type="text/css" />
+
+  <link rel="stylesheet" href="../../css/common.css" type="text/css" />
+
+<script type="text/javascript">
+  pathId = "Eryph::ClientRuntime::Environment";
+  relpath = '../../';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="../../js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="../../js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="../../class_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="../../_index.html">Index (E)</a> &raquo;
+    <span class='title'><span class='object_link'><a href="../../Eryph.html" title="Eryph (module)">Eryph</a></span></span> &raquo; <span class='title'><span class='object_link'><a href="../ClientRuntime.html" title="Eryph::ClientRuntime (module)">ClientRuntime</a></span></span>
+     &raquo; 
+    <span class="title">Environment</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="class_list_link"
+        href="../../class_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><h1>Class: Eryph::ClientRuntime::Environment
+  
+  
+  
+</h1>
+<div class="box_info">
+  
+  <dl>
+    <dt>Inherits:</dt>
+    <dd>
+      <span class="inheritName">Object</span>
+      
+        <ul class="fullTree">
+          <li>Object</li>
+          
+            <li class="next">Eryph::ClientRuntime::Environment</li>
+          
+        </ul>
+        <a href="#" class="inheritanceTree">show all</a>
+      
+    </dd>
+  </dl>
+  
+
+  
+  
+  
+  
+  
+
+  
+
+  
+  <dl>
+    <dt>Defined in:</dt>
+    <dd>lib/eryph/clientruntime/environment.rb</dd>
+  </dl>
+  
+</div>
+
+<h2>Overview</h2><div class="docstring">
+  <div class="discussion">
+    <p>Cross-platform environment abstraction
+Provides platform-specific file system access and configuration paths</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><h2>Defined Under Namespace</h2>
+<p class="children">
+  
+    
+      <strong class="modules">Modules:</strong> <span class='object_link'><a href="Environment/ConfigStoreLocation.html" title="Eryph::ClientRuntime::Environment::ConfigStoreLocation (module)">ConfigStoreLocation</a></span>
+    
+  
+    
+  
+</p>
+
+
+
+
+
+
+
+  
+    <h2>
+      Instance Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#admin_user%3F-instance_method" title="#admin_user? (instance method)">#<strong>admin_user?</strong>  &#x21d2; Boolean </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Check if current user has admin/root privileges.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#create_temp_file-instance_method" title="#create_temp_file (instance method)">#<strong>create_temp_file</strong>(prefix, suffix = &#39;&#39;)  &#x21d2; Tempfile </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Create a temporary file.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#current_directory-instance_method" title="#current_directory (instance method)">#<strong>current_directory</strong>  &#x21d2; String </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Get the current directory.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#decrypt_dpapi_data-instance_method" title="#decrypt_dpapi_data (instance method)">#<strong>decrypt_dpapi_data</strong>(encrypted_data, entropy = nil)  &#x21d2; String<sup>?</sup> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Decrypt DPAPI-protected data (Windows only).</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#directory_exists%3F-instance_method" title="#directory_exists? (instance method)">#<strong>directory_exists?</strong>(path)  &#x21d2; Boolean </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Check if a directory exists.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#ensure_directory-instance_method" title="#ensure_directory (instance method)">#<strong>ensure_directory</strong>(path)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Create directory if it doesn’t exist.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#execute_command-instance_method" title="#execute_command (instance method)">#<strong>execute_command</strong>(command, *args)  &#x21d2; Boolean </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Execute a system command.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#execute_powershell_script-instance_method" title="#execute_powershell_script (instance method)">#<strong>execute_powershell_script</strong>(script_content)  &#x21d2; String<sup>?</sup> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Execute PowerShell script and return output.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#execute_powershell_script_file-instance_method" title="#execute_powershell_script_file (instance method)">#<strong>execute_powershell_script_file</strong>(script_path)  &#x21d2; Boolean </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Execute PowerShell script from file.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#file_exists%3F-instance_method" title="#file_exists? (instance method)">#<strong>file_exists?</strong>(path)  &#x21d2; Boolean </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Check if a file exists.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#get_application_data_path-instance_method" title="#get_application_data_path (instance method)">#<strong>get_application_data_path</strong>(app_name = &#39;eryph&#39;)  &#x21d2; String </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Get application data path (system-wide).</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#get_config_path-instance_method" title="#get_config_path (instance method)">#<strong>get_config_path</strong>(location)  &#x21d2; String </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Get the configuration path for the specified location.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#get_encrypted_system_client-instance_method" title="#get_encrypted_system_client (instance method)">#<strong>get_encrypted_system_client</strong>(provider_name, identity_endpoint = nil)  &#x21d2; String<sup>?</sup> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Get encrypted system client private key for identity provider.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#get_environment_variable-instance_method" title="#get_environment_variable (instance method)">#<strong>get_environment_variable</strong>(name, default = nil)  &#x21d2; String<sup>?</sup> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Get environment variable with optional default.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#linux%3F-instance_method" title="#linux? (instance method)">#<strong>linux?</strong>  &#x21d2; Boolean </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Check if running on Linux platform.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#macos%3F-instance_method" title="#macos? (instance method)">#<strong>macos?</strong>  &#x21d2; Boolean </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Check if running on macOS platform.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#process_running%3F-instance_method" title="#process_running? (instance method)">#<strong>process_running?</strong>(process_id, process_name = nil)  &#x21d2; Boolean </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Check if a process is running.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#read_binary_file-instance_method" title="#read_binary_file (instance method)">#<strong>read_binary_file</strong>(path)  &#x21d2; String </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Read binary file content.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#read_file-instance_method" title="#read_file (instance method)">#<strong>read_file</strong>(path)  &#x21d2; String </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Read file content.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#windows%3F-instance_method" title="#windows? (instance method)">#<strong>windows?</strong>  &#x21d2; Boolean </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Check if running on Windows platform.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#write_file-instance_method" title="#write_file (instance method)">#<strong>write_file</strong>(path, content)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Write file content.</p>
+</div></span>
+  
+</li>
+
+      
+    </ul>
+  
+
+
+
+  <div id="instance_method_details" class="method_details_list">
+    <h2>Instance Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="admin_user?-instance_method">
+  
+    #<strong>admin_user?</strong>  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Check if current user has admin/root privileges</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>true if user has elevated privileges</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/clientruntime/environment.rb', line 108</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_admin_user?'>admin_user?</span>
+  <span class='kw'>if</span> <span class='id identifier rubyid_windows?'>windows?</span>
+    <span class='comment'># Check if running as administrator on Windows
+</span>    <span class='comment'># This is a simplified check - in production you might want to use Win32 APIs
+</span>    <span class='id identifier rubyid_get_environment_variable'>get_environment_variable</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>SESSIONNAME</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span> <span class='op'>==</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>Console</span><span class='tstring_end'>&#39;</span></span> <span class='op'>&amp;&amp;</span> 
+      <span class='id identifier rubyid_get_environment_variable'>get_environment_variable</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>USERNAME</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span> <span class='op'>!=</span> <span class='id identifier rubyid_get_environment_variable'>get_environment_variable</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>COMPUTERNAME</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span> <span class='op'>+</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>$</span><span class='tstring_end'>&#39;</span></span>
+  <span class='kw'>else</span>
+    <span class='comment'># Check if running as root on Unix-like systems
+</span>    <span class='const'>Process</span><span class='period'>.</span><span class='id identifier rubyid_uid'>uid</span> <span class='op'>==</span> <span class='int'>0</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="create_temp_file-instance_method">
+  
+    #<strong>create_temp_file</strong>(prefix, suffix = &#39;&#39;)  &#x21d2; <tt>Tempfile</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Create a temporary file</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>prefix</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>filename prefix</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>suffix</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>&#39;&#39;</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>filename suffix</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Tempfile</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>temporary file object</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+196
+197
+198
+199</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/clientruntime/environment.rb', line 196</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_create_temp_file'>create_temp_file</span><span class='lparen'>(</span><span class='id identifier rubyid_prefix'>prefix</span><span class='comma'>,</span> <span class='id identifier rubyid_suffix'>suffix</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_require'>require</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>tempfile</span><span class='tstring_end'>&#39;</span></span>
+  <span class='const'>Tempfile</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='lbracket'>[</span><span class='id identifier rubyid_prefix'>prefix</span><span class='comma'>,</span> <span class='id identifier rubyid_suffix'>suffix</span><span class='rbracket'>]</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="current_directory-instance_method">
+  
+    #<strong>current_directory</strong>  &#x21d2; <tt>String</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Get the current directory</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>current working directory</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+53
+54
+55</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/clientruntime/environment.rb', line 53</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_current_directory'>current_directory</span>
+  <span class='const'>Dir</span><span class='period'>.</span><span class='id identifier rubyid_pwd'>pwd</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="decrypt_dpapi_data-instance_method">
+  
+    #<strong>decrypt_dpapi_data</strong>(encrypted_data, entropy = nil)  &#x21d2; <tt>String</tt><sup>?</sup> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Decrypt DPAPI-protected data (Windows only)</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>encrypted_data</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>binary encrypted data</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>entropy</span>
+      
+      
+        <span class='type'>(<tt>String</tt>, <tt>nil</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>entropy string (typically the identity endpoint URI)</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>, <tt>nil</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>decrypted PEM private key or nil if decryption fails</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308
+309
+310
+311
+312
+313
+314
+315
+316
+317
+318
+319
+320
+321
+322
+323
+324
+325
+326
+327
+328
+329
+330
+331
+332
+333
+334
+335
+336
+337
+338
+339
+340
+341
+342
+343
+344
+345
+346
+347
+348</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/clientruntime/environment.rb', line 280</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_decrypt_dpapi_data'>decrypt_dpapi_data</span><span class='lparen'>(</span><span class='id identifier rubyid_encrypted_data'>encrypted_data</span><span class='comma'>,</span> <span class='id identifier rubyid_entropy'>entropy</span> <span class='op'>=</span> <span class='kw'>nil</span><span class='rparen'>)</span>
+  <span class='kw'>return</span> <span class='kw'>nil</span> <span class='kw'>unless</span> <span class='id identifier rubyid_windows?'>windows?</span>
+
+  <span class='comment'># Create cache key from encrypted data and entropy
+</span>  <span class='id identifier rubyid_require'>require</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>digest</span><span class='tstring_end'>&#39;</span></span>
+  <span class='id identifier rubyid_cache_key'>cache_key</span> <span class='op'>=</span> <span class='const'>Digest</span><span class='op'>::</span><span class='const'>SHA256</span><span class='period'>.</span><span class='id identifier rubyid_hexdigest'>hexdigest</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_encrypted_data'>encrypted_data</span><span class='embexpr_end'>}</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_entropy'>entropy</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+  
+  <span class='comment'># Check cache first
+</span>  <span class='kw'>if</span> <span class='ivar'>@dpapi_cache</span> <span class='op'>&amp;&amp;</span> <span class='ivar'>@dpapi_cache</span><span class='lbracket'>[</span><span class='id identifier rubyid_cache_key'>cache_key</span><span class='rbracket'>]</span>
+    <span class='kw'>return</span> <span class='ivar'>@dpapi_cache</span><span class='lbracket'>[</span><span class='id identifier rubyid_cache_key'>cache_key</span><span class='rbracket'>]</span>
+  <span class='kw'>end</span>
+
+  <span class='id identifier rubyid_temp_file'>temp_file</span> <span class='op'>=</span> <span class='kw'>nil</span>
+  <span class='id identifier rubyid_script_file'>script_file</span> <span class='op'>=</span> <span class='kw'>nil</span>
+  <span class='id identifier rubyid_output_file'>output_file</span> <span class='op'>=</span> <span class='kw'>nil</span>
+  
+  <span class='kw'>begin</span>
+    <span class='comment'># Create temporary files for DPAPI decryption process
+</span>    <span class='id identifier rubyid_temp_file'>temp_file</span> <span class='op'>=</span> <span class='id identifier rubyid_create_temp_file'>create_temp_file</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>encrypted_key</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>.bin</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_temp_file'>temp_file</span><span class='period'>.</span><span class='id identifier rubyid_binmode'>binmode</span>
+    <span class='id identifier rubyid_temp_file'>temp_file</span><span class='period'>.</span><span class='id identifier rubyid_write'>write</span><span class='lparen'>(</span><span class='id identifier rubyid_encrypted_data'>encrypted_data</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_temp_file'>temp_file</span><span class='period'>.</span><span class='id identifier rubyid_close'>close</span>
+
+    <span class='id identifier rubyid_script_file'>script_file</span> <span class='op'>=</span> <span class='id identifier rubyid_create_temp_file'>create_temp_file</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>decrypt_dpapi</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>.ps1</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_output_file'>output_file</span> <span class='op'>=</span> <span class='id identifier rubyid_create_temp_file'>create_temp_file</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>decrypted_output</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>.txt</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span>
+    
+    <span class='comment'># Close output file immediately after creation so PowerShell can write to it
+</span>    <span class='id identifier rubyid_output_file'>output_file</span><span class='period'>.</span><span class='id identifier rubyid_close'>close</span>
+    
+    <span class='comment'># Create PowerShell script for DPAPI decryption
+</span>    <span class='id identifier rubyid_entropy_value'>entropy_value</span> <span class='op'>=</span> <span class='id identifier rubyid_entropy'>entropy</span> <span class='op'>?</span> <span class='id identifier rubyid_entropy'>entropy</span><span class='period'>.</span><span class='id identifier rubyid_gsub'>gsub</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>&#39;</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>&#39;&#39;</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='op'>:</span> <span class='kw'>nil</span>
+    <span class='id identifier rubyid_script_content'>script_content</span> <span class='op'>=</span> <span class='id identifier rubyid_create_dpapi_decrypt_script'>create_dpapi_decrypt_script</span><span class='lparen'>(</span>
+      <span class='id identifier rubyid_temp_file'>temp_file</span><span class='period'>.</span><span class='id identifier rubyid_path'>path</span><span class='period'>.</span><span class='id identifier rubyid_gsub'>gsub</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>/</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>\\</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span><span class='comma'>,</span>
+      <span class='id identifier rubyid_output_file'>output_file</span><span class='period'>.</span><span class='id identifier rubyid_path'>path</span><span class='period'>.</span><span class='id identifier rubyid_gsub'>gsub</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>/</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>\\</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span><span class='comma'>,</span>
+      <span class='id identifier rubyid_entropy_value'>entropy_value</span>
+    <span class='rparen'>)</span>
+    
+    <span class='comment'># Write script content and close file properly
+</span>    <span class='id identifier rubyid_script_file'>script_file</span><span class='period'>.</span><span class='id identifier rubyid_write'>write</span><span class='lparen'>(</span><span class='id identifier rubyid_script_content'>script_content</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_script_file'>script_file</span><span class='period'>.</span><span class='id identifier rubyid_close'>close</span>
+    
+    <span class='comment'># Execute PowerShell script
+</span>    <span class='id identifier rubyid_script_path'>script_path</span> <span class='op'>=</span> <span class='id identifier rubyid_script_file'>script_file</span><span class='period'>.</span><span class='id identifier rubyid_path'>path</span><span class='period'>.</span><span class='id identifier rubyid_gsub'>gsub</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>/</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>\\</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span>
+    
+    <span class='id identifier rubyid_success'>success</span> <span class='op'>=</span> <span class='id identifier rubyid_execute_powershell_script_file'>execute_powershell_script_file</span><span class='lparen'>(</span><span class='id identifier rubyid_script_path'>script_path</span><span class='rparen'>)</span>
+    
+    <span class='id identifier rubyid_result'>result</span> <span class='op'>=</span> <span class='kw'>nil</span>
+    <span class='kw'>if</span> <span class='id identifier rubyid_success'>success</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_file_exists?'>file_exists?</span><span class='lparen'>(</span><span class='id identifier rubyid_output_file'>output_file</span><span class='period'>.</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_size'>size</span><span class='lparen'>(</span><span class='id identifier rubyid_output_file'>output_file</span><span class='period'>.</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span> <span class='op'>&gt;</span> <span class='int'>0</span>
+      <span class='id identifier rubyid_output_content'>output_content</span> <span class='op'>=</span> <span class='id identifier rubyid_read_file'>read_file</span><span class='lparen'>(</span><span class='id identifier rubyid_output_file'>output_file</span><span class='period'>.</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_strip'>strip</span>
+      <span class='comment'># Return the result if it doesn&#39;t contain an error
+</span>      <span class='id identifier rubyid_result'>result</span> <span class='op'>=</span> <span class='id identifier rubyid_output_content'>output_content</span><span class='period'>.</span><span class='id identifier rubyid_start_with?'>start_with?</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>ERROR:</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span> <span class='op'>?</span> <span class='kw'>nil</span> <span class='op'>:</span> <span class='id identifier rubyid_output_content'>output_content</span>
+    <span class='kw'>end</span>
+    
+    <span class='comment'># Cache the result (including nil results to avoid repeated failures)
+</span>    <span class='ivar'>@dpapi_cache</span> <span class='op'>||=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
+    <span class='ivar'>@dpapi_cache</span><span class='lbracket'>[</span><span class='id identifier rubyid_cache_key'>cache_key</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_result'>result</span>
+    
+    <span class='id identifier rubyid_result'>result</span>
+  <span class='kw'>rescue</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_e'>e</span>
+    <span class='kw'>nil</span>
+  <span class='kw'>ensure</span>
+    <span class='id identifier rubyid_temp_file'>temp_file</span><span class='op'>&amp;.</span><span class='id identifier rubyid_close'>close</span>
+    <span class='id identifier rubyid_script_file'>script_file</span><span class='op'>&amp;.</span><span class='id identifier rubyid_close'>close</span>
+    <span class='id identifier rubyid_output_file'>output_file</span><span class='op'>&amp;.</span><span class='id identifier rubyid_close'>close</span>
+    <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_unlink'>unlink</span><span class='lparen'>(</span><span class='id identifier rubyid_temp_file'>temp_file</span><span class='period'>.</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_temp_file'>temp_file</span> <span class='op'>&amp;&amp;</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_exist?'>exist?</span><span class='lparen'>(</span><span class='id identifier rubyid_temp_file'>temp_file</span><span class='period'>.</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span>
+    <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_unlink'>unlink</span><span class='lparen'>(</span><span class='id identifier rubyid_script_file'>script_file</span><span class='period'>.</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_script_file'>script_file</span> <span class='op'>&amp;&amp;</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_exist?'>exist?</span><span class='lparen'>(</span><span class='id identifier rubyid_script_file'>script_file</span><span class='period'>.</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span>
+    <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_unlink'>unlink</span><span class='lparen'>(</span><span class='id identifier rubyid_output_file'>output_file</span><span class='period'>.</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_output_file'>output_file</span> <span class='op'>&amp;&amp;</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_exist?'>exist?</span><span class='lparen'>(</span><span class='id identifier rubyid_output_file'>output_file</span><span class='period'>.</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="directory_exists?-instance_method">
+  
+    #<strong>directory_exists?</strong>(path)  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Check if a directory exists</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>path</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>directory path</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>true if directory exists</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+67
+68
+69</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/clientruntime/environment.rb', line 67</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_directory_exists?'>directory_exists?</span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span>
+  <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_exist?'>exist?</span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_directory?'>directory?</span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="ensure_directory-instance_method">
+  
+    #<strong>ensure_directory</strong>(path)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Create directory if it doesn’t exist</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>path</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>directory path</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>IOError</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>if directory cannot be created</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+98
+99
+100
+101
+102
+103
+104</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/clientruntime/environment.rb', line 98</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_ensure_directory'>ensure_directory</span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span>
+  <span class='kw'>return</span> <span class='kw'>if</span> <span class='id identifier rubyid_directory_exists?'>directory_exists?</span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span>
+  
+  <span class='const'>FileUtils</span><span class='period'>.</span><span class='id identifier rubyid_mkdir_p'>mkdir_p</span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span>
+<span class='kw'>rescue</span> <span class='const'>Errno</span><span class='op'>::</span><span class='const'>EACCES</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_e'>e</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='const'>IOError</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Cannot create directory </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_path'>path</span><span class='embexpr_end'>}</span><span class='tstring_content'>: </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_e'>e</span><span class='period'>.</span><span class='id identifier rubyid_message'>message</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="execute_command-instance_method">
+  
+    #<strong>execute_command</strong>(command, *args)  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Execute a system command</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>command</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>command to execute</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>args</span>
+      
+      
+        <span class='type'>(<tt>Array&lt;String&gt;</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>command arguments</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>true if command succeeded</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+142
+143
+144
+145
+146
+147
+148</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/clientruntime/environment.rb', line 142</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_execute_command'>execute_command</span><span class='lparen'>(</span><span class='id identifier rubyid_command'>command</span><span class='comma'>,</span> <span class='op'>*</span><span class='id identifier rubyid_args'>args</span><span class='rparen'>)</span>
+  <span class='kw'>if</span> <span class='id identifier rubyid_args'>args</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span>
+    <span class='id identifier rubyid_system'>system</span><span class='lparen'>(</span><span class='id identifier rubyid_command'>command</span><span class='rparen'>)</span>
+  <span class='kw'>else</span>
+    <span class='id identifier rubyid_system'>system</span><span class='lparen'>(</span><span class='id identifier rubyid_command'>command</span><span class='comma'>,</span> <span class='op'>*</span><span class='id identifier rubyid_args'>args</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="execute_powershell_script-instance_method">
+  
+    #<strong>execute_powershell_script</strong>(script_content)  &#x21d2; <tt>String</tt><sup>?</sup> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Execute PowerShell script and return output</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>script_content</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>PowerShell script content</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>, <tt>nil</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>script output or nil if failed</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/clientruntime/environment.rb', line 153</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_execute_powershell_script'>execute_powershell_script</span><span class='lparen'>(</span><span class='id identifier rubyid_script_content'>script_content</span><span class='rparen'>)</span>
+  <span class='kw'>return</span> <span class='kw'>nil</span> <span class='kw'>unless</span> <span class='id identifier rubyid_windows?'>windows?</span>
+
+  <span class='id identifier rubyid_require'>require</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>tempfile</span><span class='tstring_end'>&#39;</span></span>
+  <span class='id identifier rubyid_script_file'>script_file</span> <span class='op'>=</span> <span class='kw'>nil</span>
+  <span class='id identifier rubyid_output_file'>output_file</span> <span class='op'>=</span> <span class='kw'>nil</span>
+  
+  <span class='kw'>begin</span>
+    <span class='id identifier rubyid_script_file'>script_file</span> <span class='op'>=</span> <span class='id identifier rubyid_create_temp_file'>create_temp_file</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>powershell_script</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>.ps1</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_output_file'>output_file</span> <span class='op'>=</span> <span class='id identifier rubyid_create_temp_file'>create_temp_file</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>powershell_output</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>.txt</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span>
+    
+    <span class='id identifier rubyid_write_file'>write_file</span><span class='lparen'>(</span><span class='id identifier rubyid_script_file'>script_file</span><span class='period'>.</span><span class='id identifier rubyid_path'>path</span><span class='comma'>,</span> <span class='id identifier rubyid_script_content'>script_content</span><span class='rparen'>)</span>
+    
+    <span class='comment'># Execute PowerShell script
+</span>    <span class='id identifier rubyid_script_path'>script_path</span> <span class='op'>=</span> <span class='id identifier rubyid_script_file'>script_file</span><span class='period'>.</span><span class='id identifier rubyid_path'>path</span><span class='period'>.</span><span class='id identifier rubyid_gsub'>gsub</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>/</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>\\</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_output_path'>output_path</span> <span class='op'>=</span> <span class='id identifier rubyid_output_file'>output_file</span><span class='period'>.</span><span class='id identifier rubyid_path'>path</span><span class='period'>.</span><span class='id identifier rubyid_gsub'>gsub</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>/</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>\\</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span>
+    
+    <span class='comment'># Modify script to redirect output to file
+</span>    <span class='id identifier rubyid_modified_script'>modified_script</span> <span class='op'>=</span> <span class='id identifier rubyid_script_content'>script_content</span> <span class='op'>+</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>\n} | Out-File -FilePath &#39;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_output_path'>output_path</span><span class='embexpr_end'>}</span><span class='tstring_content'>&#39; -Encoding UTF8</span><span class='tstring_end'>&quot;</span></span> <span class='kw'>if</span> <span class='op'>!</span><span class='id identifier rubyid_script_content'>script_content</span><span class='period'>.</span><span class='id identifier rubyid_include?'>include?</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>Out-File</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_write_file'>write_file</span><span class='lparen'>(</span><span class='id identifier rubyid_script_file'>script_file</span><span class='period'>.</span><span class='id identifier rubyid_path'>path</span><span class='comma'>,</span> <span class='id identifier rubyid_modified_script'>modified_script</span> <span class='op'>||</span> <span class='id identifier rubyid_script_content'>script_content</span><span class='rparen'>)</span>
+    
+    <span class='id identifier rubyid_success'>success</span> <span class='op'>=</span> <span class='id identifier rubyid_execute_command'>execute_command</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>powershell.exe</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>-ExecutionPolicy</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>Bypass</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>-NoProfile</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>-File</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='id identifier rubyid_script_path'>script_path</span><span class='rparen'>)</span>
+    
+    <span class='kw'>if</span> <span class='id identifier rubyid_success'>success</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_file_exists?'>file_exists?</span><span class='lparen'>(</span><span class='id identifier rubyid_output_file'>output_file</span><span class='period'>.</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span>
+      <span class='id identifier rubyid_result'>result</span> <span class='op'>=</span> <span class='id identifier rubyid_read_file'>read_file</span><span class='lparen'>(</span><span class='id identifier rubyid_output_file'>output_file</span><span class='period'>.</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_strip'>strip</span>
+      <span class='id identifier rubyid_result'>result</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span> <span class='op'>?</span> <span class='kw'>nil</span> <span class='op'>:</span> <span class='id identifier rubyid_result'>result</span>
+    <span class='kw'>else</span>
+      <span class='kw'>nil</span>
+    <span class='kw'>end</span>
+  <span class='kw'>rescue</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_e'>e</span>
+    <span class='kw'>nil</span>
+  <span class='kw'>ensure</span>
+    <span class='id identifier rubyid_script_file'>script_file</span><span class='op'>&amp;.</span><span class='id identifier rubyid_close'>close</span>
+    <span class='id identifier rubyid_output_file'>output_file</span><span class='op'>&amp;.</span><span class='id identifier rubyid_close'>close</span>
+    <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_unlink'>unlink</span><span class='lparen'>(</span><span class='id identifier rubyid_script_file'>script_file</span><span class='period'>.</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_script_file'>script_file</span> <span class='op'>&amp;&amp;</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_exist?'>exist?</span><span class='lparen'>(</span><span class='id identifier rubyid_script_file'>script_file</span><span class='period'>.</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span>
+    <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_unlink'>unlink</span><span class='lparen'>(</span><span class='id identifier rubyid_output_file'>output_file</span><span class='period'>.</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_output_file'>output_file</span> <span class='op'>&amp;&amp;</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_exist?'>exist?</span><span class='lparen'>(</span><span class='id identifier rubyid_output_file'>output_file</span><span class='period'>.</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="execute_powershell_script_file-instance_method">
+  
+    #<strong>execute_powershell_script_file</strong>(script_path)  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Execute PowerShell script from file</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>script_path</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>path to PowerShell script file</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>true if script executed successfully</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+353
+354
+355
+356
+357
+358
+359
+360
+361
+362
+363
+364
+365
+366
+367
+368</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/clientruntime/environment.rb', line 353</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_execute_powershell_script_file'>execute_powershell_script_file</span><span class='lparen'>(</span><span class='id identifier rubyid_script_path'>script_path</span><span class='rparen'>)</span>
+  <span class='kw'>return</span> <span class='kw'>false</span> <span class='kw'>unless</span> <span class='id identifier rubyid_windows?'>windows?</span>
+  
+  <span class='comment'># Try regular PowerShell first
+</span>  <span class='id identifier rubyid_success'>success</span> <span class='op'>=</span> <span class='id identifier rubyid_execute_command'>execute_command</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>powershell.exe</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>-ExecutionPolicy</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>Bypass</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>-NoProfile</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>-File</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='id identifier rubyid_script_path'>script_path</span><span class='rparen'>)</span>
+  
+  <span class='comment'># If that fails, try the full path
+</span>  <span class='kw'>unless</span> <span class='id identifier rubyid_success'>success</span>
+    <span class='id identifier rubyid_success'>success</span> <span class='op'>=</span> <span class='id identifier rubyid_execute_command'>execute_command</span><span class='lparen'>(</span>
+      <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span>
+      <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>-ExecutionPolicy</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>Bypass</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>-NoProfile</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>-File</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='id identifier rubyid_script_path'>script_path</span>
+    <span class='rparen'>)</span>
+  <span class='kw'>end</span>
+  
+  <span class='id identifier rubyid_success'>success</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="file_exists?-instance_method">
+  
+    #<strong>file_exists?</strong>(path)  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Check if a file exists</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>path</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>file path</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>true if file exists</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+60
+61
+62</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/clientruntime/environment.rb', line 60</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_file_exists?'>file_exists?</span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span>
+  <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_exist?'>exist?</span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_file?'>file?</span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="get_application_data_path-instance_method">
+  
+    #<strong>get_application_data_path</strong>(app_name = &#39;eryph&#39;)  &#x21d2; <tt>String</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Get application data path (system-wide)</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>app_name</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>&#39;eryph&#39;</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>application name (default: ‘eryph’)</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>application data path</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/clientruntime/environment.rb', line 235</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_get_application_data_path'>get_application_data_path</span><span class='lparen'>(</span><span class='id identifier rubyid_app_name'>app_name</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>eryph</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span>
+  <span class='kw'>if</span> <span class='id identifier rubyid_windows?'>windows?</span>
+    <span class='comment'># Windows: Use PROGRAMDATA
+</span>    <span class='id identifier rubyid_program_data'>program_data</span> <span class='op'>=</span> <span class='id identifier rubyid_get_environment_variable'>get_environment_variable</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>PROGRAMDATA</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>C:/ProgramData</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span>
+    <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_join'>join</span><span class='lparen'>(</span><span class='id identifier rubyid_program_data'>program_data</span><span class='comma'>,</span> <span class='id identifier rubyid_app_name'>app_name</span><span class='rparen'>)</span>
+  <span class='kw'>else</span>
+    <span class='comment'># Unix-like: Use /var/lib for system data
+</span>    <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_join'>join</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>/var/lib</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='id identifier rubyid_app_name'>app_name</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="get_config_path-instance_method">
+  
+    #<strong>get_config_path</strong>(location)  &#x21d2; <tt>String</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Get the configuration path for the specified location</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>location</span>
+      
+      
+        <span class='type'>(<tt>Symbol</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the configuration store location</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the configuration path</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/clientruntime/environment.rb', line 20</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_get_config_path'>get_config_path</span><span class='lparen'>(</span><span class='id identifier rubyid_location'>location</span><span class='rparen'>)</span>
+  <span class='kw'>case</span> <span class='id identifier rubyid_location'>location</span>
+  <span class='kw'>when</span> <span class='const'><span class='object_link'><a href="Environment/ConfigStoreLocation.html" title="Eryph::ClientRuntime::Environment::ConfigStoreLocation (module)">ConfigStoreLocation</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Environment/ConfigStoreLocation.html#CURRENT_DIRECTORY-constant" title="Eryph::ClientRuntime::Environment::ConfigStoreLocation::CURRENT_DIRECTORY (constant)">CURRENT_DIRECTORY</a></span></span>
+    <span class='const'>Dir</span><span class='period'>.</span><span class='id identifier rubyid_pwd'>pwd</span>
+  <span class='kw'>when</span> <span class='const'><span class='object_link'><a href="Environment/ConfigStoreLocation.html" title="Eryph::ClientRuntime::Environment::ConfigStoreLocation (module)">ConfigStoreLocation</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Environment/ConfigStoreLocation.html#USER-constant" title="Eryph::ClientRuntime::Environment::ConfigStoreLocation::USER (constant)">USER</a></span></span>
+    <span class='id identifier rubyid_user_config_path'>user_config_path</span>
+  <span class='kw'>when</span> <span class='const'><span class='object_link'><a href="Environment/ConfigStoreLocation.html" title="Eryph::ClientRuntime::Environment::ConfigStoreLocation (module)">ConfigStoreLocation</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Environment/ConfigStoreLocation.html#SYSTEM-constant" title="Eryph::ClientRuntime::Environment::ConfigStoreLocation::SYSTEM (constant)">SYSTEM</a></span></span>
+    <span class='id identifier rubyid_system_config_path'>system_config_path</span>
+  <span class='kw'>else</span>
+    <span class='id identifier rubyid_raise'>raise</span> <span class='const'>ArgumentError</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Unknown configuration store location: </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_location'>location</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="get_encrypted_system_client-instance_method">
+  
+    #<strong>get_encrypted_system_client</strong>(provider_name, identity_endpoint = nil)  &#x21d2; <tt>String</tt><sup>?</sup> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Get encrypted system client private key for identity provider</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>provider_name</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>identity provider name</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>identity_endpoint</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>identity endpoint for DPAPI entropy</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>, <tt>nil</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>private key PEM content or nil if not found</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/clientruntime/environment.rb', line 250</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_get_encrypted_system_client'>get_encrypted_system_client</span><span class='lparen'>(</span><span class='id identifier rubyid_provider_name'>provider_name</span><span class='comma'>,</span> <span class='id identifier rubyid_identity_endpoint'>identity_endpoint</span> <span class='op'>=</span> <span class='kw'>nil</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_private_key_path'>private_key_path</span> <span class='op'>=</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_join'>join</span><span class='lparen'>(</span>
+    <span class='id identifier rubyid_get_application_data_path'>get_application_data_path</span><span class='comma'>,</span>
+    <span class='id identifier rubyid_provider_name'>provider_name</span><span class='comma'>,</span>
+    <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>private</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span>
+    <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>clients</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span>
+    <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>system-client.key</span><span class='tstring_end'>&#39;</span></span>
+  <span class='rparen'>)</span>
+
+  <span class='kw'>return</span> <span class='kw'>nil</span> <span class='kw'>unless</span> <span class='id identifier rubyid_file_exists?'>file_exists?</span><span class='lparen'>(</span><span class='id identifier rubyid_private_key_path'>private_key_path</span><span class='rparen'>)</span>
+
+  <span class='kw'>begin</span>
+    <span class='id identifier rubyid_encrypted_data'>encrypted_data</span> <span class='op'>=</span> <span class='id identifier rubyid_read_binary_file'>read_binary_file</span><span class='lparen'>(</span><span class='id identifier rubyid_private_key_path'>private_key_path</span><span class='rparen'>)</span>
+    
+    <span class='kw'>if</span> <span class='id identifier rubyid_windows?'>windows?</span>
+      <span class='comment'># On Windows, decrypt DPAPI-protected data
+</span>      <span class='id identifier rubyid_decrypt_dpapi_data'>decrypt_dpapi_data</span><span class='lparen'>(</span><span class='id identifier rubyid_encrypted_data'>encrypted_data</span><span class='comma'>,</span> <span class='id identifier rubyid_identity_endpoint'>identity_endpoint</span><span class='rparen'>)</span>
+    <span class='kw'>else</span>
+      <span class='comment'># On non-Windows systems, assume it&#39;s already in PEM format
+</span>      <span class='id identifier rubyid_encrypted_data'>encrypted_data</span>
+    <span class='kw'>end</span>
+  <span class='kw'>rescue</span> <span class='const'>IOError</span>
+    <span class='kw'>nil</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="get_environment_variable-instance_method">
+  
+    #<strong>get_environment_variable</strong>(name, default = nil)  &#x21d2; <tt>String</tt><sup>?</sup> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Get environment variable with optional default</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>name</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>environment variable name</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>default</span>
+      
+      
+        <span class='type'>(<tt>String</tt>, <tt>nil</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>default value if not found</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>, <tt>nil</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>environment variable value</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+124
+125
+126</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/clientruntime/environment.rb', line 124</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_get_environment_variable'>get_environment_variable</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='comma'>,</span> <span class='id identifier rubyid_default'>default</span> <span class='op'>=</span> <span class='kw'>nil</span><span class='rparen'>)</span>
+  <span class='const'>ENV</span><span class='lbracket'>[</span><span class='id identifier rubyid_name'>name</span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='id identifier rubyid_default'>default</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="linux?-instance_method">
+  
+    #<strong>linux?</strong>  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Check if running on Linux platform</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>true if running on Linux</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+47
+48
+49</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/clientruntime/environment.rb', line 47</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_linux?'>linux?</span>
+  <span class='const'>RbConfig</span><span class='op'>::</span><span class='const'>CONFIG</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>target_os</span><span class='tstring_end'>&#39;</span></span><span class='rbracket'>]</span> <span class='op'>=~</span> <span class='tstring'><span class='regexp_beg'>/</span><span class='tstring_content'>linux</span><span class='regexp_end'>/</span></span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="macos?-instance_method">
+  
+    #<strong>macos?</strong>  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Check if running on macOS platform</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>true if running on macOS</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+41
+42
+43</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/clientruntime/environment.rb', line 41</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_macos?'>macos?</span>
+  <span class='const'>RbConfig</span><span class='op'>::</span><span class='const'>CONFIG</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>target_os</span><span class='tstring_end'>&#39;</span></span><span class='rbracket'>]</span> <span class='op'>=~</span> <span class='tstring'><span class='regexp_beg'>/</span><span class='tstring_content'>darwin</span><span class='regexp_end'>/</span></span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="process_running?-instance_method">
+  
+    #<strong>process_running?</strong>(process_id, process_name = nil)  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Check if a process is running</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>process_id</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>process ID</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>process_name</span>
+      
+      
+        <span class='type'>(<tt>String</tt>, <tt>nil</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>optional process name for verification</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>true if process is running</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/clientruntime/environment.rb', line 205</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_process_running?'>process_running?</span><span class='lparen'>(</span><span class='id identifier rubyid_process_id'>process_id</span><span class='comma'>,</span> <span class='id identifier rubyid_process_name'>process_name</span> <span class='op'>=</span> <span class='kw'>nil</span><span class='rparen'>)</span>
+  <span class='kw'>return</span> <span class='kw'>false</span> <span class='kw'>if</span> <span class='id identifier rubyid_process_id'>process_id</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='op'>||</span> <span class='id identifier rubyid_process_id'>process_id</span> <span class='op'>&lt;=</span> <span class='int'>0</span>
+
+  <span class='kw'>if</span> <span class='id identifier rubyid_windows?'>windows?</span>
+    <span class='comment'># On Windows, use PowerShell to check if process exists
+</span>    <span class='id identifier rubyid_execute_command'>execute_command</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>powershell</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>-Command</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Get-Process -Id </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_process_id'>process_id</span><span class='embexpr_end'>}</span><span class='tstring_content'> -ErrorAction SilentlyContinue | Out-Null</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+  <span class='kw'>else</span>
+    <span class='comment'># On Unix-like systems, check /proc or use ps
+</span>    <span class='kw'>if</span> <span class='id identifier rubyid_file_exists?'>file_exists?</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>/proc/</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_process_id'>process_id</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+      <span class='kw'>return</span> <span class='kw'>true</span> <span class='kw'>unless</span> <span class='id identifier rubyid_process_name'>process_name</span>
+      
+      <span class='comment'># Verify process name if provided
+</span>      <span class='kw'>begin</span>
+        <span class='id identifier rubyid_cmdline'>cmdline</span> <span class='op'>=</span> <span class='id identifier rubyid_read_file'>read_file</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>/proc/</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_process_id'>process_id</span><span class='embexpr_end'>}</span><span class='tstring_content'>/cmdline</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+        <span class='id identifier rubyid_cmdline'>cmdline</span><span class='period'>.</span><span class='id identifier rubyid_include?'>include?</span><span class='lparen'>(</span><span class='id identifier rubyid_process_name'>process_name</span><span class='rparen'>)</span>
+      <span class='kw'>rescue</span> <span class='const'>IOError</span>
+        <span class='kw'>false</span>
+      <span class='kw'>end</span>
+    <span class='kw'>else</span>
+      <span class='comment'># Fallback to ps command
+</span>      <span class='id identifier rubyid_execute_command'>execute_command</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>ps</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>-p</span><span class='tstring_end'>&#39;</span></span><span class='comma'>,</span> <span class='id identifier rubyid_process_id'>process_id</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span><span class='rparen'>)</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+<span class='kw'>rescue</span>
+  <span class='kw'>false</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="read_binary_file-instance_method">
+  
+    #<strong>read_binary_file</strong>(path)  &#x21d2; <tt>String</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Read binary file content</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>path</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>file path</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>binary file content</p>
+</div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>IOError</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>if file cannot be read</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+132
+133
+134
+135
+136</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/clientruntime/environment.rb', line 132</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_read_binary_file'>read_binary_file</span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span>
+  <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_binread'>binread</span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span>
+<span class='kw'>rescue</span> <span class='const'>Errno</span><span class='op'>::</span><span class='const'>ENOENT</span><span class='comma'>,</span> <span class='const'>Errno</span><span class='op'>::</span><span class='const'>EACCES</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_e'>e</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='const'>IOError</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Cannot read binary file </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_path'>path</span><span class='embexpr_end'>}</span><span class='tstring_content'>: </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_e'>e</span><span class='period'>.</span><span class='id identifier rubyid_message'>message</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="read_file-instance_method">
+  
+    #<strong>read_file</strong>(path)  &#x21d2; <tt>String</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Read file content</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>path</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>file path</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>file content</p>
+</div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>IOError</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>if file cannot be read</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+75
+76
+77
+78
+79</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/clientruntime/environment.rb', line 75</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_read_file'>read_file</span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span>
+  <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_read'>read</span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span>
+<span class='kw'>rescue</span> <span class='const'>Errno</span><span class='op'>::</span><span class='const'>ENOENT</span><span class='comma'>,</span> <span class='const'>Errno</span><span class='op'>::</span><span class='const'>EACCES</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_e'>e</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='const'>IOError</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Cannot read file </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_path'>path</span><span class='embexpr_end'>}</span><span class='tstring_content'>: </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_e'>e</span><span class='period'>.</span><span class='id identifier rubyid_message'>message</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="windows?-instance_method">
+  
+    #<strong>windows?</strong>  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Check if running on Windows platform</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>true if running on Windows</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+35
+36
+37</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/clientruntime/environment.rb', line 35</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_windows?'>windows?</span>
+  <span class='op'>!</span><span class='op'>!</span><span class='lparen'>(</span><span class='const'>RbConfig</span><span class='op'>::</span><span class='const'>CONFIG</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>target_os</span><span class='tstring_end'>&#39;</span></span><span class='rbracket'>]</span> <span class='op'>=~</span> <span class='tstring'><span class='regexp_beg'>/</span><span class='tstring_content'>mswin|mingw|cygwin</span><span class='regexp_end'>/</span></span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="write_file-instance_method">
+  
+    #<strong>write_file</strong>(path, content)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Write file content</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>path</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>file path</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>content</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>content to write</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>IOError</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>if file cannot be written</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+85
+86
+87
+88
+89
+90
+91
+92
+93</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/eryph/clientruntime/environment.rb', line 85</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_write_file'>write_file</span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='comma'>,</span> <span class='id identifier rubyid_content'>content</span><span class='rparen'>)</span>
+  <span class='comment'># Ensure directory exists
+</span>  <span class='id identifier rubyid_dir'>dir</span> <span class='op'>=</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_dirname'>dirname</span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span>
+  <span class='const'>FileUtils</span><span class='period'>.</span><span class='id identifier rubyid_mkdir_p'>mkdir_p</span><span class='lparen'>(</span><span class='id identifier rubyid_dir'>dir</span><span class='rparen'>)</span> <span class='kw'>unless</span> <span class='id identifier rubyid_directory_exists?'>directory_exists?</span><span class='lparen'>(</span><span class='id identifier rubyid_dir'>dir</span><span class='rparen'>)</span>
+  
+  <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_write'>write</span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='comma'>,</span> <span class='id identifier rubyid_content'>content</span><span class='rparen'>)</span>
+<span class='kw'>rescue</span> <span class='const'>Errno</span><span class='op'>::</span><span class='const'>EACCES</span><span class='comma'>,</span> <span class='const'>Errno</span><span class='op'>::</span><span class='const'>ENOENT</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_e'>e</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='const'>IOError</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Cannot write file </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_path'>path</span><span class='embexpr_end'>}</span><span class='tstring_content'>: </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_e'>e</span><span class='period'>.</span><span class='id identifier rubyid_message'>message</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+
+      <div id="footer">
+  Generated on Sun Aug 31 15:42:18 2025 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.37 (ruby-3.4.4).
+</div>
+
+    </div>
+  </body>
+</html>

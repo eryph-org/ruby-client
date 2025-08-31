@@ -18,3 +18,5 @@ group :test do
   gem 'faker', '~> 3.2'         # Generate fake test data
   gem 'timecop', '~> 0.9'       # Time manipulation for testing
 end
+
+gem "kramdown", "~> 2.5"

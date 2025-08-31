@@ -5,12 +5,19 @@
 
 require_relative '../lib/eryph'
 
-# Create a client using configuration-based authentication
-# The client will automatically discover credentials from configuration files
-# or you can specify a specific configuration name
-client = Eryph.compute_client('zero', verify_ssl: false) # uses 'zero' configuration with SSL verification disabled
+# Create a client with automatic credential discovery
+# The client will automatically discover credentials from multiple configuration sources
+# in priority order: default → zero → local (Windows), or default → local (Unix)
+
+# Option 1: Automatic discovery (recommended - tries multiple configs)
+client = Eryph.compute_client(verify_ssl: false) # Auto-discovers best available credentials
+
+# Option 2: Specific configuration  
+# client = Eryph.compute_client('zero', verify_ssl: false) # uses 'zero' configuration only
 # client = Eryph.compute_client('production') # uses 'production' configuration
-# client = Eryph.compute_client('zero')       # uses 'zero' configuration for local development
+
+# Option 3: Specific client ID (searches across all configs)
+# client = Eryph.compute_client(client_id: 'my-specific-client', verify_ssl: false)
 
 begin
   # Test the connection

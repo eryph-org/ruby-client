@@ -10,8 +10,15 @@ Official Ruby client libraries for Eryph APIs with seamless OAuth2 authenticatio
 ```ruby
 require 'eryph'
 
-# Connect and list your catlets
-client = Eryph.compute_client
+# Automatic credential discovery - tries multiple configs in priority order  
+client = Eryph.compute_client  # Auto-discovers: default → zero → local
+
+# Or specify configuration/client explicitly
+# client = Eryph.compute_client('production')           # Specific config
+# client = Eryph.compute_client(client_id: 'my-app')    # Find client across all configs
+# client = Eryph.compute_client('zero', client_id: 'admin')  # Specific client in config
+
+# List your catlets
 catlets = client.catlets.catlets_list
 puts "Found #{catlets.value.length} catlets"
 
@@ -92,12 +99,22 @@ The client uses a hierarchical configuration system with automatic discovery:
 }
 ```
 
-## 🎯 Multiple Environments
+## 🎯 Multiple Environments & Discovery
 
 ```ruby
-# Use different configurations
-prod_client = Eryph.compute_client('default')
-dev_client = Eryph.compute_client('zero')  # Auto-detects eryph-zero
+# Automatic discovery (recommended - tries multiple configs)
+client = Eryph.compute_client  # Auto-discovers best available credentials
+
+# Specific configurations  
+prod_client = Eryph.compute_client('production')  # Production environment
+dev_client = Eryph.compute_client('zero')         # Local eryph-zero instance  
+
+# Client ID-based discovery (searches across all configurations)
+admin_client = Eryph.compute_client(client_id: 'admin-client')
+app_client = Eryph.compute_client(client_id: 'my-app-client')
+
+# Combined - specific client in specific config
+specific_client = Eryph.compute_client('production', client_id: 'backup-service')
 ```
 
 ## 🤝 Contributing
