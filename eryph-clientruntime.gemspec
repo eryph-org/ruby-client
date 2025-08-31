@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
     "changelog_uri" => "https://github.com/eryph-org/ruby-client/blob/main/CHANGELOG.md",
     "source_code_uri" => "https://github.com/eryph-org/ruby-client",
     "homepage_uri" => "https://eryph.io",
-    "documentation_uri" => "https://docs.eryph.io"
+    "documentation_uri" => "https://www.eryph.io/docs"
   }
 
   # Runtime dependencies

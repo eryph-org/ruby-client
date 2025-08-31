@@ -115,7 +115,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🆘 Support & Community
 
-- **[📖 Documentation](https://docs.eryph.io)** - Complete guides and API reference
+- **[📖 Documentation](https://https://www.eryph.io/docs)** - Complete guides and API reference
 - **[🐛 Issue Tracker](https://github.com/eryph-org/ruby-client/issues)** - Bug reports and feature requests
 - **[💬 Discussions](https://github.com/eryph-org/eryph/discussions)** - Community support and questions  
 - **[🌐 Website](https://eryph.io)** - Learn more about Eryph
