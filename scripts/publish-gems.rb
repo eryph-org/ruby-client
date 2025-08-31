@@ -119,7 +119,7 @@ def main
   puts ""
   
   # Load gem information
-  gemspecs = ['eryph-clientruntime.gemspec', 'eryph-compute-client.gemspec']
+  gemspecs = ['eryph-clientruntime.gemspec', 'eryph-compute.gemspec']
   gems = gemspecs.map { |spec| load_gem_info(spec) }
   
   puts "Gems to publish:"

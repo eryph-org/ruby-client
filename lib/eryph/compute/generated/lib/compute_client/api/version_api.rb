@@ -57,7 +57,7 @@ module ComputeClient
       return_type = opts[:debug_return_type] || 'ApiVersionResponse'
 
       # auth_names
-      auth_names = opts[:debug_auth_names] || ['oauth2']
+      auth_names = opts[:debug_auth_names] || []
 
       new_options = opts.merge(
         :operation => :"VersionApi.version_get",

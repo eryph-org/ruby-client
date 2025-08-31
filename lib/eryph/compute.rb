@@ -2,6 +2,9 @@
 # High-level client for the Eryph Compute API
 
 require_relative 'compute/version'
+require_relative 'compute/operation_result'
+require_relative 'compute/operation_tracker'
+require_relative 'compute/problem_details_error'
 require_relative 'compute/client'
 
 module Eryph

@@ -1,4 +1,5 @@
 require 'logger'
+require 'set'
 
 module Eryph
   module Compute
@@ -23,12 +24,12 @@ module Eryph
       # @param logger [Logger, nil] logger instance
       # @param scopes [Array<String>] OAuth2 scopes
       # @param ssl_config [Hash] SSL configuration options
+      # @param environment [ClientRuntime::Environment, nil] environment instance for dependency injection
       # @option ssl_config [Boolean] :verify_ssl (true) whether to verify SSL certificates
       # @option ssl_config [Boolean] :verify_hostname (true) whether to verify hostname
-      # @option ssl_config [Boolean] :use_system_ca (false) whether to use system certificate store on Windows
       # @option ssl_config [String] :ca_file path to CA certificate file
       # @option ssl_config [OpenSSL::X509::Certificate] :ca_cert CA certificate object
-      def initialize(config_name, endpoint_name: nil, logger: nil, scopes: nil, ssl_config: {})
+      def initialize(config_name, endpoint_name: nil, logger: nil, scopes: nil, ssl_config: {}, environment: nil)
         @config_name = config_name
         @endpoint_name = endpoint_name || determine_compute_endpoint_name
         @logger = logger || default_logger
@@ -38,7 +39,8 @@ module Eryph
         # For authentication, we always need the identity endpoint
         @credentials_lookup = ClientRuntime.create_credentials_lookup(
           config_name: @config_name, 
-          endpoint_name: 'identity'
+          endpoint_name: 'identity',
+          environment: environment
         )
         
         credentials = @credentials_lookup.find_credentials
@@ -75,6 +77,7 @@ module Eryph
         client = allocate
         client.instance_variable_set(:@config_name, 'direct')
         client.instance_variable_set(:@endpoint_name, 'compute')
+        client.instance_variable_set(:@compute_endpoint, endpoint)
         client.instance_variable_set(:@logger, logger || client.send(:default_logger))
         client.instance_variable_set(:@token_provider, ClientRuntime::TokenProvider.new(
           credentials,
@@ -166,28 +169,94 @@ module Eryph
         "Error getting endpoint: #{e.message}"
       end
 
-      # Wait for an operation to complete
+      # Wait for an operation to complete with optional callbacks for progress tracking
       # @param operation_id [String] the operation ID to wait for
       # @param timeout [Integer] timeout in seconds (default: 300)
       # @param poll_interval [Integer] polling interval in seconds (default: 5)
-      # @return [Object] the completed operation object
+      # @return [OperationResult] the completed operation result wrapper
       # @raise [Timeout::Error] if the operation times out
-      def wait_for_operation(operation_id, timeout: 300, poll_interval: 5)
+      # @yield [event_type, data] callback for operation events
+      # @yieldparam event_type [Symbol] :log_entry, :task_new, :task_update, :resource_new, :status
+      # @yieldparam data [Object] the event data (log entry, task, resource, or operation)
+      def wait_for_operation(operation_id, timeout: 300, poll_interval: 5, &block)
         @logger.info "Waiting for operation #{operation_id} to complete (timeout: #{timeout}s)..."
         
         start_time = Time.now
-        time_stamp = Time.parse("2018-01-01")
+        last_timestamp = Time.parse("2018-01-01")
+        processed_log_ids = Set.new
+        processed_task_ids = Set.new  
+        processed_resource_ids = Set.new
         
         loop do
-          operation = operations.operations_get(operation_id, expand: "logs,tasks,resources", log_time_stamp: time_stamp)
+          # Get raw JSON using debug_return_type to work around discriminated union bug
+          raw_json = nil
+          begin
+            raw_json = operations.operations_get(
+              operation_id, 
+              expand: "logs,tasks,resources",
+              log_time_stamp: last_timestamp,
+              debug_return_type: 'String'
+            )
+            @logger.debug "Raw JSON captured: #{raw_json ? 'YES' : 'NO'}"
+          rescue => e
+            @logger.debug "Failed to capture raw JSON: #{e.message}"
+          end
+          
+          # Get normal deserialized operation
+          operation = operations.operations_get(
+            operation_id, 
+            expand: "logs,tasks,resources", 
+            log_time_stamp: last_timestamp
+          )
+          
+          # Process NEW log entries only
+          if operation.log_entries && block_given?
+            operation.log_entries.each do |log_entry|
+              next if processed_log_ids.include?(log_entry.id)
+              
+              processed_log_ids.add(log_entry.id)
+              last_timestamp = log_entry.timestamp if log_entry.timestamp > last_timestamp
+              
+              # Callback for new log entry
+              yield(:log_entry, log_entry)
+            end
+          end
+          
+          # Process NEW and UPDATED tasks (tasks can appear and change during execution)
+          if operation.tasks && block_given?
+            operation.tasks.each do |task|
+              if !processed_task_ids.include?(task.id)
+                processed_task_ids.add(task.id)
+                # Callback for new task
+                yield(:task_new, task)
+              else
+                # Callback for task update (status/progress changes)
+                yield(:task_update, task)
+              end
+            end
+          end
+          
+          # Process NEW resources (resources appear as they're created)
+          if operation.resources && block_given?
+            operation.resources.each do |resource|
+              next if processed_resource_ids.include?(resource.id)
+              
+              processed_resource_ids.add(resource.id)
+              # Callback for new resource
+              yield(:resource_new, resource)
+            end
+          end
+          
+          # Status update callback
+          yield(:status, operation) if block_given?
           
           case operation.status
           when 'Completed'
             @logger.info "Operation #{operation_id} completed successfully!"
-            return operation
+            return OperationResult.new(operation, self, raw_json)
           when 'Failed'
             @logger.error "Operation #{operation_id} failed: #{operation.status_message}"
-            return operation
+            return OperationResult.new(operation, self, raw_json)
           when 'Running', 'Queued'
             elapsed = Time.now - start_time
             if elapsed > timeout
@@ -195,12 +264,57 @@ module Eryph
               raise Timeout::Error, "Operation #{operation_id} timed out after #{timeout} seconds"
             end
             
-            @logger.debug "Operation #{operation_id} still #{operation.status.downcase}... (#{elapsed.round(1)}s elapsed)"
+            @logger.debug "Operation #{operation_id} status: #{operation.status} (#{elapsed.round(1)}s elapsed)"
             sleep poll_interval
           else
             @logger.warn "Operation #{operation_id} has unknown status: #{operation.status}"
-            return operation
+            return OperationResult.new(operation, self)
           end
+        end
+      end
+
+      # Validate a catlet configuration using the quick validation endpoint
+      # @param config [Hash, String] catlet configuration as Ruby hash or JSON string
+      # @return [Object] validation result with is_valid and errors
+      # @raise [ProblemDetailsError] if validation fails due to API error
+      def validate_catlet_config(config)
+        # Convert input to hash if it's a JSON string
+        config_hash = case config
+        when String
+          begin
+            JSON.parse(config)
+          rescue JSON::ParserError => e
+            raise ArgumentError, "Invalid JSON string: #{e.message}"
+          end
+        when Hash
+          config
+        else
+          raise ArgumentError, "Config must be a Hash or JSON string, got #{config.class}"
+        end
+
+        # Create the validation request
+        request = Eryph::ComputeClient::ValidateConfigRequest.new(configuration: config_hash)
+        
+        # Call the validation endpoint
+        handle_api_errors do
+          catlets.catlets_validate_config(validate_config_request: request)
+        end
+      end
+
+      # Execute a block and convert ApiError to ProblemDetailsError when appropriate
+      # @yield the block to execute
+      # @return the result of the block
+      # @raise [ProblemDetailsError, Exception] the error with enhanced information
+      def handle_api_errors(&block)
+        yield
+      rescue => e
+        # Check if this looks like an API error (has code and response_body)
+        if e.respond_to?(:code) && e.respond_to?(:response_body)
+          enhanced_error = ProblemDetailsError.from_api_error(e)
+          raise enhanced_error
+        else
+          # Re-raise non-API errors as-is
+          raise e
         end
       end
 
@@ -222,12 +336,13 @@ module Eryph
       end
 
       def default_scopes
-        %w[compute:write]
+        # Default to minimal read-only scope
+        %w[compute:read]
       end
 
       def default_logger
         logger = Logger.new(STDOUT)
-        logger.level = Logger::INFO
+        logger.level = Logger::WARN
         logger.formatter = proc do |severity, datetime, progname, msg|
           "[#{datetime.strftime('%Y-%m-%d %H:%M:%S')}] #{severity} -- #{progname}: #{msg}\n"
         end
@@ -245,7 +360,10 @@ module Eryph
           api_class = Eryph::ComputeClient.const_get(api_class_name)
           
           @logger.debug "Creating generated API client for #{api_name} (#{api_class_name})"
-          api_class.new(api_client)
+          raw_client = api_class.new(api_client)
+          
+          # Wrap the API client to handle errors
+          ErrorHandlingApiClientWrapper.new(raw_client, self)
         rescue LoadError, NameError => e
           # Fall back to placeholder if generated client is not available
           @logger.warn "Generated client not available for #{api_name}, using placeholder: #{e.class}: #{e.message}"
@@ -293,10 +411,8 @@ module Eryph
       end
 
       def get_compute_endpoint
-        # Create endpoint lookup to get the compute API endpoint
-        environment = ClientRuntime::Environment.new
-        reader = ClientRuntime::ConfigStoresReader.new(environment)
-        endpoint_lookup = ClientRuntime::EndpointLookup.new(reader, @config_name)
+        # Reuse the existing credentials lookup's endpoint lookup
+        endpoint_lookup = @credentials_lookup.instance_variable_get(:@endpoint_lookup)
         
         # Get the compute endpoint, with fallback to 'compute' if endpoint_name is nil
         endpoint_name = @endpoint_name || 'compute'
@@ -307,6 +423,24 @@ module Eryph
         end
         
         compute_endpoint
+      end
+    end
+
+    # Wrapper for API clients that handles errors and converts them to ProblemDetailsError
+    class ErrorHandlingApiClientWrapper
+      def initialize(api_client, parent_client)
+        @api_client = api_client
+        @parent_client = parent_client
+      end
+      
+      def method_missing(method_name, *args, **kwargs, &block)
+        @parent_client.handle_api_errors do
+          @api_client.send(method_name, *args, **kwargs, &block)
+        end
+      end
+      
+      def respond_to_missing?(method_name, include_private = false)
+        @api_client.respond_to?(method_name, include_private)
       end
     end
 

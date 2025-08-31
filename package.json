@@ -1,7 +1,7 @@
 {
-  "name": "ruby-computeclient",
+  "name": "ruby-client",
   "version": "0.1.0",
-  "description": "Eryph Ruby Compute Client monorepo",
+  "description": "Eryph Ruby Client Libraries monorepo",
   "private": true,
   "packageManager": "pnpm@10.5.2",
   "workspaces": [
@@ -29,11 +29,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/eryph-org/ruby-computeclient.git"
+    "url": "https://github.com/eryph-org/ruby-client.git"
   },
   "homepage": "https://eryph.io",
   "bugs": {
-    "url": "https://github.com/eryph-org/ruby-computeclient/issues"
+    "url": "https://github.com/eryph-org/ruby-client/issues"
   },
   "dependencies": {
     "@openapitools/openapi-generator-cli": "^2.20.5"

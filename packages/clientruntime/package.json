@@ -1,6 +1,6 @@
 {
   "name": "@eryph/clientruntime",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Eryph Client Runtime for Ruby (NPM package for changeset management)",
   "private": true,
   "main": "index.js",
@@ -17,7 +17,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/eryph-org/ruby-computeclient.git",
+    "url": "https://github.com/eryph-org/ruby-client.git",
     "directory": "packages/clientruntime"
   }
 }

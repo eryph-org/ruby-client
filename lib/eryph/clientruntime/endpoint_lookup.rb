@@ -136,7 +136,12 @@ module Eryph
         # For now, we'll just check if the URL format is valid
         begin
           uri = URI.parse(base_url)
-          uri.scheme && uri.host && uri.port
+          # Check if scheme, host, and explicit port are present
+          has_scheme = !uri.scheme.nil?
+          has_host = !uri.host.nil? && !uri.host.empty?
+          has_explicit_port = base_url.include?(':') && base_url.match(/:(\d+)/)
+          
+          !!(has_scheme && has_host && has_explicit_port)
         rescue URI::InvalidURIError
           false
         end

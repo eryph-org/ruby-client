@@ -1,0 +1,2910 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Compute Api",
+    "description": "Compute Api",
+    "contact": {
+      "name": "dbosoft",
+      "email": "support@dbosoft.eu"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "version": "1.0"
+  },
+  "servers": [
+    {
+      "url": "https://localhost:8000/compute"
+    }
+  ],
+  "paths": {
+    "/v1/genes": {
+      "delete": {
+        "tags": [
+          "Genes"
+        ],
+        "summary": "Remove all unused genes",
+        "description": "Remove all unused genes from the local gene pool",
+        "operationId": "Genes_Cleanup",
+        "responses": {
+          "202": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:genes:write"
+            ]
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Genes"
+        ],
+        "summary": "List all genes",
+        "description": "List all genes",
+        "operationId": "Genes_List",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneList"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:genes:read"
+            ]
+          }
+        ],
+        "x-ms-pageable": {
+          "nextLinkName": null
+        }
+      }
+    },
+    "/v1/virtualdisks": {
+      "post": {
+        "tags": [
+          "Virtual Disks"
+        ],
+        "summary": "Create a virtual disk",
+        "description": "Create a virtual disk",
+        "operationId": "VirtualDisks_Create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewVirtualDiskRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:catlets:write"
+            ]
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Virtual Disks"
+        ],
+        "summary": "List all virtual disks",
+        "description": "List all virtual disks",
+        "operationId": "VirtualDisks_List",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VirtualDiskList"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:catlets:read"
+            ]
+          }
+        ],
+        "x-ms-pageable": {
+          "nextLinkName": null
+        }
+      }
+    },
+    "/v1/projects": {
+      "post": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Create a new project",
+        "description": "Create a project",
+        "operationId": "Projects_Create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewProjectRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:projects:write"
+            ]
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "List all projects",
+        "description": "List all projects",
+        "operationId": "Projects_List",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectList"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:projects:read"
+            ]
+          }
+        ],
+        "x-ms-pageable": {
+          "nextLinkName": null
+        }
+      }
+    },
+    "/v1/projects/{project_id}/members": {
+      "post": {
+        "tags": [
+          "Project Members"
+        ],
+        "summary": "Add a project member",
+        "description": "Add a project member",
+        "operationId": "ProjectMembers_Add",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewProjectMemberBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:projects:write"
+            ]
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Project Members"
+        ],
+        "summary": "List all project members",
+        "description": "List all project members",
+        "operationId": "ProjectMembers_List",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectMemberRoleList"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:projects:read"
+            ]
+          }
+        ],
+        "x-ms-pageable": {
+          "nextLinkName": null
+        }
+      }
+    },
+    "/v1/catlets": {
+      "post": {
+        "tags": [
+          "Catlets"
+        ],
+        "summary": "Create a new catlet",
+        "description": "Create a catlet",
+        "operationId": "Catlets_Create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewCatletRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:catlets:write"
+            ]
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Catlets"
+        ],
+        "summary": "List all catlets",
+        "description": "List all catlets",
+        "operationId": "Catlets_List",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatletList"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:catlets:read"
+            ]
+          }
+        ],
+        "x-ms-pageable": {
+          "nextLinkName": null
+        }
+      }
+    },
+    "/v1/virtualdisks/{id}": {
+      "delete": {
+        "tags": [
+          "Virtual Disks"
+        ],
+        "summary": "Delete a virtual disk",
+        "description": "Delete a virtual disk",
+        "operationId": "VirtualDisks_Delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:catlets:write"
+            ]
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Virtual Disks"
+        ],
+        "summary": "Get a virtual disk",
+        "description": "Get a virtual disk",
+        "operationId": "VirtualDisks_Get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VirtualDisk"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:catlets:read"
+            ]
+          }
+        ]
+      }
+    },
+    "/v1/projects/{id}": {
+      "delete": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Delete a project",
+        "description": "Delete a project",
+        "operationId": "Projects_Delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:projects:write"
+            ]
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Get a project",
+        "description": "Get a project",
+        "operationId": "Projects_Get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:projects:read"
+            ]
+          }
+        ]
+      }
+    },
+    "/v1/projects/{project_id}/members/{id}": {
+      "delete": {
+        "tags": [
+          "Project Members"
+        ],
+        "summary": "Remove a project member",
+        "description": "Removes a project member assignment",
+        "operationId": "ProjectMembers_Remove",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:projects:write"
+            ]
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Project Members"
+        ],
+        "summary": "Get a project member",
+        "description": "Get a project member",
+        "operationId": "ProjectMembers_Get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectMemberRole"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:projects:read"
+            ]
+          }
+        ]
+      }
+    },
+    "/v1/genes/{id}": {
+      "delete": {
+        "tags": [
+          "Genes"
+        ],
+        "summary": "Remove a gene",
+        "description": "Remove a gene from the local gene pool",
+        "operationId": "Genes_Delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:genes:write"
+            ]
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Genes"
+        ],
+        "summary": "Get a gene",
+        "description": "Get a gene",
+        "operationId": "Genes_Get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneWithUsage"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:genes:read"
+            ]
+          }
+        ]
+      }
+    },
+    "/v1/catlets/{id}": {
+      "delete": {
+        "tags": [
+          "Catlets"
+        ],
+        "summary": "Delete a catlet",
+        "description": "Deletes a catlet",
+        "operationId": "Catlets_Delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:catlets:write"
+            ]
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Catlets"
+        ],
+        "summary": "Get a catlet",
+        "description": "Get a catlet",
+        "operationId": "Catlets_Get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Catlet"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:read"
+            ]
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Catlets"
+        ],
+        "summary": "Update a catlet",
+        "description": "Update a catlet",
+        "operationId": "Catlets_Update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCatletRequestBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:catlets:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/v1/catlets/{id}/config/expand": {
+      "post": {
+        "tags": [
+          "Catlets"
+        ],
+        "summary": "Expand catlet config",
+        "description": "Expand the config for an existing catlet",
+        "operationId": "Catlets_ExpandConfig",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExpandCatletConfigRequestBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:catlets:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/v1/catlets/config/expand": {
+      "post": {
+        "tags": [
+          "Catlets"
+        ],
+        "summary": "Expand new catlet config",
+        "description": "Expand the config for a new catlet",
+        "operationId": "Catlets_ExpandNewConfig",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExpandNewCatletConfigRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:catlets:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/v1/virtualnetworks/{id}": {
+      "get": {
+        "tags": [
+          "Virtual Networks"
+        ],
+        "summary": "Get a virtual network",
+        "description": "Get a virtual network",
+        "operationId": "VirtualNetworks_Get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VirtualNetwork"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:projects:read"
+            ]
+          }
+        ]
+      }
+    },
+    "/v1/operations/{id}": {
+      "get": {
+        "tags": [
+          "Operations"
+        ],
+        "summary": "Get an operation",
+        "description": "Get an operation",
+        "operationId": "Operations_Get",
+        "parameters": [
+          {
+            "name": "log_time_stamp",
+            "in": "query",
+            "description": "Filters returned log entries by the requested timestamp",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "description": "Expand details. Supported details are: logs,resources,projects,tasks",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:read"
+            ]
+          }
+        ]
+      }
+    },
+    "/v1/catlets/{id}/config": {
+      "get": {
+        "tags": [
+          "Catlets"
+        ],
+        "summary": "Get a catlet configuration",
+        "description": "Get the configuration of a catlet",
+        "operationId": "Catlets_GetConfig",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatletConfiguration"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:read"
+            ]
+          }
+        ]
+      }
+    },
+    "/v1/version": {
+      "get": {
+        "tags": [
+          "Version"
+        ],
+        "summary": "Get the API version",
+        "description": "Gets the API version which can be used by clients for compatibility checks. This endpoint was added with eryph v0.3.",
+        "operationId": "Version_Get",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiVersionResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/v1/projects/{project_id}/virtualnetworks/config": {
+      "get": {
+        "tags": [
+          "Virtual Networks"
+        ],
+        "summary": "Get the virtual network configuration of a project",
+        "description": "Get the virtual network configuration of a project",
+        "operationId": "VirtualNetworks_GetConfig",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VirtualNetworkConfiguration"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:projects:read"
+            ]
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Virtual Networks"
+        ],
+        "summary": "Update the virtual network configuration of a project",
+        "description": "Update the virtual network configuration of a project",
+        "operationId": "VirtualNetworks_UpdateConfig",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProjectNetworksRequestBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:projects:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/v1/virtualnetworks": {
+      "get": {
+        "tags": [
+          "Virtual Networks"
+        ],
+        "summary": "List all virtual networks",
+        "description": "List all virtual networks",
+        "operationId": "VirtualNetworks_List",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VirtualNetworkList"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:projects:read"
+            ]
+          }
+        ],
+        "x-ms-pageable": {
+          "nextLinkName": null
+        }
+      }
+    },
+    "/v1/operations": {
+      "get": {
+        "tags": [
+          "Operations"
+        ],
+        "summary": "List all operations",
+        "description": "List all operations",
+        "operationId": "Operations_List",
+        "parameters": [
+          {
+            "name": "log_time_stamp",
+            "in": "query",
+            "description": "Filters returned log entries by the requested timestamp",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "description": "Expand details. Supported details are: logs,resources,projects,tasks",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationList"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-ms-pageable": {
+          "nextLinkName": null
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:read"
+            ]
+          }
+        ]
+      }
+    },
+    "/v1/catlets/config/populate-variables": {
+      "post": {
+        "tags": [
+          "Catlets"
+        ],
+        "summary": "Populate catlet config variables",
+        "description": "Populates the variables in a config for a new catlet based on the parent.",
+        "operationId": "Catlets_PopulateConfigVariables",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PopulateCatletConfigVariablesRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:catlets:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/v1/catlets/{id}/start": {
+      "put": {
+        "tags": [
+          "Catlets"
+        ],
+        "summary": "Start a catlet",
+        "description": "Start a catlet",
+        "operationId": "Catlets_Start",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:catlets:control"
+            ]
+          }
+        ]
+      }
+    },
+    "/v1/catlets/{id}/stop": {
+      "put": {
+        "tags": [
+          "Catlets"
+        ],
+        "summary": "Stop a catlet",
+        "description": "Stop a catlet",
+        "operationId": "Catlets_Stop",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StopCatletRequestBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:catlets:control"
+            ]
+          }
+        ]
+      }
+    },
+    "/v1/catlets/config/validate": {
+      "post": {
+        "tags": [
+          "Catlets"
+        ],
+        "summary": "Validate catlet config",
+        "description": "Performs a quick validation of the catlet configuration",
+        "operationId": "Catlets_ValidateConfig",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValidateConfigRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatletConfigValidationResult"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response describing why the request failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "compute:catlets:read"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ApiVersion": {
+        "required": [
+          "major",
+          "minor"
+        ],
+        "type": "object",
+        "properties": {
+          "major": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "minor": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ApiVersionResponse": {
+        "required": [
+          "latest_version"
+        ],
+        "type": "object",
+        "properties": {
+          "latest_version": {
+            "$ref": "#/components/schemas/ApiVersion"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Catlet": {
+        "required": [
+          "id",
+          "name",
+          "project",
+          "status",
+          "vm_id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "vm_id": {
+            "type": "string",
+            "description": "The ID of the corresponding Hyper-V virtual machine."
+          },
+          "project": {
+            "$ref": "#/components/schemas/Project"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CatletStatus"
+          },
+          "networks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatletNetwork"
+            },
+            "nullable": true
+          },
+          "network_adapters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatletNetworkAdapter"
+            },
+            "nullable": true
+          },
+          "drives": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatletDrive"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatletConfigOperationResult": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OperationResult"
+          },
+          {
+            "required": [
+              "configuration"
+            ],
+            "type": "object",
+            "properties": {
+              "configuration": {}
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "CatletConfigValidationResult": {
+        "required": [
+          "is_valid"
+        ],
+        "type": "object",
+        "properties": {
+          "is_valid": {
+            "type": "boolean",
+            "description": "Indicates whether the catlet configuration is valid."
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationIssue"
+            },
+            "description": "Contains a list of the issues when the configuration is invalid.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatletConfiguration": {
+        "required": [
+          "configuration"
+        ],
+        "type": "object",
+        "properties": {
+          "configuration": {}
+        },
+        "additionalProperties": false
+      },
+      "CatletDrive": {
+        "required": [
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/CatletDriveType"
+          },
+          "attached_disk_id": {
+            "type": "string",
+            "description": "The ID of the actual virtual disk which is attached.\r\nThis can be null, e.g. when the VHD has been deleted,\r\nbut it is still configured in the virtual machine.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatletDriveType": {
+        "enum": [
+          "VHD",
+          "SharedVHD",
+          "PHD",
+          "DVD",
+          "VHDSet"
+        ],
+        "type": "string"
+      },
+      "CatletList": {
+        "required": [
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Catlet"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatletNetwork": {
+        "required": [
+          "name",
+          "provider"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "ip_v4_addresses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "i_pv4_default_gateway": {
+            "type": "string",
+            "nullable": true
+          },
+          "dns_server_addresses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "ip_v4_subnets": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "floating_port": {
+            "$ref": "#/components/schemas/FloatingNetworkPort"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatletNetworkAdapter": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "mac_address": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatletStatus": {
+        "enum": [
+          "Unknown",
+          "Stopped",
+          "Running",
+          "Pending",
+          "Error"
+        ],
+        "type": "string"
+      },
+      "CatletStopMode": {
+        "enum": [
+          "Shutdown",
+          "Hard",
+          "Kill"
+        ],
+        "type": "string"
+      },
+      "DiskStatus": {
+        "enum": [
+          "Ok",
+          "Error"
+        ],
+        "type": "string"
+      },
+      "ExpandCatletConfigRequestBody": {
+        "required": [
+          "configuration"
+        ],
+        "type": "object",
+        "properties": {
+          "correlation_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "configuration": {},
+          "show_secrets": {
+            "type": "boolean",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ExpandNewCatletConfigRequest": {
+        "required": [
+          "configuration"
+        ],
+        "type": "object",
+        "properties": {
+          "correlation_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "configuration": {},
+          "show_secrets": {
+            "type": "boolean",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "FloatingNetworkPort": {
+        "required": [
+          "name",
+          "provider",
+          "subnet"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "subnet": {
+            "type": "string"
+          },
+          "ip_v4_addresses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "ip_v4_subnets": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Gene": {
+        "required": [
+          "architecture",
+          "gene_set",
+          "gene_type",
+          "hash",
+          "id",
+          "name",
+          "size"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "gene_type": {
+            "$ref": "#/components/schemas/GeneType"
+          },
+          "gene_set": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "architecture": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "hash": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "GeneList": {
+        "required": [
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Gene"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "GeneType": {
+        "enum": [
+          "Catlet",
+          "Volume",
+          "Fodder"
+        ],
+        "type": "string"
+      },
+      "GeneWithUsage": {
+        "required": [
+          "architecture",
+          "gene_set",
+          "gene_type",
+          "hash",
+          "id",
+          "name",
+          "size"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "gene_type": {
+            "$ref": "#/components/schemas/GeneType"
+          },
+          "gene_set": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "architecture": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "hash": {
+            "type": "string"
+          },
+          "catlets": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "disks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NewCatletRequest": {
+        "required": [
+          "configuration"
+        ],
+        "type": "object",
+        "properties": {
+          "correlation_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "configuration": {}
+        },
+        "additionalProperties": false
+      },
+      "NewProjectMemberBody": {
+        "required": [
+          "member_id",
+          "role_id"
+        ],
+        "type": "object",
+        "properties": {
+          "correlation_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "member_id": {
+            "type": "string"
+          },
+          "role_id": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NewProjectRequest": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "correlation_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NewVirtualDiskRequest": {
+        "required": [
+          "location",
+          "name",
+          "project_id",
+          "size"
+        ],
+        "type": "object",
+        "properties": {
+          "correlation_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "environment": {
+            "type": "string",
+            "nullable": true
+          },
+          "store": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Operation": {
+        "required": [
+          "id",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OperationStatus"
+          },
+          "status_message": {
+            "type": "string",
+            "nullable": true
+          },
+          "resources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OperationResource"
+            },
+            "nullable": true
+          },
+          "log_entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OperationLogEntry"
+            },
+            "nullable": true
+          },
+          "projects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Project"
+            },
+            "nullable": true
+          },
+          "tasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OperationTask"
+            },
+            "nullable": true
+          },
+          "result": {
+            "$ref": "#/components/schemas/OperationResult"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OperationList": {
+        "required": [
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Operation"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "OperationLogEntry": {
+        "required": [
+          "id",
+          "task_id",
+          "timestamp"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "task_id": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OperationResource": {
+        "required": [
+          "id",
+          "resource_id",
+          "resource_type"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "resource_id": {
+            "type": "string"
+          },
+          "resource_type": {
+            "$ref": "#/components/schemas/ResourceType"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OperationResult": {
+        "required": [
+          "result_type"
+        ],
+        "type": "object",
+        "properties": {
+          "result_type": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "discriminator": {
+          "propertyName": "result_type",
+          "mapping": {
+            "CatletConfig": "#/components/schemas/CatletConfigOperationResult"
+          }
+        }
+      },
+      "OperationStatus": {
+        "enum": [
+          "Queued",
+          "Running",
+          "Failed",
+          "Completed"
+        ],
+        "type": "string"
+      },
+      "OperationTask": {
+        "required": [
+          "id",
+          "name",
+          "progress",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "parent_task_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string",
+            "nullable": true
+          },
+          "progress": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OperationTaskStatus"
+          },
+          "reference": {
+            "$ref": "#/components/schemas/OperationTaskReference"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OperationTaskReference": {
+        "required": [
+          "id",
+          "project_name",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/TaskReferenceType"
+          },
+          "project_name": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OperationTaskStatus": {
+        "enum": [
+          "Queued",
+          "Running",
+          "Failed",
+          "Completed"
+        ],
+        "type": "string"
+      },
+      "PopulateCatletConfigVariablesRequest": {
+        "required": [
+          "configuration"
+        ],
+        "type": "object",
+        "properties": {
+          "correlation_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "configuration": {}
+        },
+        "additionalProperties": false
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": {}
+      },
+      "Project": {
+        "required": [
+          "id",
+          "name",
+          "tenant_id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "tenant_id": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProjectList": {
+        "required": [
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Project"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProjectMemberRole": {
+        "required": [
+          "id",
+          "member_id",
+          "project",
+          "role_id",
+          "role_name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "project": {
+            "$ref": "#/components/schemas/Project"
+          },
+          "member_id": {
+            "type": "string"
+          },
+          "role_id": {
+            "type": "string"
+          },
+          "role_name": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProjectMemberRoleList": {
+        "required": [
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectMemberRole"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "ResourceType": {
+        "enum": [
+          "Catlet",
+          "VirtualDisk",
+          "VirtualNetwork",
+          "CatletFarm"
+        ],
+        "type": "string"
+      },
+      "StopCatletRequestBody": {
+        "required": [
+          "mode"
+        ],
+        "type": "object",
+        "properties": {
+          "mode": {
+            "$ref": "#/components/schemas/CatletStopMode"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TaskReferenceType": {
+        "enum": [
+          "Project",
+          "ProjectMember"
+        ],
+        "type": "string"
+      },
+      "UpdateCatletRequestBody": {
+        "required": [
+          "configuration"
+        ],
+        "type": "object",
+        "properties": {
+          "correlation_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "configuration": {}
+        },
+        "additionalProperties": false
+      },
+      "UpdateProjectNetworksRequestBody": {
+        "required": [
+          "configuration"
+        ],
+        "type": "object",
+        "properties": {
+          "correlation_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "configuration": {}
+        },
+        "additionalProperties": false
+      },
+      "ValidateConfigRequest": {
+        "required": [
+          "configuration"
+        ],
+        "type": "object",
+        "properties": {
+          "configuration": {}
+        },
+        "additionalProperties": false
+      },
+      "ValidationIssue": {
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "member": {
+            "type": "string",
+            "description": "The JSON path which identifies the member which has the issue.\r\nCan be null when the issue is not related to\r\na specific member.",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "description": "The details of the issue."
+          }
+        },
+        "additionalProperties": false
+      },
+      "VirtualDisk": {
+        "required": [
+          "data_store",
+          "environment",
+          "id",
+          "location",
+          "name",
+          "project",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "data_store": {
+            "type": "string"
+          },
+          "project": {
+            "$ref": "#/components/schemas/Project"
+          },
+          "environment": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DiskStatus"
+          },
+          "gene": {
+            "$ref": "#/components/schemas/VirtualDiskGeneInfo"
+          },
+          "path": {
+            "type": "string",
+            "description": "The file system path of the virtual disk. This information\r\nis only available to administrators.",
+            "nullable": true
+          },
+          "size_bytes": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "parent_id": {
+            "type": "string",
+            "description": "The ID of the parent disk when this disk is a differential disk.",
+            "nullable": true
+          },
+          "parent_path": {
+            "type": "string",
+            "description": "The file system path of the virtual disk's parent. This information\r\nis only available to administrators. The ParentPath might be populated\r\neven if the ParentId is missing. In this case, the disk chain is corrupted.",
+            "nullable": true
+          },
+          "attached_catlets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VirtualDiskAttachedCatlet"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "VirtualDiskAttachedCatlet": {
+        "required": [
+          "catlet_id",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/CatletDriveType"
+          },
+          "catlet_id": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "VirtualDiskGeneInfo": {
+        "required": [
+          "architecture",
+          "gene_set",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "gene_set": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "architecture": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "VirtualDiskList": {
+        "required": [
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VirtualDisk"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "VirtualNetwork": {
+        "required": [
+          "environment",
+          "id",
+          "name",
+          "project",
+          "provider_name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "project": {
+            "$ref": "#/components/schemas/Project"
+          },
+          "environment": {
+            "type": "string"
+          },
+          "provider_name": {
+            "type": "string"
+          },
+          "ip_network": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "VirtualNetworkConfiguration": {
+        "required": [
+          "configuration"
+        ],
+        "type": "object",
+        "properties": {
+          "configuration": {}
+        },
+        "additionalProperties": false
+      },
+      "VirtualNetworkList": {
+        "required": [
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VirtualNetwork"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "securitySchemes": {
+      "oauth2": {
+        "type": "oauth2",
+        "description": "Eryph only supports the client credentials flow. Depending\r\non the client, you can use either the client secret or a\r\nclient assertion with type\r\n`urn:ietf:params:oauth:client-assertion-type:jwt-bearer`.",
+        "flows": {
+          "clientCredentials": {
+            "tokenUrl": "https://localhost:8000/identity/connect/token",
+            "scopes": {
+              "compute:read": "Grants read access to the compute API",
+              "compute:write": "Grants write access to the compute API",
+              "compute:catlets:read": "Grants read access for catlets",
+              "compute:catlets:write": "Grants write access for catlets",
+              "compute:catlets:control": "Grants control access (start, stop) for catlets",
+              "compute:genes:read": "Grants read access for genes",
+              "compute:genes:write": "Grants write access for genes",
+              "compute:projects:read": "Grants read access for projects",
+              "compute:projects:write": "Grants write access for projects"
+            }
+          }
+        }
+      }
+    }
+  }
+}

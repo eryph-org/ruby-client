@@ -1,9 +1,9 @@
 require 'jwt'
 require 'securerandom'
 require 'time'
-require 'net/http'
 require 'uri'
 require 'json'
+require 'faraday'
 
 module Eryph
   module ClientRuntime
@@ -78,12 +78,40 @@ module Eryph
         @token_mutex = Mutex.new
       end
 
+      # Get token response object, refreshing if necessary
+      # @return [TokenResponse] full token response
+      # @raise [TokenRequestError] if token request fails  
+      def get_token
+        @token_mutex.synchronize do
+          if @current_token.nil? || @current_token.expired?
+            @current_token = request_new_token
+          end
+          
+          @current_token
+        end
+      end
+
       # Get an access token, refreshing if necessary
       # @return [String] access token
       # @raise [TokenRequestError] if token request fails
       def get_access_token
         @token_mutex.synchronize do
           if @current_token.nil? || @current_token.expired?
+            @current_token = request_new_token
+          end
+          
+          @current_token.access_token
+        end
+      end
+
+      # Get current access token without forcing refresh (convenience method)
+      # @return [String, nil] current access token or nil if no token cached
+      def access_token
+        @token_mutex.synchronize do
+          return nil if @current_token.nil?
+          
+          if @current_token.expired?
+            # Auto-refresh expired token
             @current_token = request_new_token
           end
           
@@ -125,7 +153,6 @@ module Eryph
           ca_file: nil,
           ca_cert: nil,
           verify_hostname: true,
-          use_system_ca: false,
           user_agent: "eryph-ruby-clientruntime/#{ClientRuntime::VERSION}",
           logger: nil
         }
@@ -162,27 +189,20 @@ module Eryph
       end
 
       def make_token_request(request_body)
-        uri = URI(@credentials.token_endpoint)
-        
-        http = Net::HTTP.new(uri.host, uri.port)
-        http.use_ssl = uri.scheme == 'https'
-        
-        configure_ssl(http, uri.host)
-        
-        http.read_timeout = @http_config[:timeout]
-
-        request = Net::HTTP::Post.new(uri.path)
-        request['Content-Type'] = 'application/x-www-form-urlencoded'
-        request['User-Agent'] = @http_config[:user_agent]
-        request.body = URI.encode_www_form(request_body)
-
         log_debug "Requesting token from #{@credentials.token_endpoint} for client #{@credentials.client_id}"
         
-        response = http.request(request)
+        connection = create_faraday_connection
         
-        unless response.is_a?(Net::HTTPSuccess)
+        response = connection.post do |req|
+          req.url @credentials.token_endpoint
+          req.headers['Content-Type'] = 'application/x-www-form-urlencoded'
+          req.headers['User-Agent'] = @http_config[:user_agent]
+          req.body = URI.encode_www_form(request_body)
+        end
+        
+        unless response.success?
           error_details = parse_error_response(response)
-          raise TokenRequestError, "Token request failed (#{response.code}): #{error_details}"
+          raise TokenRequestError, "Token request failed (#{response.status}): #{error_details}"
         end
 
         log_debug "Token request successful"
@@ -205,105 +225,41 @@ module Eryph
       end
 
       def parse_error_response(response)
-        return response.message if response.body.nil? || response.body.empty?
+        return response.reason_phrase if response.body.nil? || response.body.empty?
         
         data = JSON.parse(response.body)
         error = data['error'] || 'unknown_error'
-        description = data['error_description'] || response.message
+        description = data['error_description'] || response.reason_phrase
         "#{error}: #{description}"
       rescue JSON::ParserError
         response.body
       end
 
-      def configure_ssl(http, hostname)
-        return unless http.use_ssl?
+      def create_faraday_connection
+        ssl_options = build_ssl_options
         
-        # Basic SSL verification setting
-        if @http_config[:verify_ssl]
-          http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-          
-          # Handle hostname verification
-          if @http_config[:verify_hostname]
-            http.verify_hostname = true
-          else
-            http.verify_hostname = false
-          end
-          
-          # Set CA certificate or file
-          if @http_config[:ca_cert]
-            # Use provided certificate
-            cert_store = OpenSSL::X509::Store.new
-            cert_store.add_cert(@http_config[:ca_cert])
-            http.cert_store = cert_store
-          elsif @http_config[:ca_file]
-            # Use certificate file
-            http.ca_file = @http_config[:ca_file]
-          elsif @http_config[:use_system_ca]
-            # Use system certificate store (Windows)
-            if windows?
-              configure_windows_cert_store(http, hostname)
-            else
-              http.cert_store = OpenSSL::X509::Store.new
-              http.cert_store.set_default_paths
-            end
-          else
-            # Use default certificate paths
-            http.cert_store = OpenSSL::X509::Store.new
-            http.cert_store.set_default_paths
-          end
+        options = { ssl: ssl_options }
+        options[:request] = { timeout: @http_config[:timeout] } if @http_config[:timeout]
+        
+        Faraday.new(options) do |conn|
+          conn.adapter Faraday.default_adapter
+        end
+      end
+
+      def build_ssl_options
+        ssl_options = {}
+        
+        if @http_config[:verify_ssl] == false
+          ssl_options[:verify] = false
         else
-          # Disable SSL verification
-          http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-          http.verify_hostname = false
+          ssl_options[:verify] = true
+          ssl_options[:verify_hostname] = @http_config[:verify_hostname] != false
         end
-      end
-      
-      def configure_windows_cert_store(http, hostname)
-        return unless windows?
         
-        begin
-          require 'win32/certstore'
-          
-          # Create certificate store
-          cert_store = OpenSSL::X509::Store.new
-          
-          # Add certificates from Windows certificate store
-          win_store = Win32::Certstore.open("ROOT")
-          win_store.each do |cert|
-            begin
-              cert_store.add_cert(cert)
-            rescue OpenSSL::X509::StoreError
-              # Ignore duplicate certificates
-            end
-          end
-          win_store.close
-          
-          # Also check personal store
-          personal_store = Win32::Certstore.open("MY")
-          personal_store.each do |cert|
-            begin
-              cert_store.add_cert(cert)
-            rescue OpenSSL::X509::StoreError
-              # Ignore duplicate certificates
-            end
-          end
-          personal_store.close
-          
-          http.cert_store = cert_store
-          log_debug "Configured Windows certificate store"
-        rescue LoadError
-          log_debug "win32-certstore gem not available, falling back to default certificate paths"
-          http.cert_store = OpenSSL::X509::Store.new
-          http.cert_store.set_default_paths
-        rescue => e
-          log_debug "Error configuring Windows certificate store: #{e.message}, falling back to default"
-          http.cert_store = OpenSSL::X509::Store.new
-          http.cert_store.set_default_paths
-        end
-      end
-      
-      def windows?
-        RUBY_PLATFORM =~ /mswin|mingw|cygwin/
+        ssl_options[:ca_file] = @http_config[:ca_file] if @http_config[:ca_file]
+        ssl_options[:ca_cert] = @http_config[:ca_cert] if @http_config[:ca_cert]
+        
+        ssl_options
       end
 
       def log_debug(message)

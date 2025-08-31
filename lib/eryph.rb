@@ -24,7 +24,6 @@ module Eryph
     # @option options [Hash] :ssl_config SSL configuration options
     # @option options [Boolean] :verify_ssl (true) whether to verify SSL certificates
     # @option options [Boolean] :verify_hostname (true) whether to verify hostname
-    # @option options [Boolean] :use_system_ca (false) whether to use system certificate store on Windows
     # @option options [String] :ca_file path to CA certificate file
     # @option options [OpenSSL::X509::Certificate] :ca_cert CA certificate object
     # @return [Compute::Client] a new compute client instance
@@ -32,17 +31,28 @@ module Eryph
     #   client = Eryph.compute_client
     #   client = Eryph.compute_client('zero')
     #   client = Eryph.compute_client('zero', verify_ssl: false)
-    #   client = Eryph.compute_client('zero', use_system_ca: true)
     #   client = Eryph.compute_client('production', endpoint_name: 'compute')
     def compute_client(config_name = 'default', endpoint_name: nil, **options)
       # Extract SSL config from options
-      ssl_keys = [:verify_ssl, :verify_hostname, :use_system_ca, :ca_file, :ca_cert]
+      ssl_keys = [:verify_ssl, :verify_hostname, :ca_file, :ca_cert]
       ssl_config = options.select { |key, _| ssl_keys.include?(key) }
-      other_options = options.reject { |key, _| ssl_keys.include?(key) }
+      
+      # Extract other specific parameters that need special handling
+      scopes = options[:scopes]
+      logger = options[:logger]
+      
+      # Remove handled options from the remaining options
+      handled_keys = ssl_keys + [:scopes, :logger]
+      remaining_options = options.reject { |key, _| handled_keys.include?(key) }
       
       ssl_config_hash = ssl_config.empty? ? {} : { ssl_config: ssl_config }
       
-      Compute::Client.new(config_name, endpoint_name: endpoint_name, **other_options.merge(ssl_config_hash))
+      # Pass parameters explicitly to ensure proper handling
+      client_params = { endpoint_name: endpoint_name }
+      client_params[:logger] = logger if logger
+      client_params[:scopes] = scopes if scopes
+      
+      Compute::Client.new(config_name, **client_params.merge(ssl_config_hash).merge(remaining_options))
     end
 
     # Create a compute client using explicit credentials (for compatibility)

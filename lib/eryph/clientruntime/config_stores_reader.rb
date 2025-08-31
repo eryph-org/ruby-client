@@ -69,6 +69,8 @@ module Eryph
 
         stores.each do |store|
           clients = store.clients
+          next unless clients
+          
           clients.each do |client|
             # Add store reference to client for private key lookup
             client_with_store = client.dup
@@ -94,12 +96,22 @@ module Eryph
       # @return [Hash, nil] default client configuration or nil if not found
       def get_default_client(config_name)
         merged_config = get_merged_configuration(config_name)
-        default_client_id = merged_config['defaultClient']
+        default_client_id = merged_config['defaultClientId']
         
-        return nil unless default_client_id
-
         all_clients = get_all_clients(config_name)
-        all_clients.find { |client| client['id'] == default_client_id }
+        
+        # If explicit defaultClient is set, use that
+        if default_client_id
+          return all_clients.find { |client| client['id'] == default_client_id }
+        end
+        
+        # Otherwise, look for client with IsDefault=true (PowerShell -AsDefault flag)
+        # Try both case variations since PowerShell uses IsDefault, Ruby might use isDefault
+        default_client = all_clients.find { |client| client['IsDefault'] == true || client['isDefault'] == true }
+        return default_client if default_client
+        
+        # No explicit default found
+        nil
       end
 
       # Get a specific client configuration by ID

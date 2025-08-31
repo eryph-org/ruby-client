@@ -32,7 +32,7 @@ function syncVersion() {
     
     // Also update gemspec dependency if compute client version changes
     // We need to ensure clientruntime dependency stays compatible
-    const gemspecPath = path.join(__dirname, '..', '..', 'eryph-compute-client.gemspec');
+    const gemspecPath = path.join(__dirname, '..', '..', 'eryph-compute.gemspec');
     if (fs.existsSync(gemspecPath)) {
       const gemspecContent = fs.readFileSync(gemspecPath, 'utf8');
       

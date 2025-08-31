@@ -23,6 +23,9 @@ module Eryph
       # @param private_key [OpenSSL::PKey::RSA, String] RSA private key
       # @param token_endpoint [String] OAuth token endpoint URL
       def initialize(client_id:, client_name:, private_key:, token_endpoint:)
+        raise ArgumentError, "client_id cannot be nil or empty" if client_id.nil? || client_id.empty?
+        raise ArgumentError, "token_endpoint cannot be nil or empty" if token_endpoint.nil? || token_endpoint.empty?
+        
         @client_id = client_id
         @client_name = client_name
         @private_key = parse_private_key(private_key)
@@ -32,10 +35,13 @@ module Eryph
       private
 
       def parse_private_key(key)
+        raise ArgumentError, "private_key cannot be nil" if key.nil?
+        
         case key
         when OpenSSL::PKey::RSA
           key
         when String
+          raise ArgumentError, "private_key cannot be empty" if key.empty?
           OpenSSL::PKey::RSA.new(key)
         else
           raise ArgumentError, "private_key must be an RSA key or PEM string"

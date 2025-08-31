@@ -313,6 +313,11 @@ Get a catlet
 ```ruby
 require 'time'
 require 'compute_client'
+# setup authorization
+ComputeClient.configure do |config|
+  # Configure OAuth2 access token for authorization: oauth2
+  config.access_token = 'YOUR ACCESS TOKEN'
+end
 
 api_instance = ComputeClient::CatletsApi.new
 id = 'id_example' # String | 
@@ -356,7 +361,7 @@ end
 
 ### Authorization
 
-No authorization required
+[oauth2](../README.md#oauth2)
 
 ### HTTP request headers
 
@@ -377,6 +382,11 @@ Get the configuration of a catlet
 ```ruby
 require 'time'
 require 'compute_client'
+# setup authorization
+ComputeClient.configure do |config|
+  # Configure OAuth2 access token for authorization: oauth2
+  config.access_token = 'YOUR ACCESS TOKEN'
+end
 
 api_instance = ComputeClient::CatletsApi.new
 id = 'id_example' # String | 
@@ -420,7 +430,7 @@ end
 
 ### Authorization
 
-No authorization required
+[oauth2](../README.md#oauth2)
 
 ### HTTP request headers
 

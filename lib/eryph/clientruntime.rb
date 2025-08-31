@@ -30,9 +30,10 @@ module Eryph
       # Create a client credentials lookup for the specified configuration
       # @param config_name [String] configuration name (default: 'default')
       # @param endpoint_name [String] endpoint name for lookup
+      # @param environment [Environment] environment instance for dependency injection (for testing)
       # @return [ClientCredentialsLookup] configured lookup instance
-      def create_credentials_lookup(config_name: 'default', endpoint_name: nil)
-        environment = Environment.new
+      def create_credentials_lookup(config_name: 'default', endpoint_name: nil, environment: nil)
+        environment ||= Environment.new
         reader = ConfigStoresReader.new(environment)
         endpoint_lookup = EndpointLookup.new(reader, config_name)
         
@@ -43,10 +44,11 @@ module Eryph
       # @param config_name [String] configuration name (default: 'default')
       # @param endpoint_name [String] endpoint name for lookup
       # @param scopes [Array<String>] OAuth2 scopes
+      # @param environment [Environment] environment instance for dependency injection (for testing)
       # @return [String] access token
       # @raise [AuthenticationError] if authentication fails
-      def get_access_token(config_name: 'default', endpoint_name: nil, scopes: ['compute:read', 'compute:write'])
-        lookup = create_credentials_lookup(config_name: config_name, endpoint_name: endpoint_name)
+      def get_access_token(config_name: 'default', endpoint_name: nil, scopes: ['compute:read', 'compute:write'], environment: nil)
+        lookup = create_credentials_lookup(config_name: config_name, endpoint_name: endpoint_name, environment: environment)
         credentials = lookup.find_credentials
         provider = TokenProvider.new(credentials, scopes: scopes)
         provider.get_access_token

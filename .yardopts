@@ -1,0 +1,8 @@
+--output-dir build/docs/ruby-api
+--no-private
+--markup markdown
+--markup-provider kramdown
+--title "Eryph Ruby Client API"
+--exclude lib/eryph/compute/generated
+--exclude README.md
+lib/**/*.rb

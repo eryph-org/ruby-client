@@ -21,6 +21,11 @@ Get an operation
 ```ruby
 require 'time'
 require 'compute_client'
+# setup authorization
+ComputeClient.configure do |config|
+  # Configure OAuth2 access token for authorization: oauth2
+  config.access_token = 'YOUR ACCESS TOKEN'
+end
 
 api_instance = ComputeClient::OperationsApi.new
 id = 'id_example' # String | 
@@ -70,7 +75,7 @@ end
 
 ### Authorization
 
-No authorization required
+[oauth2](../README.md#oauth2)
 
 ### HTTP request headers
 
@@ -91,6 +96,11 @@ List all operations
 ```ruby
 require 'time'
 require 'compute_client'
+# setup authorization
+ComputeClient.configure do |config|
+  # Configure OAuth2 access token for authorization: oauth2
+  config.access_token = 'YOUR ACCESS TOKEN'
+end
 
 api_instance = ComputeClient::OperationsApi.new
 opts = {
@@ -138,7 +148,7 @@ end
 
 ### Authorization
 
-No authorization required
+[oauth2](../README.md#oauth2)
 
 ### HTTP request headers
 

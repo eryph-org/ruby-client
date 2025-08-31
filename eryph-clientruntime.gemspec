@@ -9,29 +9,24 @@ Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Eryph Team"]
   s.email       = ["support@eryph.io"]
-  s.homepage    = "https://github.com/eryph-org/ruby-computeclient"
+  s.homepage    = "https://github.com/eryph-org/ruby-client"
   s.summary     = "Eryph Client Runtime for Ruby"
   s.description = "Authentication, configuration, and credential lookup runtime for Eryph Ruby client libraries"
   s.license     = "MIT"
   s.required_ruby_version = ">= 2.7"
   
   s.metadata = {
-    "bug_tracker_uri" => "https://github.com/eryph-org/ruby-computeclient/issues",
-    "changelog_uri" => "https://github.com/eryph-org/ruby-computeclient/blob/main/CHANGELOG.md",
-    "source_code_uri" => "https://github.com/eryph-org/ruby-computeclient",
+    "bug_tracker_uri" => "https://github.com/eryph-org/ruby-client/issues",
+    "changelog_uri" => "https://github.com/eryph-org/ruby-client/blob/main/CHANGELOG.md",
+    "source_code_uri" => "https://github.com/eryph-org/ruby-client",
     "homepage_uri" => "https://eryph.io",
     "documentation_uri" => "https://docs.eryph.io"
   }
 
   # Runtime dependencies
-  s.add_runtime_dependency 'jwt', '~> 2.0'
+  s.add_runtime_dependency 'jwt', '>= 2.0', '< 4.0'
   
-  # Development dependencies
-  s.add_development_dependency 'rspec', '~> 3.6', '>= 3.6.0'
-  s.add_development_dependency 'webmock', '~> 3.0'
-  s.add_development_dependency 'rubocop', '~> 1.0'
-  s.add_development_dependency 'yard', '~> 0.9'
-  s.add_development_dependency 'simplecov', '~> 0.21'
+  # Development dependencies moved to Gemfile for better version management
 
   # Specify files to include (only clientruntime files)
   s.files = Dir[

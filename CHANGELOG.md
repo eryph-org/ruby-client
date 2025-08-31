@@ -30,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Initial release of `eryph-clientruntime` gem with authentication and configuration management
-- Initial release of `eryph-compute-client` gem with complete Compute API coverage
+- Initial release of `eryph-compute` gem with complete Compute API coverage
 - Support for Windows DPAPI credential decryption
 - Automatic endpoint discovery from running eryph-zero instances
 - Generated API client with proper authentication
@@ -39,5 +39,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Integration with @changesets/cli for version management
 - Automated version synchronization between NPM packages and Ruby gems
 
-[Unreleased]: https://github.com/eryph-org/ruby-computeclient/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/eryph-org/ruby-computeclient/releases/tag/v0.1.0
+[Unreleased]: https://github.com/eryph-org/ruby-client/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/eryph-org/ruby-client/releases/tag/v0.1.0
