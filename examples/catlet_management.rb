@@ -6,7 +6,7 @@
 require_relative '../lib/eryph'
 
 # Create client using configuration-based authentication
-client = Eryph.compute_client('zero', verify_ssl: false)
+client = Eryph.compute_client('zero', ssl_config: { verify_ssl: false })
 
 # This example now uses the built-in client.wait_for_operation method
 

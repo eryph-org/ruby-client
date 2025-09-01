@@ -282,7 +282,9 @@ begin
   client_options = {
     scopes: %w[compute:write]
   }
-  
+  logger = Logger.new($stdout)
+  logger.level = Logger::DEBUG
+
   # For eryph-zero, disable SSL verification since it uses self-signed certificates
   if CONFIG_NAME == 'zero'
     client_options[:ssl_config] = { verify_ssl: false }

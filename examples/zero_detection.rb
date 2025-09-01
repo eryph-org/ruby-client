@@ -30,7 +30,7 @@ begin
       
       # Create client using discovered configuration
       puts "\n📡 Creating compute client..."
-      client = Eryph.compute_client('zero', verify_ssl: false)
+      client = Eryph.compute_client('zero', ssl_config: { verify_ssl: false })
       
       puts "Client configuration: #{client.config_name}"
       puts "Endpoint: #{client.endpoint_name}"

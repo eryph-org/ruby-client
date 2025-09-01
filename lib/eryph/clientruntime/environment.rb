@@ -107,10 +107,8 @@ module Eryph
       # @return [Boolean] true if user has elevated privileges
       def admin_user?
         if windows?
-          # Check if running as administrator on Windows
-          # This is a simplified check - in production you might want to use Win32 APIs
-          get_environment_variable('SESSIONNAME') == 'Console' && 
-            get_environment_variable('USERNAME') != get_environment_variable('COMPUTERNAME') + '$'
+          # Check if running as administrator on Windows using PowerShell
+          check_windows_admin_privileges
         else
           # Check if running as root on Unix-like systems
           Process.uid == 0
@@ -123,6 +121,197 @@ module Eryph
       # @return [String, nil] environment variable value
       def get_environment_variable(name, default = nil)
         ENV[name] || default
+      end
+
+      # Create a temporary file
+      # @param prefix [String] filename prefix
+      # @param suffix [String] filename suffix
+      # @return [Tempfile] temporary file object
+      def create_temp_file(prefix, suffix = '')
+        require 'tempfile'
+        Tempfile.new([prefix, suffix])
+      end
+
+      # Execute PowerShell script from file
+      # @param script_path [String] path to PowerShell script file
+      # @return [Boolean] true if script executed successfully
+      def execute_powershell_script_file(script_path)
+        return false unless windows?
+        
+        # Try regular PowerShell first
+        success = execute_command('powershell.exe', '-ExecutionPolicy', 'Bypass', '-NoProfile', '-File', script_path)
+        
+        # If that fails, try the full path
+        unless success
+          success = execute_command(
+            'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe',
+            '-ExecutionPolicy', 'Bypass', '-NoProfile', '-File', script_path
+          )
+        end
+        
+        success
+      end
+
+      # Get application data path (system-wide)
+      # @param app_name [String] application name (default: 'eryph')
+      # @return [String] application data path
+      def get_application_data_path(app_name = 'eryph')
+        if windows?
+          # Windows: Use PROGRAMDATA
+          program_data = get_environment_variable('PROGRAMDATA', 'C:/ProgramData')
+          File.join(program_data, app_name)
+        else
+          # Unix-like: Use /var/lib for system data
+          File.join('/var/lib', app_name)
+        end
+      end
+
+      # Check if a process is running
+      # @param process_id [Integer] process ID
+      # @param process_name [String, nil] optional process name for verification
+      # @return [Boolean] true if process is running
+      def process_running?(process_id, process_name = nil)
+        return false if process_id.nil? || process_id <= 0
+
+        if windows?
+          # On Windows, use PowerShell to check if process exists
+          execute_command('powershell', '-Command', "Get-Process -Id #{process_id} -ErrorAction SilentlyContinue | Out-Null")
+        else
+          # On Unix-like systems, check /proc or use ps
+          if file_exists?("/proc/#{process_id}")
+            return true unless process_name
+            
+            # Verify process name if provided
+            begin
+              cmdline = read_file("/proc/#{process_id}/cmdline")
+              cmdline.include?(process_name)
+            rescue IOError
+              false
+            end
+          else
+            # Fallback to ps command
+            execute_command('ps', '-p', process_id.to_s)
+          end
+        end
+      rescue
+        false
+      end
+
+      # Get encrypted system client private key for identity provider
+      # @param provider_name [String] identity provider name  
+      # @param identity_endpoint [String] identity endpoint for DPAPI entropy
+      # @return [String, nil] private key PEM content or nil if not found
+      def get_encrypted_system_client(identity_endpoint = nil)
+        private_key_path = File.join(
+          get_application_data_path,
+          'zero',
+          'private',
+          'clients',
+          'system-client.key'
+        )
+
+        return nil unless file_exists?(private_key_path)
+
+        encrypted_data = read_binary_file(private_key_path)
+        
+        if windows?
+          # On Windows, decrypt DPAPI-protected data
+          decrypted_data = decrypt_dpapi_data(encrypted_data, identity_endpoint)
+          if decrypted_data.nil?
+            raise IOError, "Failed to decrypt system client private key using DPAPI"
+          end
+          decrypted_data
+        else
+          # On non-Windows systems, assume it's already in PEM format
+          encrypted_data
+        end
+      end
+
+      # Decrypt DPAPI-protected data (Windows only)
+      # @param encrypted_data [String] binary encrypted data
+      # @param entropy [String, nil] entropy string (typically the identity endpoint URI)
+      # @return [String, nil] decrypted PEM private key or nil if decryption fails
+      def decrypt_dpapi_data(encrypted_data, entropy = nil)
+        return nil unless windows?
+
+        # Create cache key from encrypted data and entropy
+        require 'digest'
+        cache_key = Digest::SHA256.hexdigest("#{encrypted_data}#{entropy}")
+        
+        # Check cache first
+        if @dpapi_cache && @dpapi_cache[cache_key]
+          return @dpapi_cache[cache_key]
+        end
+
+        temp_file = nil
+        script_file = nil
+        output_file = nil
+        
+        begin
+          # Create temporary files for DPAPI decryption process
+          temp_file = create_temp_file('encrypted_key', '.bin')
+          temp_file.binmode
+          temp_file.write(encrypted_data)
+          temp_file.close
+
+          script_file = create_temp_file('decrypt_dpapi', '.ps1')
+          output_file = create_temp_file('decrypted_output', '.txt')
+          
+          # Close output file immediately after creation so PowerShell can write to it
+          output_file.close
+          
+          # Create PowerShell script for DPAPI decryption
+          entropy_value = entropy ? entropy.gsub("'", "''") : nil
+          script_content = create_dpapi_decrypt_script(
+            temp_file.path.gsub('/', '\\'),
+            output_file.path.gsub('/', '\\'),
+            entropy_value
+          )
+          
+          # Write script content and close file properly
+          script_file.write(script_content)
+          script_file.close
+          
+          # Execute PowerShell script
+          script_path = script_file.path.gsub('/', '\\')
+          
+          success = execute_powershell_script_file(script_path)
+          
+          result = nil
+          if success && file_exists?(output_file.path) && File.size(output_file.path) > 0
+            output_content = read_file(output_file.path).strip
+            # Return the result if it doesn't contain an error
+            result = output_content.start_with?('ERROR:') ? nil : output_content
+          end
+          
+          # Cache the result (including nil results to avoid repeated failures)
+          @dpapi_cache ||= {}
+          @dpapi_cache[cache_key] = result
+          
+          result
+        ensure
+          temp_file&.close
+          script_file&.close
+          output_file&.close
+          File.unlink(temp_file.path) if temp_file && File.exist?(temp_file.path)
+          File.unlink(script_file.path) if script_file && File.exist?(script_file.path)
+          File.unlink(output_file.path) if output_file && File.exist?(output_file.path)
+        end
+      end
+
+      private
+
+      # Check if running as administrator on Windows using PowerShell
+      # @return [Boolean] true if current process has admin privileges
+      def check_windows_admin_privileges
+        begin
+          # Use PowerShell to check if current user is in Administrators group and process is elevated
+          result = `powershell.exe -Command "([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)" 2>nul`.strip
+          result.downcase == 'true'
+        rescue => e
+          # If PowerShell fails for any reason, assume not admin
+          false
+        end
       end
 
       # Read binary file content
@@ -189,185 +378,25 @@ module Eryph
         end
       end
 
-      # Create a temporary file
-      # @param prefix [String] filename prefix
-      # @param suffix [String] filename suffix
-      # @return [Tempfile] temporary file object
-      def create_temp_file(prefix, suffix = '')
-        require 'tempfile'
-        Tempfile.new([prefix, suffix])
-      end
-
-      # Check if a process is running
-      # @param process_id [Integer] process ID
-      # @param process_name [String, nil] optional process name for verification
-      # @return [Boolean] true if process is running
-      def process_running?(process_id, process_name = nil)
-        return false if process_id.nil? || process_id <= 0
-
+      def user_config_path
         if windows?
-          # On Windows, use PowerShell to check if process exists
-          execute_command('powershell', '-Command', "Get-Process -Id #{process_id} -ErrorAction SilentlyContinue | Out-Null")
+          # Windows: Use APPDATA
+          get_environment_variable('APPDATA') || File.expand_path('~/AppData/Roaming')
         else
-          # On Unix-like systems, check /proc or use ps
-          if file_exists?("/proc/#{process_id}")
-            return true unless process_name
-            
-            # Verify process name if provided
-            begin
-              cmdline = read_file("/proc/#{process_id}/cmdline")
-              cmdline.include?(process_name)
-            rescue IOError
-              false
-            end
-          else
-            # Fallback to ps command
-            execute_command('ps', '-p', process_id.to_s)
-          end
+          # Unix-like: Use XDG_CONFIG_HOME or fallback to ~/.config
+          get_environment_variable('XDG_CONFIG_HOME') || File.expand_path('~/.config')
         end
-      rescue
-        false
       end
 
-      # Get application data path (system-wide)
-      # @param app_name [String] application name (default: 'eryph')
-      # @return [String] application data path
-      def get_application_data_path(app_name = 'eryph')
+      def system_config_path
         if windows?
           # Windows: Use PROGRAMDATA
-          program_data = get_environment_variable('PROGRAMDATA', 'C:/ProgramData')
-          File.join(program_data, app_name)
+          get_environment_variable('PROGRAMDATA', 'C:/ProgramData')
         else
-          # Unix-like: Use /var/lib for system data
-          File.join('/var/lib', app_name)
+          # Unix-like: Use /etc
+          '/etc'
         end
       end
-
-      # Get encrypted system client private key for identity provider
-      # @param provider_name [String] identity provider name  
-      # @param identity_endpoint [String] identity endpoint for DPAPI entropy
-      # @return [String, nil] private key PEM content or nil if not found
-      def get_encrypted_system_client(provider_name, identity_endpoint = nil)
-        private_key_path = File.join(
-          get_application_data_path,
-          provider_name,
-          'private',
-          'clients',
-          'system-client.key'
-        )
-
-        return nil unless file_exists?(private_key_path)
-
-        begin
-          encrypted_data = read_binary_file(private_key_path)
-          
-          if windows?
-            # On Windows, decrypt DPAPI-protected data
-            decrypt_dpapi_data(encrypted_data, identity_endpoint)
-          else
-            # On non-Windows systems, assume it's already in PEM format
-            encrypted_data
-          end
-        rescue IOError
-          nil
-        end
-      end
-
-      # Decrypt DPAPI-protected data (Windows only)
-      # @param encrypted_data [String] binary encrypted data
-      # @param entropy [String, nil] entropy string (typically the identity endpoint URI)
-      # @return [String, nil] decrypted PEM private key or nil if decryption fails
-      def decrypt_dpapi_data(encrypted_data, entropy = nil)
-        return nil unless windows?
-
-        # Create cache key from encrypted data and entropy
-        require 'digest'
-        cache_key = Digest::SHA256.hexdigest("#{encrypted_data}#{entropy}")
-        
-        # Check cache first
-        if @dpapi_cache && @dpapi_cache[cache_key]
-          return @dpapi_cache[cache_key]
-        end
-
-        temp_file = nil
-        script_file = nil
-        output_file = nil
-        
-        begin
-          # Create temporary files for DPAPI decryption process
-          temp_file = create_temp_file('encrypted_key', '.bin')
-          temp_file.binmode
-          temp_file.write(encrypted_data)
-          temp_file.close
-
-          script_file = create_temp_file('decrypt_dpapi', '.ps1')
-          output_file = create_temp_file('decrypted_output', '.txt')
-          
-          # Close output file immediately after creation so PowerShell can write to it
-          output_file.close
-          
-          # Create PowerShell script for DPAPI decryption
-          entropy_value = entropy ? entropy.gsub("'", "''") : nil
-          script_content = create_dpapi_decrypt_script(
-            temp_file.path.gsub('/', '\\'),
-            output_file.path.gsub('/', '\\'),
-            entropy_value
-          )
-          
-          # Write script content and close file properly
-          script_file.write(script_content)
-          script_file.close
-          
-          # Execute PowerShell script
-          script_path = script_file.path.gsub('/', '\\')
-          
-          success = execute_powershell_script_file(script_path)
-          
-          result = nil
-          if success && file_exists?(output_file.path) && File.size(output_file.path) > 0
-            output_content = read_file(output_file.path).strip
-            # Return the result if it doesn't contain an error
-            result = output_content.start_with?('ERROR:') ? nil : output_content
-          end
-          
-          # Cache the result (including nil results to avoid repeated failures)
-          @dpapi_cache ||= {}
-          @dpapi_cache[cache_key] = result
-          
-          result
-        rescue => e
-          nil
-        ensure
-          temp_file&.close
-          script_file&.close
-          output_file&.close
-          File.unlink(temp_file.path) if temp_file && File.exist?(temp_file.path)
-          File.unlink(script_file.path) if script_file && File.exist?(script_file.path)
-          File.unlink(output_file.path) if output_file && File.exist?(output_file.path)
-        end
-      end
-
-      # Execute PowerShell script from file
-      # @param script_path [String] path to PowerShell script file
-      # @return [Boolean] true if script executed successfully
-      def execute_powershell_script_file(script_path)
-        return false unless windows?
-        
-        # Try regular PowerShell first
-        success = execute_command('powershell.exe', '-ExecutionPolicy', 'Bypass', '-NoProfile', '-File', script_path)
-        
-        # If that fails, try the full path
-        unless success
-          success = execute_command(
-            'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe',
-            '-ExecutionPolicy', 'Bypass', '-NoProfile', '-File', script_path
-          )
-        end
-        
-        success
-      end
-
-      private
 
       def create_dpapi_decrypt_script(encrypted_file_path, output_file_path, entropy_value)
         <<~PS1
@@ -411,26 +440,6 @@ module Eryph
             exit 1
           }
         PS1
-      end
-
-      def user_config_path
-        if windows?
-          # Windows: Use APPDATA
-          get_environment_variable('APPDATA') || File.expand_path('~/AppData/Roaming')
-        else
-          # Unix-like: Use XDG_CONFIG_HOME or fallback to ~/.config
-          get_environment_variable('XDG_CONFIG_HOME') || File.expand_path('~/.config')
-        end
-      end
-
-      def system_config_path
-        if windows?
-          # Windows: Use PROGRAMDATA
-          get_environment_variable('PROGRAMDATA', 'C:/ProgramData')
-        else
-          # Unix-like: Use /etc
-          '/etc'
-        end
       end
     end
   end

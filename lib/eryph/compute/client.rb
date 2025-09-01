@@ -32,11 +32,11 @@ module Eryph
         @environment = environment || ClientRuntime::Environment.new
         
         # Discover credentials based on parameters
-        reader = ClientRuntime::ConfigStoresReader.new(@environment)
+        reader = ClientRuntime::ConfigStoresReader.new(@environment, logger: @logger)
         
         if client_id && config_name
           # Specific client in specific config - no fallback
-          lookup = ClientRuntime::ClientCredentialsLookup.new(reader, config_name)
+          lookup = ClientRuntime::ClientCredentialsLookup.new(reader, config_name, logger: @logger)
           @credentials = lookup.get_credentials_by_client_id(client_id, config_name)
           raise ClientRuntime::CredentialsNotFoundError, "Client '#{client_id}' not found in configuration '#{config_name}'" unless @credentials
           
@@ -47,19 +47,19 @@ module Eryph
           
         elsif config_name
           # Default client in specific config
-          lookup = ClientRuntime::ClientCredentialsLookup.new(reader, config_name)
+          lookup = ClientRuntime::ClientCredentialsLookup.new(reader, config_name, logger: @logger)
           @credentials = lookup.find_credentials
           
         else
           # Automatic discovery
-          lookup = ClientRuntime::ClientCredentialsLookup.new(reader)
+          lookup = ClientRuntime::ClientCredentialsLookup.new(reader, logger: @logger)
           @credentials = lookup.find_credentials
         end
         
         @config_name = @credentials.configuration
         
         # Get compute endpoint for the discovered configuration
-        endpoint_lookup = ClientRuntime::EndpointLookup.new(reader, @config_name)
+        endpoint_lookup = ClientRuntime::EndpointLookup.new(reader, @config_name, logger: @logger)
         @compute_endpoint = endpoint_lookup.get_endpoint('compute')
         raise ClientRuntime::ConfigurationError, "Compute endpoint not found in configuration '#{@config_name}'" unless @compute_endpoint
         
@@ -308,7 +308,7 @@ module Eryph
         configs = @environment.windows? ? ['default', 'zero', 'local'] : ['default', 'local']
         
         configs.each do |config|
-          lookup = ClientRuntime::ClientCredentialsLookup.new(reader, config)
+          lookup = ClientRuntime::ClientCredentialsLookup.new(reader, config, logger: @logger)
           creds = lookup.get_credentials_by_client_id(client_id, config)
           return creds if creds
         end

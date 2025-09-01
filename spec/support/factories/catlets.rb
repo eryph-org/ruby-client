@@ -21,15 +21,15 @@ FactoryBot.define do
       end
     end
     
-    trait :starting do
+    trait :pending do
       initialize_with do
-        attributes.merge('status' => 'Starting')
+        attributes.merge('status' => 'Pending')
       end
     end
     
-    trait :stopping do
+    trait :error do
       initialize_with do
-        attributes.merge('status' => 'Stopping')
+        attributes.merge('status' => 'Error')
       end
     end
     

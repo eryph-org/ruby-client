@@ -79,6 +79,34 @@ module Eryph
         clients.find { |client| client['id'] == client_id }
       end
 
+      # Get the default client configuration
+      # @return [Hash, nil] default client configuration or nil if not found
+      def default_client
+        config = configuration
+        default_client_id = config['defaultClientId']
+        
+        all_clients = clients
+        return nil if all_clients.empty?
+        
+        # If explicit defaultClient is set, use that
+        if default_client_id
+          return all_clients.find { |client| client['id'] == default_client_id }
+        end
+        
+        # Otherwise, return first client
+        all_clients.first
+      end
+
+      # Get the private key for a client configuration
+      # @param client_config [Hash] client configuration (may include '_store' key)
+      # @return [String, nil] private key content or nil if not found
+      def get_client_private_key(client_config)
+        client_id = client_config['id']
+        return nil unless client_id
+
+        get_private_key(client_id)
+      end
+
       # Get the private key for a client
       # @param client_id [String] client ID
       # @return [String, nil] private key content or nil if not found

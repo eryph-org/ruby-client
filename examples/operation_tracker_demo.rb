@@ -54,7 +54,9 @@ begin
   }
   
   # For eryph-zero, disable SSL verification since it uses self-signed certificates
-  client_options[:verify_ssl] = false if CONFIG_NAME == 'zero'
+  if CONFIG_NAME == 'zero'
+    client_options[:ssl_config] = { verify_ssl: false }
+  end
   
   puts "   Requesting scopes: #{client_options[:scopes].join(' ')}"
   

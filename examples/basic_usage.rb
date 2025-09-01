@@ -10,14 +10,14 @@ require_relative '../lib/eryph'
 # in priority order: default → zero → local (Windows), or default → local (Unix)
 
 # Option 1: Automatic discovery (recommended - tries multiple configs)
-client = Eryph.compute_client(verify_ssl: false) # Auto-discovers best available credentials
+client = Eryph.compute_client(ssl_config: { verify_ssl: false }) # Auto-discovers best available credentials
 
 # Option 2: Specific configuration  
-# client = Eryph.compute_client('zero', verify_ssl: false) # uses 'zero' configuration only
+# client = Eryph.compute_client('zero', ssl_config: { verify_ssl: false }) # uses 'zero' configuration only
 # client = Eryph.compute_client('production') # uses 'production' configuration
 
 # Option 3: Specific client ID (searches across all configs)
-# client = Eryph.compute_client(client_id: 'my-specific-client', verify_ssl: false)
+# client = Eryph.compute_client(client_id: 'my-specific-client', ssl_config: { verify_ssl: false })
 
 begin
   # Test the connection
