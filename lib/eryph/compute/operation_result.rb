@@ -85,6 +85,19 @@ module Eryph
         @operation.log_entries || []
       end
 
+      # Get the projects from the operation (auto-expands if needed)
+      def projects
+        return @cached_collections[:projects] if @cached_collections.key?(:projects)
+        
+        # If projects are not available, fetch with expansion
+        if @operation.projects.nil? || @operation.projects.empty?
+          expanded_operation = @client.operations.operations_get(id, expand: 'projects')
+          @operation = expanded_operation
+        end
+        
+        @cached_collections[:projects] = @operation.projects || []
+      end
+
       # Get the raw operation result object
       # @return [Object, nil] the raw result object from the operation
       def result
@@ -151,8 +164,6 @@ module Eryph
             @client.virtual_disks.virtual_disks_get(resource_ref.resource_id)
           when 'VirtualNetwork'
             @client.virtual_networks.virtual_networks_get(resource_ref.resource_id)
-          when 'Project'
-            @client.projects.projects_get(resource_ref.resource_id)
           else
             @client.logger.warn "Unknown resource type: #{resource_ref.resource_type}"
             nil
@@ -193,11 +204,6 @@ module Eryph
         end.compact
       end
 
-      # Get all project objects created by this operation
-      # @return [Array] array of project objects
-      def projects_from_resources
-        @cached_collections[:projects] ||= find_resources_by_type('Project').map { |r| fetch_resource(r) }.compact
-      end
 
       # Get the first catlet if this operation created one
       # @return [Object, nil] the first catlet or nil
@@ -217,6 +223,12 @@ module Eryph
         virtual_networks.first
       end
 
+      # Get the first project from the operation
+      # @return [Object, nil] the first project or nil
+      def project
+        projects.first
+      end
+
       # Get operation summary with counts and resource type breakdown
       # @return [Hash] summary hash with operation details
       def summary
@@ -233,6 +245,7 @@ module Eryph
           tasks_count: tasks.size,
           resources_count: resources.size,
           resource_types: resource_counts,
+          projects_count: projects.size,
           has_result: result?,
           result_type: result_type,
         }
