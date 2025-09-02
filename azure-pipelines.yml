@@ -19,17 +19,20 @@ stages:
     displayName: 'Test Ruby Client and Build Gems'
     
     steps:
-    # Install Ruby
-    - task: UseRubyVersion@0
-      inputs:
-        versionSpec: '$(RUBY_VERSION)'
-        addToPath: true
-      displayName: 'Install Ruby $(RUBY_VERSION)'
+    # Check if Ruby is already installed, if not install it
+    - script: |
+        ruby --version || (
+          echo "Ruby not found, installing via Chocolatey..."
+          choco install ruby --version=$(RUBY_VERSION) -y
+          refreshenv
+        )
+        ruby --version
+      displayName: 'Ensure Ruby $(RUBY_VERSION) is installed'
 
     # Update RubyGems and install Bundler
     - script: |
-        gem update --system
-        gem install bundler -v $(BUNDLER_VERSION)
+        gem update --system --no-document
+        gem install bundler -v $(BUNDLER_VERSION) --no-document
       displayName: 'Update RubyGems and install Bundler'
 
     # Install dependencies
