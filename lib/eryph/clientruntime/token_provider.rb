@@ -105,6 +105,21 @@ module Eryph
       # @raise [TokenRequestError] if token request fails
       alias ensure_access_token access_token
 
+      # Get the current token response (if any)
+      # @return [TokenResponse, nil] current token response
+      def current_token
+        @token_mutex.synchronize { @current_token }
+      end
+
+      # Get the authorization header for HTTP requests
+      # @return [String] authorization header value
+      def authorization_header
+        token = @token_mutex.synchronize { @current_token }
+        return nil unless token && !token.expired?
+
+        token.authorization_header
+      end
+
       private
 
       # Get cached access token without forcing refresh
@@ -130,21 +145,6 @@ module Eryph
           @current_token = request_new_token
           @current_token.access_token
         end
-      end
-
-      # Get the current token response (if any)
-      # @return [TokenResponse, nil] current token response
-      def current_token
-        @token_mutex.synchronize { @current_token }
-      end
-
-      # Get the authorization header for HTTP requests
-      # @return [String] authorization header value
-      def authorization_header
-        token = @token_mutex.synchronize { @current_token }
-        return nil unless token && !token.expired?
-
-        token.authorization_header
       end
 
       private

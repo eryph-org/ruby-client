@@ -38,6 +38,15 @@ module Eryph
         @configuration = configuration
       end
 
+      # Test if credentials are available
+      # @return [Boolean] true if credentials can be found
+      def credentials_available?
+        find_credentials
+        true
+      rescue CredentialsNotFoundError, NoUserCredentialsError
+        false
+      end
+
       private
 
       def parse_private_key(key)
@@ -240,15 +249,6 @@ module Eryph
           token_endpoint: "#{system_creds['identity_endpoint']}/connect/token",
           configuration: config_name
         )
-      end
-
-      # Test if credentials are available
-      # @return [Boolean] true if credentials can be found
-      def credentials_available?
-        find_credentials
-        true
-      rescue CredentialsNotFoundError, NoUserCredentialsError
-        false
       end
 
       private
