@@ -14,6 +14,7 @@ group :test do
   gem 'factory_bot', '~> 6.2'   # Test data factories
   gem 'faker', '~> 3.2'         # Generate fake test data
   gem 'rspec', '~> 3.12'
+  gem 'rspec_junit_formatter', '~> 0.6' # JUnit XML output for CI/CD
   gem 'simplecov', '~> 0.22'    # Code coverage reporting
   gem 'timecop', '~> 0.9'       # Time manipulation for testing
   gem 'vcr', '~> 6.1'           # For recording/replaying HTTP interactions
