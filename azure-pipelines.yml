@@ -10,6 +10,7 @@ pool:
 variables:
   RUBY_VERSION: '3.1'
   BUNDLER_VERSION: '2.4.10'
+  RUBY_PATH: 'C:\Ruby31\bin'
 
 stages:
 - stage: Test
@@ -19,35 +20,45 @@ stages:
     displayName: 'Test Ruby Client and Build Gems'
     
     steps:
-    # Check if Ruby is already installed, if not install it
+    # Install Ruby directly from RubyInstaller
     - script: |
-        ruby --version || (
-          echo "Ruby not found, installing via Chocolatey..."
-          choco install ruby --version=$(RUBY_VERSION) -y
-          refreshenv
+        where ruby >nul 2>&1 && (
+          echo "Ruby already installed:"
+          ruby --version
+        ) || (
+          echo "Ruby not found, downloading and installing Ruby $(RUBY_VERSION)..."
+          curl -L -o ruby-installer.exe "https://github.com/oneclick/rubyinstaller2/releases/download/RubyInstaller-3.1.4-1/rubyinstaller-3.1.4-1-x64.exe"
+          ruby-installer.exe /VERYSILENT /NORESTART /DIR="C:\Ruby31" /TASKS="addtk,assocfiles,modpath"
+          set PATH=C:\Ruby31\bin;%PATH%
+          echo "Ruby installation completed"
         )
+        set PATH=C:\Ruby31\bin;%PATH%
         ruby --version
-      displayName: 'Ensure Ruby $(RUBY_VERSION) is installed'
+      displayName: 'Install Ruby $(RUBY_VERSION)'
 
     # Update RubyGems and install Bundler
     - script: |
+        set PATH=$(RUBY_PATH);%PATH%
         gem update --system --no-document
         gem install bundler -v $(BUNDLER_VERSION) --no-document
       displayName: 'Update RubyGems and install Bundler'
 
     # Install dependencies
     - script: |
+        set PATH=$(RUBY_PATH);%PATH%
         bundle install --jobs 4 --retry 3
       displayName: 'Bundle install'
 
     # Run unit tests
     - script: |
+        set PATH=$(RUBY_PATH);%PATH%
         bundle exec rspec spec/unit --format progress --format RspecJunitFormatter --out test-results-unit.xml
       displayName: 'Run unit tests'
       continueOnError: true
 
     # Run integration tests (assuming Eryph is preinstalled)
     - script: |
+        set PATH=$(RUBY_PATH);%PATH%
         set INTEGRATION_TESTS=1
         bundle exec rspec spec/integration --format progress --format RspecJunitFormatter --out test-results-integration.xml
       displayName: 'Run integration tests'
@@ -57,12 +68,14 @@ stages:
 
     # Run all tests together
     - script: |
+        set PATH=$(RUBY_PATH);%PATH%
         bundle exec rake spec
       displayName: 'Run all tests with Rake'
       continueOnError: true
 
     # Build gems
     - script: |
+        set PATH=$(RUBY_PATH);%PATH%
         bundle exec rake build_all
       displayName: 'Build all gems'
 
@@ -92,9 +105,10 @@ stages:
 
     # Display build summary
     - script: |
+        set PATH=$(RUBY_PATH);%PATH%
         echo "=== Build Summary ==="
-        echo "Ruby version: $(ruby --version)"
-        echo "Bundler version: $(bundle --version)"
+        ruby --version
+        bundle --version
         echo "Built gems:"
         dir pkg\*.gem
         echo "=== End Summary ==="
