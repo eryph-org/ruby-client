@@ -1,0 +1,97 @@
+trigger:
+- main
+
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  RUBY_VERSION: '3.1'
+  BUNDLER_VERSION: '2.4.10'
+
+stages:
+- stage: Test
+  displayName: 'Test and Build'
+  jobs:
+  - job: TestAndBuild
+    displayName: 'Test Ruby Client and Build Gems'
+    
+    steps:
+    # Install Ruby
+    - task: UseRubyVersion@0
+      inputs:
+        versionSpec: '$(RUBY_VERSION)'
+        addToPath: true
+      displayName: 'Install Ruby $(RUBY_VERSION)'
+
+    # Update RubyGems and install Bundler
+    - script: |
+        gem update --system
+        gem install bundler -v $(BUNDLER_VERSION)
+      displayName: 'Update RubyGems and install Bundler'
+
+    # Install dependencies
+    - script: |
+        bundle install --jobs 4 --retry 3
+      displayName: 'Bundle install'
+
+    # Run unit tests
+    - script: |
+        bundle exec rspec spec/unit --format progress --format RspecJunitFormatter --out test-results-unit.xml
+      displayName: 'Run unit tests'
+      continueOnError: true
+
+    # Run integration tests (assuming Eryph is preinstalled)
+    - script: |
+        set INTEGRATION_TESTS=1
+        bundle exec rspec spec/integration --format progress --format RspecJunitFormatter --out test-results-integration.xml
+      displayName: 'Run integration tests'
+      continueOnError: true
+      env:
+        INTEGRATION_TESTS: '1'
+
+    # Run all tests together
+    - script: |
+        bundle exec rake spec
+      displayName: 'Run all tests with Rake'
+      continueOnError: true
+
+    # Build gems
+    - script: |
+        bundle exec rake build_all
+      displayName: 'Build all gems'
+
+    # Create artifacts directory and copy gems
+    - script: |
+        mkdir $(Build.ArtifactStagingDirectory)\gems
+        copy pkg\*.gem $(Build.ArtifactStagingDirectory)\gems\
+      displayName: 'Prepare gem artifacts'
+
+    # Publish test results
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: 'test-results-*.xml'
+        failTaskOnFailedTests: true
+        testRunTitle: 'Ruby Client Tests'
+      displayName: 'Publish test results'
+      condition: always()
+
+    # Publish gem artifacts
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathToPublish: '$(Build.ArtifactStagingDirectory)\gems'
+        artifactName: 'ruby-gems'
+        artifactType: 'container'
+      displayName: 'Publish gem artifacts'
+
+    # Display build summary
+    - script: |
+        echo "=== Build Summary ==="
+        echo "Ruby version: $(ruby --version)"
+        echo "Bundler version: $(bundle --version)"
+        echo "Built gems:"
+        dir pkg\*.gem
+        echo "=== End Summary ==="
+      displayName: 'Build summary'
+      condition: always()
