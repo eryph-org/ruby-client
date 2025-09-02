@@ -8,9 +8,9 @@ pool:
   - Agent.Name -equals vsts-agent
 
 variables:
-  RUBY_VERSION: '3.1'
+  RUBY_VERSION: '3.4'
   BUNDLER_VERSION: '2.4.10'
-  RUBY_PATH: 'C:\Ruby31\bin'
+  RUBY_PATH: 'C:\Ruby34-x64\bin'
 
 stages:
 - stage: Test
@@ -20,22 +20,6 @@ stages:
     displayName: 'Test Ruby Client and Build Gems'
     
     steps:
-    # Install Ruby directly from RubyInstaller
-    - script: |
-        where ruby >nul 2>&1 && (
-          echo "Ruby already installed:"
-          ruby --version
-        ) || (
-          echo "Ruby not found, downloading and installing Ruby $(RUBY_VERSION)..."
-          curl -L -o ruby-installer.exe "https://github.com/oneclick/rubyinstaller2/releases/download/RubyInstaller-3.1.4-1/rubyinstaller-3.1.4-1-x64.exe"
-          ruby-installer.exe /VERYSILENT /NORESTART /DIR="C:\Ruby31" /TASKS="addtk,assocfiles,modpath"
-          set PATH=C:\Ruby31\bin;%PATH%
-          echo "Ruby installation completed"
-        )
-        set PATH=C:\Ruby31\bin;%PATH%
-        ruby --version
-      displayName: 'Install Ruby $(RUBY_VERSION)'
-
     # Update RubyGems and install Bundler
     - script: |
         set PATH=$(RUBY_PATH);%PATH%
