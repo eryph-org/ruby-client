@@ -26,7 +26,7 @@ module Eryph
         locations = [
           Environment::ConfigStoreLocation::CURRENT_DIRECTORY,
           Environment::ConfigStoreLocation::USER,
-          Environment::ConfigStoreLocation::SYSTEM
+          Environment::ConfigStoreLocation::SYSTEM,
         ]
 
         locations.map do |location|
@@ -78,7 +78,7 @@ module Eryph
       # @return [Array<Hash>] array of all client configurations
       def get_all_clients(config_name)
         @logger.debug("get_all_clients: config=#{config_name}")
-        
+
         stores = get_existing_stores(config_name)
         all_clients = []
 
@@ -86,7 +86,7 @@ module Eryph
           clients = store.clients
           @logger.debug("get_all_clients: store #{store.base_path} has #{clients ? clients.length : 0} clients")
           next unless clients
-          
+
           clients.each do |client|
             # Add store reference to client for private key lookup
             client_with_store = client.dup
@@ -107,7 +107,7 @@ module Eryph
             true
           end
         end
-        
+
         @logger.debug("get_all_clients: unique clients=#{unique_clients.length}")
         unique_clients
       end
@@ -117,19 +117,19 @@ module Eryph
       # @return [Hash, nil] default client configuration or nil if not found
       def get_default_client(config_name)
         @logger.debug("get_default_client: config=#{config_name}")
-        
+
         merged_config = get_merged_configuration(config_name)
         default_client_id = merged_config['defaultClientId']
         @logger.debug("get_default_client: defaultClientId=#{default_client_id || 'nil'}")
-        
+
         all_clients = get_all_clients(config_name)
         @logger.debug("get_default_client: total_clients=#{all_clients.length}")
-        
+
         if all_clients.empty?
-          @logger.debug("get_default_client: no clients found")
+          @logger.debug('get_default_client: no clients found')
           return nil
         end
-        
+
         # If explicit defaultClient is set, use that
         if default_client_id
           client = all_clients.find { |client| client['id'] == default_client_id }
@@ -140,7 +140,7 @@ module Eryph
             @logger.debug("get_default_client: defaultClientId '#{default_client_id}' not found")
           end
         end
-        
+
         # Otherwise, look for client with IsDefault=true (PowerShell -AsDefault flag)
         # Try both case variations since PowerShell uses IsDefault, Ruby might use isDefault
         default_client = all_clients.find { |client| client['IsDefault'] == true || client['isDefault'] == true }
@@ -148,8 +148,8 @@ module Eryph
           @logger.debug("get_default_client: found by IsDefault flag=#{default_client['id']}")
           return default_client
         end
-        
-        @logger.debug("get_default_client: no default client found")
+
+        @logger.debug('get_default_client: no default client found')
         nil
       end
 
@@ -176,13 +176,13 @@ module Eryph
       # @param config_name [String] configuration name
       # @return [ConfigStore] user configuration store
       def get_writable_store(config_name)
-        if @environment.admin_user?
-          # If running as admin, prefer system store
-          base_path = @environment.get_config_path(Environment::ConfigStoreLocation::SYSTEM)
-        else
-          # Otherwise use user store
-          base_path = @environment.get_config_path(Environment::ConfigStoreLocation::USER)
-        end
+        base_path = if @environment.admin_user?
+                      # If running as admin, prefer system store
+                      @environment.get_config_path(Environment::ConfigStoreLocation::SYSTEM)
+                    else
+                      # Otherwise use user store
+                      @environment.get_config_path(Environment::ConfigStoreLocation::USER)
+                    end
 
         ConfigStore.new(base_path, config_name, @environment)
       end
@@ -197,11 +197,11 @@ module Eryph
         result = hash1.dup
 
         hash2.each do |key, value|
-          if result[key].is_a?(Hash) && value.is_a?(Hash)
-            result[key] = deep_merge(result[key], value)
-          else
-            result[key] = value
-          end
+          result[key] = if result[key].is_a?(Hash) && value.is_a?(Hash)
+                          deep_merge(result[key], value)
+                        else
+                          value
+                        end
         end
 
         result

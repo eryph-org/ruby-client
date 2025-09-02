@@ -16,16 +16,16 @@ RSpec.describe Eryph::ClientRuntime::ClientCredentialsLookup do
             .add_running_process('eryph-zero', pid: 1234)
             .add_zero_metadata(identity_endpoint: 'https://localhost:8080/identity')
             .add_system_client_files(
-              'zero', 
+              'zero',
               private_key: build(:rsa_private_key).to_pem,
               identity_endpoint: 'https://localhost:8080/identity'
             )
 
           lookup = described_class.new(reader, 'zero')
-          
+
           # This should find system client as fallback
           credentials = lookup.find_credentials
-          
+
           expect(credentials.client_id).to eq('system-client')
           expect(credentials.configuration).to eq('zero')
         end
@@ -41,15 +41,15 @@ RSpec.describe Eryph::ClientRuntime::ClientCredentialsLookup do
             .add_local_metadata(identity_endpoint: 'https://localhost:8080/identity')
             .add_system_client_files(
               'local',
-              private_key: build(:rsa_private_key).to_pem, 
+              private_key: build(:rsa_private_key).to_pem,
               identity_endpoint: 'https://localhost:8080/identity'
             )
 
           lookup = described_class.new(reader, 'local')
-          
+
           # This should find system client as fallback
           credentials = lookup.find_credentials
-          
+
           expect(credentials.client_id).to eq('system-client')
           expect(credentials.configuration).to eq('local')
         end
@@ -65,15 +65,15 @@ RSpec.describe Eryph::ClientRuntime::ClientCredentialsLookup do
             .add_local_metadata(identity_endpoint: 'https://localhost:8080/identity')
             .add_system_client_files(
               'local',
-              private_key: build(:rsa_private_key).to_pem, 
+              private_key: build(:rsa_private_key).to_pem,
               identity_endpoint: 'https://localhost:8080/identity'
             )
 
           lookup = described_class.new(reader, 'local')
-          
+
           # This should find system client as fallback (key stored directly as PEM)
           credentials = lookup.find_credentials
-          
+
           expect(credentials.client_id).to eq('system-client')
           expect(credentials.configuration).to eq('local')
         end
@@ -85,11 +85,11 @@ RSpec.describe Eryph::ClientRuntime::ClientCredentialsLookup do
           test_environment.set_admin(true)
 
           lookup = described_class.new(reader, 'default')
-          
+
           # Should raise error, not try system client
-          expect {
+          expect do
             lookup.find_credentials
-          }.to raise_error(
+          end.to raise_error(
             Eryph::ClientRuntime::CredentialsNotFoundError,
             "No default client found in configuration 'default'"
           )
@@ -100,7 +100,7 @@ RSpec.describe Eryph::ClientRuntime::ClientCredentialsLookup do
     describe 'automatic discovery priority' do
       it 'tries configs in correct order on Windows' do
         test_environment.set_windows(true)
-        
+
         # Setup default config with client and endpoints
         test_environment.add_client_with_key(
           'default',
@@ -108,13 +108,13 @@ RSpec.describe Eryph::ClientRuntime::ClientCredentialsLookup do
           'Default Client',
           endpoints: {
             'identity' => 'https://test.eryph.local/identity',
-            'compute' => 'https://test.eryph.local/compute'
+            'compute' => 'https://test.eryph.local/compute',
           }
         )
-        
+
         lookup = described_class.new(reader) # No specific config = auto discovery
         credentials = lookup.find_credentials
-        
+
         # Should find default first
         expect(credentials.client_id).to eq('default-client-id')
         expect(credentials.configuration).to eq('default')
@@ -122,21 +122,21 @@ RSpec.describe Eryph::ClientRuntime::ClientCredentialsLookup do
 
       it 'tries configs in correct order on Linux' do
         test_environment.set_windows(false)
-        
+
         # Setup local config with client and endpoints
         test_environment.add_client_with_key(
-          'local', 
+          'local',
           'local-client-id',
           'Local Client',
           endpoints: {
             'identity' => 'https://test.eryph.local/identity',
-            'compute' => 'https://test.eryph.local/compute'
+            'compute' => 'https://test.eryph.local/compute',
           }
         )
-        
+
         lookup = described_class.new(reader) # No specific config = auto discovery
         credentials = lookup.find_credentials
-        
+
         # Should find local (skipping zero on Linux)
         expect(credentials.client_id).to eq('local-client-id')
         expect(credentials.configuration).to eq('local')
@@ -148,9 +148,9 @@ RSpec.describe Eryph::ClientRuntime::ClientCredentialsLookup do
         # Setup test config with multiple clients and endpoints
         endpoints = {
           'identity' => 'https://test.eryph.local/identity',
-          'compute' => 'https://test.eryph.local/compute'
+          'compute' => 'https://test.eryph.local/compute',
         }
-        
+
         test_environment.add_client_with_key(
           'test',
           'client-1',
@@ -159,7 +159,7 @@ RSpec.describe Eryph::ClientRuntime::ClientCredentialsLookup do
         )
         test_environment.add_client_with_key(
           'test',
-          'client-2', 
+          'client-2',
           'Second Client',
           endpoints: endpoints
         )
@@ -168,7 +168,7 @@ RSpec.describe Eryph::ClientRuntime::ClientCredentialsLookup do
       it 'finds credentials by client ID' do
         lookup = described_class.new(reader)
         credentials = lookup.get_credentials_by_client_id('client-1', 'test')
-        
+
         expect(credentials.client_id).to eq('client-1')
         expect(credentials.client_name).to eq('First Client')
       end
@@ -176,7 +176,7 @@ RSpec.describe Eryph::ClientRuntime::ClientCredentialsLookup do
       it 'finds credentials by client name' do
         lookup = described_class.new(reader)
         credentials = lookup.get_credentials_by_client_name('Second Client', 'test')
-        
+
         expect(credentials.client_id).to eq('client-2')
         expect(credentials.client_name).to eq('Second Client')
       end
@@ -184,14 +184,14 @@ RSpec.describe Eryph::ClientRuntime::ClientCredentialsLookup do
       it 'returns nil for non-existent client ID' do
         lookup = described_class.new(reader)
         credentials = lookup.get_credentials_by_client_id('missing', 'test')
-        
+
         expect(credentials).to be_nil
       end
 
       it 'returns nil for non-existent client name' do
         lookup = described_class.new(reader)
         credentials = lookup.get_credentials_by_client_name('Missing Client', 'test')
-        
+
         expect(credentials).to be_nil
       end
     end
@@ -199,23 +199,23 @@ RSpec.describe Eryph::ClientRuntime::ClientCredentialsLookup do
     describe 'credentials availability check' do
       it 'returns true when credentials exist' do
         test_environment.add_client_with_key(
-          'test', 
-          'test-client', 
+          'test',
+          'test-client',
           'Test Client',
           endpoints: {
             'identity' => 'https://test.eryph.local/identity',
-            'compute' => 'https://test.eryph.local/compute'
+            'compute' => 'https://test.eryph.local/compute',
           }
         )
-        
+
         lookup = described_class.new(reader, 'test')
-        
+
         expect(lookup.credentials_available?).to be true
       end
 
       it 'returns false when no credentials exist' do
         lookup = described_class.new(reader, 'nonexistent')
-        
+
         expect(lookup.credentials_available?).to be false
       end
     end
@@ -236,9 +236,9 @@ RSpec.describe Eryph::ClientRuntime::ClientCredentialsLookup do
       it 'raises error when not admin on Windows' do
         allow(mock_environment).to receive(:admin_user?).and_return(false)
 
-        expect {
+        expect do
           lookup.send(:get_system_client_credentials, 'zero')
-        }.to raise_error(
+        end.to raise_error(
           Eryph::ClientRuntime::NoUserCredentialsError,
           /requires Administrator privileges/
         )
@@ -254,9 +254,9 @@ RSpec.describe Eryph::ClientRuntime::ClientCredentialsLookup do
       it 'raises error when not root on Linux' do
         allow(mock_environment).to receive(:admin_user?).and_return(false)
 
-        expect {
+        expect do
           lookup.send(:get_system_client_credentials, 'local')
-        }.to raise_error(
+        end.to raise_error(
           Eryph::ClientRuntime::NoUserCredentialsError,
           /requires root privileges/
         )

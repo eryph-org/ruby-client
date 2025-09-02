@@ -27,13 +27,13 @@ module Eryph
       # Get an endpoint URL by name
       # @param endpoint_name [String] endpoint name to lookup
       # @return [String, nil] endpoint URL or nil if not found
-      def get_endpoint(endpoint_name)
+      def endpoint(endpoint_name)
         @logger.debug("get_endpoint: looking for '#{endpoint_name}' in config '#{@config_name}'")
-        
+
         # First try configuration store endpoints
         store_endpoints = @reader.get_all_endpoints(@config_name)
         @logger.debug("get_endpoint: store_endpoints count=#{store_endpoints.length}")
-        
+
         endpoint_url = store_endpoints[endpoint_name]
         if endpoint_url
           @logger.debug("get_endpoint: found in config store=#{endpoint_url}")
@@ -41,52 +41,52 @@ module Eryph
         end
 
         # Then try local endpoints for special configurations
-        local_endpoints = get_local_endpoints
-        @logger.debug("get_endpoint: local_endpoints count=#{local_endpoints.length}")
-        
-        endpoint_url = local_endpoints[endpoint_name]
+        local_eps = local_endpoints
+        @logger.debug("get_endpoint: local_endpoints count=#{local_eps.length}")
+
+        endpoint_url = local_eps[endpoint_name]
         if endpoint_url
           @logger.debug("get_endpoint: found in local endpoints=#{endpoint_url}")
         else
-          @logger.debug("get_endpoint: not found anywhere")
+          @logger.debug('get_endpoint: not found anywhere')
         end
-        
+
         endpoint_url
       end
 
       # Get all available endpoints
       # @return [Hash] endpoint name -> URL mapping
-      def get_all_endpoints
+      def all_endpoints
         store_endpoints = @reader.get_all_endpoints(@config_name)
-        local_endpoints = get_local_endpoints
+        local_eps = local_endpoints
 
         # Local endpoints have lower priority than store endpoints
-        local_endpoints.merge(store_endpoints)
+        local_eps.merge(store_endpoints)
       end
 
       # Check if an endpoint exists
       # @param endpoint_name [String] endpoint name to check
       # @return [Boolean] true if endpoint exists
       def endpoint_exists?(endpoint_name)
-        !get_endpoint(endpoint_name).nil?
+        !endpoint(endpoint_name).nil?
       end
 
       private
 
       # Get local endpoints for special configurations
       # @return [Hash] endpoint name -> URL mapping
-      def get_local_endpoints
+      def local_endpoints
         @logger.debug("get_local_endpoints: config=#{@config_name}")
-        
+
         case @config_name&.downcase
         when 'zero'
-          @logger.debug("get_local_endpoints: checking zero config")
-          get_zero_endpoints
+          @logger.debug('get_local_endpoints: checking zero config')
+          zero_endpoints
         when 'local'
-          @logger.debug("get_local_endpoints: checking local config")
+          @logger.debug('get_local_endpoints: checking local config')
           get_local_endpoints_for_config('local')
         else
-          @logger.debug("get_local_endpoints: no special config, returning empty")
+          @logger.debug('get_local_endpoints: no special config, returning empty')
           {}
         end
       end
@@ -94,15 +94,15 @@ module Eryph
       # Get endpoints for eryph-zero configuration
       # This discovers running eryph-zero instances from runtime lock files
       # @return [Hash] endpoint name -> URL mapping
-      def get_zero_endpoints
+      def zero_endpoints
         require_relative 'local_identity_provider_info'
-        
+
         # Try to discover running identity provider
         provider_info = LocalIdentityProviderInfo.new(@reader.environment, 'zero', logger: @logger)
-        
+
         if provider_info.running?
           endpoints_hash = provider_info.endpoints
-          
+
           # Convert URI objects to strings and map to expected names
           result = {}
           endpoints_hash.each do |name, uri|
@@ -116,13 +116,13 @@ module Eryph
               result[name] = uri.to_s
             end
           end
-          
+
           # If we have identity but no compute, derive compute endpoint
           if result['identity'] && !result['compute']
             identity_uri = URI.parse(result['identity'])
             result['compute'] = "#{identity_uri.scheme}://#{identity_uri.host}:#{identity_uri.port}/compute"
           end
-          
+
           return result
         end
 
@@ -140,15 +140,15 @@ module Eryph
           'https://localhost:8080',
           'https://127.0.0.1:8080',
           'http://localhost:8080',
-          'http://127.0.0.1:8080'
+          'http://127.0.0.1:8080',
         ]
 
         zero_candidates.each do |candidate_url|
-          if test_zero_endpoint(candidate_url)
-            endpoints['identity'] = candidate_url
-            endpoints['compute'] = "#{candidate_url}/compute"
-            break
-          end
+          next unless test_zero_endpoint(candidate_url)
+
+          endpoints['identity'] = candidate_url
+          endpoints['compute'] = "#{candidate_url}/compute"
+          break
         end
 
         endpoints
@@ -159,13 +159,13 @@ module Eryph
       # @return [Hash] endpoint name -> URL mapping
       def get_local_endpoints_for_config(config_name)
         require_relative 'local_identity_provider_info'
-        
+
         # Try to discover running identity provider
         provider_info = LocalIdentityProviderInfo.new(@reader.environment, config_name, logger: @logger)
-        
+
         if provider_info.running?
           endpoints_hash = provider_info.endpoints
-          
+
           # Convert URI objects to strings and map to expected names
           result = {}
           endpoints_hash.each do |name, uri|
@@ -179,13 +179,13 @@ module Eryph
               result[name] = uri.to_s
             end
           end
-          
+
           # If we have identity but no compute, derive compute endpoint
           if result['identity'] && !result['compute']
             identity_uri = URI.parse(result['identity'])
             result['compute'] = "#{identity_uri.scheme}://#{identity_uri.host}:#{identity_uri.port}/compute"
           end
-          
+
           return result
         end
 
@@ -201,14 +201,12 @@ module Eryph
         # 1. Make an HTTP request to check for eryph-zero health endpoint
         # 2. Check for specific response headers or content
         # 3. Verify SSL certificates if applicable
-        
+
         # In test environments, don't activate fallback endpoints
         # This prevents tests from accidentally finding "running" services
         # when they're testing the "not running" scenario
-        if @reader.environment.class.name == 'TestEnvironment'
-          return false
-        end
-        
+        return false if @reader.environment.instance_of?(::TestEnvironment)
+
         # For now, we'll just check if the URL format is valid
         # In production, this might make actual HTTP requests
         begin
@@ -217,8 +215,8 @@ module Eryph
           has_scheme = !uri.scheme.nil?
           has_host = !uri.host.nil? && !uri.host.empty?
           has_explicit_port = base_url.include?(':') && base_url.match(/:(\d+)/)
-          
-          !!(has_scheme && has_host && has_explicit_port)
+
+          !(has_scheme && has_host && has_explicit_port).nil?
         rescue URI::InvalidURIError
           false
         end

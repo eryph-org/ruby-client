@@ -4,7 +4,7 @@ require 'webmock/rspec'
 WebMock.disable_net_connect!(
   allow_localhost: true,
   allow: [
-    'raw.githubusercontent.com' # Allow OpenAPI spec downloads during tests
+    'raw.githubusercontent.com', # Allow OpenAPI spec downloads during tests
   ]
 )
 
@@ -15,9 +15,9 @@ module WebMockHelpers
       access_token: 'test_access_token',
       token_type: 'Bearer',
       expires_in: 3600,
-      scope: 'compute:read compute:write'
+      scope: 'compute:read compute:write',
     }
-    
+
     stub_request(:post, endpoint)
       .with(
         body: hash_including(
@@ -25,7 +25,7 @@ module WebMockHelpers
           'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'
         ),
         headers: {
-          'Content-Type' => 'application/x-www-form-urlencoded'
+          'Content-Type' => 'application/x-www-form-urlencoded',
         }
       )
       .to_return(
@@ -34,22 +34,22 @@ module WebMockHelpers
         headers: { 'Content-Type' => 'application/json' }
       )
   end
-  
+
   def stub_token_error(endpoint:, error_code: 'invalid_client', status: 400)
     stub_request(:post, endpoint)
       .to_return(
         status: status,
         body: {
           error: error_code,
-          error_description: "Authentication failed"
+          error_description: 'Authentication failed',
         }.to_json,
         headers: { 'Content-Type' => 'application/json' }
       )
   end
-  
+
   def stub_api_request(method:, path:, response: {}, status: 200)
     default_response = { value: [] }
-    
+
     stub_request(method, %r{/compute#{path}})
       .with(headers: { 'Authorization' => /Bearer/ })
       .to_return(
@@ -58,7 +58,7 @@ module WebMockHelpers
         headers: { 'Content-Type' => 'application/json' }
       )
   end
-  
+
   def stub_catlets_list(catlets: [])
     stub_api_request(
       method: :get,
@@ -66,7 +66,7 @@ module WebMockHelpers
       response: { value: catlets }
     )
   end
-  
+
   def stub_projects_list(projects: [])
     stub_api_request(
       method: :get,

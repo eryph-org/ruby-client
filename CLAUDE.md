@@ -177,7 +177,7 @@ ruby generate.rb
 
 1. **Make changes** to runtime or client code
 2. **Run unit tests**: `bundle exec rspec spec/unit`
-3. **Run integration tests**: `INTEGRATION_TESTS=1 bundle exec rspec spec/integration`
+3. **Run integration tests**: `bundle exec rspec spec/integration`
 4. **Build gems**: `rake build_all`
 5. **Test with examples**: `ruby examples/basic_usage.rb`
 6. **Update generated client** (if API changed): `ruby generate.rb`
@@ -321,7 +321,7 @@ Run specific test types:
 bundle exec rspec spec/unit
 
 # Integration tests only
-INTEGRATION_TESTS=1 bundle exec rspec spec/integration
+bundle exec rspec spec/integration
 
 # All tests
 bundle exec rake spec

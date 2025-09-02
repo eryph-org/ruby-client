@@ -30,39 +30,48 @@ module Eryph
         @logger = logger || default_logger
         @ssl_config = ssl_config || {}
         @environment = environment || ClientRuntime::Environment.new
-        
+
         # Discover credentials based on parameters
         reader = ClientRuntime::ConfigStoresReader.new(@environment, logger: @logger)
-        
+
         if client_id && config_name
           # Specific client in specific config - no fallback
           lookup = ClientRuntime::ClientCredentialsLookup.new(reader, config_name, logger: @logger)
           @credentials = lookup.get_credentials_by_client_id(client_id, config_name)
-          raise ClientRuntime::CredentialsNotFoundError, "Client '#{client_id}' not found in configuration '#{config_name}'" unless @credentials
-          
+          unless @credentials
+            raise ClientRuntime::CredentialsNotFoundError,
+                  "Client '#{client_id}' not found in configuration '#{config_name}'"
+          end
+
         elsif client_id
           # Find client in any config
           @credentials = find_client_in_any_config(reader, client_id)
-          raise ClientRuntime::CredentialsNotFoundError, "Client '#{client_id}' not found in any configuration" unless @credentials
-          
+          unless @credentials
+            raise ClientRuntime::CredentialsNotFoundError,
+                  "Client '#{client_id}' not found in any configuration"
+          end
+
         elsif config_name
           # Default client in specific config
           lookup = ClientRuntime::ClientCredentialsLookup.new(reader, config_name, logger: @logger)
           @credentials = lookup.find_credentials
-          
+
         else
           # Automatic discovery
           lookup = ClientRuntime::ClientCredentialsLookup.new(reader, logger: @logger)
           @credentials = lookup.find_credentials
         end
-        
+
         @config_name = @credentials.configuration
-        
+
         # Get compute endpoint for the discovered configuration
         endpoint_lookup = ClientRuntime::EndpointLookup.new(reader, @config_name, logger: @logger)
-        @compute_endpoint = endpoint_lookup.get_endpoint('compute')
-        raise ClientRuntime::ConfigurationError, "Compute endpoint not found in configuration '#{@config_name}'" unless @compute_endpoint
-        
+        @compute_endpoint = endpoint_lookup.endpoint('compute')
+        unless @compute_endpoint
+          raise ClientRuntime::ConfigurationError,
+                "Compute endpoint not found in configuration '#{@config_name}'"
+        end
+
         # Create token provider
         @token_provider = ClientRuntime::TokenProvider.new(
           @credentials,
@@ -71,14 +80,13 @@ module Eryph
         )
       end
 
-
       # Test the connection and authentication
       # @return [Boolean] true if connection and authentication work
       def test_connection
         # For now, just test if we can get a token
-        token = @token_provider.get_access_token
+        token = @token_provider.ensure_access_token
         !token.nil? && !token.empty?
-      rescue => e
+      rescue StandardError => e
         @logger.error "Connection test failed: #{e.message}"
         false
       end
@@ -86,7 +94,7 @@ module Eryph
       # Get the current access token
       # @return [String] access token
       def access_token
-        @token_provider.get_access_token
+        @token_provider.access_token
       end
 
       # Refresh the authentication token
@@ -158,78 +166,78 @@ module Eryph
       # @yield [event_type, data] callback for operation events
       # @yieldparam event_type [Symbol] :log_entry, :task_new, :task_update, :resource_new, :status
       # @yieldparam data [Object] the event data (log entry, task, resource, or operation)
-      def wait_for_operation(operation_id, timeout: 300, poll_interval: 5, &block)
+      def wait_for_operation(operation_id, timeout: 300, poll_interval: 5)
         @logger.info "Waiting for operation #{operation_id} to complete (timeout: #{timeout}s)..."
-        
+
         start_time = Time.now
-        last_timestamp = Time.parse("2018-01-01")
+        last_timestamp = Time.parse('2018-01-01')
         processed_log_ids = Set.new
-        processed_task_ids = Set.new  
+        processed_task_ids = Set.new
         processed_resource_ids = Set.new
-        
+
         loop do
           # Get raw JSON using debug_return_type to work around discriminated union bug
           raw_json = nil
           begin
             raw_json = operations.operations_get(
-              operation_id, 
-              expand: "logs,tasks,resources",
+              operation_id,
+              expand: 'logs,tasks,resources',
               log_time_stamp: last_timestamp,
               debug_return_type: 'String'
             )
             @logger.debug "Raw JSON captured: #{raw_json ? 'YES' : 'NO'}"
-          rescue => e
+          rescue StandardError => e
             @logger.debug "Failed to capture raw JSON: #{e.message}"
           end
-          
+
           # Get normal deserialized operation
           operation = operations.operations_get(
-            operation_id, 
-            expand: "logs,tasks,resources", 
+            operation_id,
+            expand: 'logs,tasks,resources',
             log_time_stamp: last_timestamp
           )
-          
+
           # Process NEW log entries only
           if operation.log_entries && block_given?
             operation.log_entries.each do |log_entry|
               next if processed_log_ids.include?(log_entry.id)
-              
+
               processed_log_ids.add(log_entry.id)
               last_timestamp = log_entry.timestamp if log_entry.timestamp > last_timestamp
-              
+
               # Callback for new log entry
               yield(:log_entry, log_entry)
             end
           end
-          
+
           # Process NEW and UPDATED tasks (tasks can appear and change during execution)
           if operation.tasks && block_given?
             operation.tasks.each do |task|
-              if !processed_task_ids.include?(task.id)
+              if processed_task_ids.include?(task.id)
+                # Callback for task update (status/progress changes)
+                yield(:task_update, task)
+              else
                 processed_task_ids.add(task.id)
                 # Callback for new task
                 yield(:task_new, task)
-              else
-                # Callback for task update (status/progress changes)
-                yield(:task_update, task)
               end
             end
           end
-          
+
           # Process NEW resources (resources appear as they're created)
           if operation.resources && block_given?
             operation.resources.each do |resource|
               next if processed_resource_ids.include?(resource.id)
-              
+
               processed_resource_ids.add(resource.id)
               # Callback for new resource
               yield(:resource_new, resource)
             end
           end
-          
+
           # Status update callback
           yield(:status, operation) if block_given?
-          
+
           case operation.status
           when 'Completed'
             @logger.info "Operation #{operation_id} completed successfully!"
@@ -243,7 +251,7 @@ module Eryph
               @logger.error "Operation #{operation_id} timed out after #{timeout} seconds"
               raise Timeout::Error, "Operation #{operation_id} timed out after #{timeout} seconds"
             end
-            
+
             @logger.debug "Operation #{operation_id} status: #{operation.status} (#{elapsed.round(1)}s elapsed)"
             sleep poll_interval
           else
@@ -260,21 +268,21 @@ module Eryph
       def validate_catlet_config(config)
         # Convert input to hash if it's a JSON string
         config_hash = case config
-        when String
-          begin
-            JSON.parse(config)
-          rescue JSON::ParserError => e
-            raise ArgumentError, "Invalid JSON string: #{e.message}"
-          end
-        when Hash
-          config
-        else
-          raise ArgumentError, "Config must be a Hash or JSON string, got #{config.class}"
-        end
+                      when String
+                        begin
+                          JSON.parse(config)
+                        rescue JSON::ParserError => e
+                          raise ArgumentError, "Invalid JSON string: #{e.message}"
+                        end
+                      when Hash
+                        config
+                      else
+                        raise ArgumentError, "Config must be a Hash or JSON string, got #{config.class}"
+                      end
 
         # Create the validation request
         request = Eryph::ComputeClient::ValidateConfigRequest.new(configuration: config_hash)
-        
+
         # Call the validation endpoint
         handle_api_errors do
           catlets.catlets_validate_config(validate_config_request: request)
@@ -285,17 +293,16 @@ module Eryph
       # @yield the block to execute
       # @return the result of the block
       # @raise [ProblemDetailsError, Exception] the error with enhanced information
-      def handle_api_errors(&block)
+      def handle_api_errors
         yield
-      rescue => e
+      rescue StandardError => e
         # Check if this looks like an API error (has code and response_body)
-        if e.respond_to?(:code) && e.respond_to?(:response_body)
-          enhanced_error = ProblemDetailsError.from_api_error(e)
-          raise enhanced_error
-        else
-          # Re-raise non-API errors as-is
-          raise e
-        end
+        raise e unless e.respond_to?(:code) && e.respond_to?(:response_body)
+
+        enhanced_error = ProblemDetailsError.from_api_error(e)
+        raise enhanced_error
+
+        # Re-raise non-API errors as-is
       end
 
       private
@@ -305,14 +312,14 @@ module Eryph
       # @param client_id [String] client ID to find
       # @return [ClientCredentials, nil] credentials if found, nil otherwise
       def find_client_in_any_config(reader, client_id)
-        configs = @environment.windows? ? ['default', 'zero', 'local'] : ['default', 'local']
-        
+        configs = @environment.windows? ? %w[default zero local] : %w[default local]
+
         configs.each do |config|
           lookup = ClientRuntime::ClientCredentialsLookup.new(reader, config, logger: @logger)
           creds = lookup.get_credentials_by_client_id(client_id, config)
           return creds if creds
         end
-        
+
         nil
       end
 
@@ -322,7 +329,7 @@ module Eryph
       end
 
       def default_logger
-        logger = Logger.new(STDOUT)
+        logger = Logger.new($stdout)
         logger.level = Logger::WARN
         logger.formatter = proc do |severity, datetime, progname, msg|
           "[#{datetime.strftime('%Y-%m-%d %H:%M:%S')}] #{severity} -- #{progname}: #{msg}\n"
@@ -330,66 +337,62 @@ module Eryph
         logger
       end
 
-
       def create_api_client(api_name, api_class_name)
-        begin
-          # Try to use the generated API client
-          require_relative 'generated'
-          
-          # Create the generated API client with our configured API client
-          api_client = create_generated_api_client
-          api_class = Eryph::ComputeClient.const_get(api_class_name)
-          
-          @logger.debug "Creating generated API client for #{api_name} (#{api_class_name})"
-          raw_client = api_class.new(api_client)
-          
-          # Wrap the API client to handle errors
-          ErrorHandlingApiClientWrapper.new(raw_client, self)
-        rescue LoadError, NameError => e
-          # Fall back to placeholder if generated client is not available
-          @logger.warn "Generated client not available for #{api_name}, using placeholder: #{e.class}: #{e.message}"
-          PlaceholderApiClient.new(api_name, self)
-        end
+        # Try to use the generated API client
+        require_relative 'generated'
+
+        # Create the generated API client with our configured API client
+        api_client = create_generated_api_client
+        api_class = Eryph::ComputeClient.const_get(api_class_name)
+
+        @logger.debug "Creating generated API client for #{api_name} (#{api_class_name})"
+        raw_client = api_class.new(api_client)
+
+        # Wrap the API client to handle errors
+        ErrorHandlingApiClientWrapper.new(raw_client, self)
+      rescue LoadError, NameError => e
+        # Fall back to placeholder if generated client is not available
+        @logger.warn "Generated client not available for #{api_name}, using placeholder: #{e.class}: #{e.message}"
+        PlaceholderApiClient.new(api_name, self)
       end
 
       def create_generated_api_client
         # Use the stored compute endpoint
         compute_uri = URI.parse(@compute_endpoint)
-        
+
         # Create and configure the generated API client
         config = Eryph::ComputeClient::Configuration.new
         # Include port in host if it's not the default port for the scheme
-        if compute_uri.port && compute_uri.port != compute_uri.default_port
-          config.host = "#{compute_uri.host}:#{compute_uri.port}"
-        else
-          config.host = compute_uri.host
-        end
+        config.host = if compute_uri.port && compute_uri.port != compute_uri.default_port
+                        "#{compute_uri.host}:#{compute_uri.port}"
+                      else
+                        compute_uri.host
+                      end
         config.scheme = compute_uri.scheme
         # Ensure base_path ends with a slash for proper URL construction
         base_path = compute_uri.path.empty? ? '/' : compute_uri.path
         config.base_path = base_path.end_with?('/') ? base_path : "#{base_path}/"
-        
+
         # Configure SSL settings
         config.ssl_verify = @ssl_config.fetch(:verify_ssl, true)
-        
+
         # If SSL verification is disabled, set verify_mode to VERIFY_NONE
         if @ssl_config.fetch(:verify_ssl, true) == false
           config.ssl_verify_mode = OpenSSL::SSL::VERIFY_NONE
         else
           config.ssl_verify_mode = @ssl_config.fetch(:verify_hostname, true) ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
         end
-        
+
         config.ssl_ca_file = @ssl_config[:ca_file] if @ssl_config[:ca_file]
-        
+
         # Create the API client
         api_client = Eryph::ComputeClient::ApiClient.new(config)
-        
+
         # Configure authentication - the generated client expects bearer token in access_token
-        api_client.config.access_token = @token_provider.get_access_token
-        
+        api_client.config.access_token = @token_provider.access_token
+
         api_client
       end
-
     end
 
     # Wrapper for API clients that handles errors and converts them to ProblemDetailsError
@@ -398,13 +401,13 @@ module Eryph
         @api_client = api_client
         @parent_client = parent_client
       end
-      
-      def method_missing(method_name, *args, **kwargs, &block)
+
+      def method_missing(method_name, ...)
         @parent_client.handle_api_errors do
-          @api_client.send(method_name, *args, **kwargs, &block)
+          @api_client.send(method_name, ...)
         end
       end
-      
+
       def respond_to_missing?(method_name, include_private = false)
         @api_client.respond_to?(method_name, include_private)
       end
@@ -417,20 +420,21 @@ module Eryph
         @parent_client = parent_client
       end
 
-      def method_missing(method_name, *args, **kwargs, &block)
-        @parent_client.logger.info "#{@api_name.capitalize} API call: #{method_name} (placeholder - requires generated client)"
-        
+      def method_missing(method_name, *args, **kwargs)
+        @parent_client.logger.info "#{@api_name.capitalize} API call: #{method_name} " \
+                                   '(placeholder - requires generated client)'
+
         # Return a simple response structure
         {
           api: @api_name,
           method: method_name,
           args: args,
           kwargs: kwargs,
-          message: "This is a placeholder response. Please run the generator script to create the actual API client."
+          message: 'This is a placeholder response. Please run the generator script to create the actual API client.',
         }
       end
 
-      def respond_to_missing?(method_name, include_private = false)
+      def respond_to_missing?(_method_name, _include_private = false)
         true
       end
     end

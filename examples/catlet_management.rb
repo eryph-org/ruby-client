@@ -1,185 +1,215 @@
 #!/usr/bin/env ruby
 
-# Catlet management example for the Eryph Ruby Compute Client
-# This example shows how to create, manage, and control catlets
+# Catlet Management Example
+# Demonstrates creating, listing, and managing catlets (virtual machines)
 
 require_relative '../lib/eryph'
 
-# Create client using configuration-based authentication
-client = Eryph.compute_client('zero', ssl_config: { verify_ssl: false })
+CATLET_CONFIG = {
+  name: "ruby-example-#{Time.now.to_i}",
+  parent: 'dbosoft/ubuntu-22.04/starter',
+  cpu: { count: 1 },
+  memory: { startup: 1024 }
+}.freeze
 
-# This example now uses the built-in client.wait_for_operation method
+def main
+  puts 'Catlet Management Example'
+  puts '=' * 25
 
-begin
-  puts "🐱 Eryph Catlet Management Example"
-  puts "=" * 40
+  client = create_client
+  test_api_connectivity(client)
 
-  # Test basic client connectivity first
-  puts "\n🔍 Testing client connection..."
-  puts "   Configuration: #{client.config_name}"
-  puts "   Compute endpoint: #{client.compute_endpoint_url}"
+  puts "\nThis demo will create, manage, and clean up a test catlet."
   
-  # Try to get version info as a basic connectivity test
-  begin
-    version_info = client.version.version_get
-    puts "✅ Successfully connected to compute API"
-    puts "   API Version: #{version_info.version}" if version_info.respond_to?(:version)
-  rescue => version_error
-    puts "⚠️  Warning: Could not get version info - #{version_error.message}"
-    puts "   This suggests the compute API may not be running or accessible"
-    puts "   Continuing with catlet creation attempt..."
-  end
+  catlet_info = create_catlet(client)
+  return unless catlet_info
 
-  # Create a new catlet
-  puts "\n📝 Creating a new catlet..."
+  list_catlets(client)
+  demonstrate_catlet_inspection(client, catlet_info)
   
-  catlet_config = {
-    name: "example-catlet-#{Time.now.to_i}",
-    parent: "dbosoft/winsrv2019-standard/starter",
-    cpu: { count: 2 },
-    memory: { startup: 2048, minimum: 1024, maximum: 4096 }
-  }
+  cleanup_catlet(client, catlet_info)
+end
 
-  create_request = Eryph::ComputeClient::NewCatletRequest.new(configuration: catlet_config)
-  create_operation = client.catlets.catlets_create(new_catlet_request: create_request)
-  
-  puts "🚀 Catlet creation initiated (Operation: #{create_operation.id})"
-  
-  # Wait for creation to complete
-  completed_operation = client.wait_for_operation(create_operation.id)
-  
-  if completed_operation.status == 'Completed'
-    # Find the catlet by name since operation resources may not return the correct ID
-    catlet_name = catlet_config[:name]
-    puts "🔍 Looking for catlet by name: #{catlet_name}"
-    
-    catlets = client.catlets.catlets_list
-    created_catlet = catlets.value.find { |c| c.name == catlet_name }
-    
-    if created_catlet
-      catlet_id = created_catlet.id
-      puts "✅ Catlet created successfully with ID: #{catlet_id}"
-    else
-      puts "⚠️  Catlet creation completed but catlet not found in list"
-      puts "Operation ID: #{completed_operation.id}"
-      puts "Expected name: #{catlet_name}"
-      exit 1
-    end
-    
-    # Get catlet details
-    puts "\n📊 Fetching catlet details..."
-    catlet = client.catlets.catlets_get(catlet_id)
-    puts "Name: #{catlet.name}"
-    puts "Status: #{catlet.status}"
-    puts "VM ID: #{catlet.vm_id}"
-    puts "Project: #{catlet.project.name}"
-    
-    # Start the catlet
-    puts "\n▶️  Starting catlet..."
-    start_operation = client.catlets.catlets_start(catlet_id)
-    start_result = client.wait_for_operation(start_operation.id)
-    
-    if start_result.status == 'Completed'
-      puts "✅ Catlet started successfully!"
-      
-      # Check status
-      catlet = client.catlets.catlets_get(catlet_id)
-      puts "Current status: #{catlet.status}"
-      
-      # Wait a bit, then stop the catlet
-      puts "\n⏸️  Waiting 30 seconds before stopping..."
-      sleep 30
-      
-      puts "⏹️  Stopping catlet..."
-      stop_request = Eryph::ComputeClient::StopCatletRequestBody.new(
-        mode: Eryph::ComputeClient::CatletStopMode::SHUTDOWN
-      )
-      stop_operation = client.catlets.catlets_stop(catlet_id, stop_request)
-      stop_result = client.wait_for_operation(stop_operation.id)
-      
-      if stop_result.status == 'Completed'
-        puts "✅ Catlet stopped successfully!"
-        
-        # Final status check
-        catlet = client.catlets.catlets_get(catlet_id)
-        puts "Final status: #{catlet.status}"
-        
-        # Optionally delete the catlet
-        puts "\n🗑️  Do you want to delete the catlet? (y/N)"
-        response = gets.chomp.downcase
-        
-        if response == 'y' || response == 'yes'
-          puts "🗑️  Deleting catlet..."
-          delete_operation = client.catlets.catlets_delete(catlet_id)
-          delete_result = client.wait_for_operation(delete_operation.id)
-          
-          if delete_result.status == 'Completed'
-            puts "✅ Catlet deleted successfully!"
-          else
-            puts "❌ Failed to delete catlet: #{delete_result.status_message}"
-          end
-        else
-          puts "ℹ️  Catlet preserved. You can manage it manually."
-        end
-        
-      else
-        puts "❌ Failed to stop catlet: #{stop_result.status_message}"
-      end
-      
-    else
-      puts "❌ Failed to start catlet: #{start_result.status_message}"
-    end
-    
+def create_client
+  puts 'Creating compute client...'
+
+  client = Eryph.compute_client(ssl_config: { verify_ssl: false },
+                                scopes: ['compute:write'])
+  puts "Using configuration: #{client.config_name}"
+  puts "Compute endpoint: #{client.compute_endpoint_url}"
+
+  client
+end
+
+def test_api_connectivity(client)
+  puts 'Testing API connectivity...'
+
+  if client.test_connection
+    puts 'Successfully connected to compute API'
   else
-    puts "❌ Failed to create catlet: #{completed_operation.status_message}"
+    puts 'Connection test failed'
+    exit 1
   end
-
-rescue Eryph::ClientRuntime::CredentialsNotFoundError => e
-  puts "❌ Credentials not found: #{e.message}"
-  puts "   Please set up configuration files in .eryph directory"
-  puts "   See README.md for configuration file format and locations"
-  exit 1
-rescue Eryph::ClientRuntime::TokenRequestError => e
-  puts "❌ Authentication failed: #{e.message}"
-  puts "   Check your client credentials and network connectivity"
-  exit 1
-rescue Eryph::ComputeClient::ApiError => e
-  puts "❌ Generated API Error: #{e.message}"
-  puts "   Response Code: #{e.code}" if e.respond_to?(:code)
-  puts "   Response Body: #{e.response_body}" if e.respond_to?(:response_body)
-  puts "   Full error details:"
-  puts "     Class: #{e.class}"
-  puts "     Message: #{e.message}"
-  puts "   Backtrace:" if ENV['DEBUG']
-  puts e.backtrace.join("\n     ") if ENV['DEBUG']
-  exit 1
-rescue Faraday::ConnectionFailed => e
-  puts "❌ Connection failed: #{e.message}"
-  puts "   Check that the compute endpoint is running and accessible"
-  puts "   Full error details:"
-  puts "     Class: #{e.class}"
-  puts "     Message: #{e.message}"
-  puts "   Backtrace:" if ENV['DEBUG']
-  puts e.backtrace.join("\n     ") if ENV['DEBUG']
-  exit 1
-rescue Faraday::TimeoutError => e
-  puts "❌ Connection timeout: #{e.message}"
-  puts "   The compute endpoint is not responding within the timeout period"
-  puts "   Full error details:"
-  puts "     Class: #{e.class}"
-  puts "     Message: #{e.message}"
-  exit 1
-rescue Interrupt
-  puts "\n\n⏹️  Interrupted by user"
-  exit 1
-rescue => e
-  puts "❌ Unexpected error: #{e.message}"
-  puts "   Full error details:"
-  puts "     Class: #{e.class}"
-  puts "     Message: #{e.message}"
-  puts "   Backtrace:"
-  puts e.backtrace.join("\n     ")
+rescue StandardError => e
+  puts "Connection test failed: #{e.message}"
   exit 1
 end
 
-puts "\n✅ Catlet management example completed!"
+def create_catlet(client)
+  puts "\nCreating new catlet..."
+  puts "Configuration: #{CATLET_CONFIG}"
+
+  begin
+    request = Eryph::ComputeClient::NewCatletRequest.new(configuration: CATLET_CONFIG)
+    operation = client.catlets.catlets_create(new_catlet_request: request)
+
+    puts "Catlet creation initiated (Operation: #{operation.id})"
+
+    # Wait for creation to complete
+    puts "Waiting for catlet creation to complete..."
+    completed_operation = client.wait_for_operation(operation.id, timeout: 600)
+
+    if completed_operation.status == 'Completed'
+      puts "✓ Catlet created successfully!"
+      
+      # Get the created catlet information from the operation
+      if completed_operation.respond_to?(:resources) && completed_operation.resources&.any?
+        catlet_resource = completed_operation.resources.find { |r| r.resource_type == 'Catlet' }
+        if catlet_resource
+          { 
+            id: catlet_resource.resource_id,
+            name: CATLET_CONFIG[:name]
+          }
+        else
+          # Fallback: return name to lookup catlet
+          { name: CATLET_CONFIG[:name] }
+        end
+      else
+        # Fallback: return name to lookup catlet
+        { name: CATLET_CONFIG[:name] }
+      end
+    else
+      puts "✗ Catlet creation failed: #{completed_operation.status_message}"
+      nil
+    end
+  rescue StandardError => e
+    puts "Error creating catlet: #{e.message}"
+    nil
+  end
+end
+
+def demonstrate_catlet_inspection(client, catlet_info)
+  catlet_identifier = catlet_info.is_a?(Hash) ? (catlet_info[:id] || catlet_info[:name]) : catlet_info
+  puts "\nInspecting the created catlet: #{catlet_identifier}"
+  
+  begin
+    catlet = client.catlets.catlets_get(catlet_identifier)
+    
+    puts "  ID: #{catlet.id}"
+    puts "  Status: #{catlet.status}"
+    puts "  VM ID: #{catlet.vm_id}" if catlet.respond_to?(:vm_id)
+    
+    if catlet.respond_to?(:networks) && catlet.networks&.any?
+      puts "  Networks:"
+      catlet.networks.each do |network|
+        ip_info = network.respond_to?(:ip_v4_addresses) && network.ip_v4_addresses&.any? ? 
+                  network.ip_v4_addresses.join(', ') : 'No IP assigned yet'
+        puts "    - #{network.name}: #{ip_info}"
+      end
+    end
+
+    if catlet.respond_to?(:drives) && catlet.drives&.any?
+      puts "  Drives: #{catlet.drives.length} drive(s)"
+    end
+    
+  rescue StandardError => e
+    puts "Error inspecting catlet: #{e.message}"
+  end
+end
+
+def cleanup_catlet(client, catlet_info)
+  catlet_identifier = catlet_info.is_a?(Hash) ? (catlet_info[:id] || catlet_info[:name]) : catlet_info
+  puts "\nCleaning up test catlet: #{catlet_identifier}"
+  
+  begin
+    operation = client.catlets.catlets_delete(catlet_identifier)
+    puts "Catlet deletion initiated (Operation: #{operation.id})"
+    
+    # Wait for deletion to complete
+    puts "Waiting for catlet deletion to complete..."
+    completed_operation = client.wait_for_operation(operation.id, timeout: 300)
+    
+    if completed_operation.status == 'Completed'
+      puts "✓ Test catlet deleted successfully!"
+    else
+      puts "✗ Catlet deletion failed: #{completed_operation.status_message}"
+    end
+  rescue StandardError => e
+    puts "Warning: Could not delete test catlet: #{e.message}"
+  end
+end
+
+def list_catlets(client)
+  puts 'Listing existing catlets...'
+
+  catlets = client.catlets.catlets_list
+  catlet_list = catlets.respond_to?(:value) ? catlets.value : catlets
+
+  if catlet_list.nil? || (catlet_list.respond_to?(:empty?) && catlet_list.empty?)
+    puts 'No catlets found'
+    return
+  end
+
+  display_catlets(catlets)
+rescue StandardError => e
+  puts "Error listing catlets: #{e.message}"
+end
+
+def display_catlets(catlets)
+  catlet_list = catlets.respond_to?(:value) ? catlets.value : catlets
+
+  return puts 'No catlet data available' if catlet_list.nil?
+
+  catlet_list.each_with_index do |catlet, index|
+    puts "#{index + 1}. #{catlet.name || 'Unnamed'}"
+    puts "   Status: #{catlet.status || 'Unknown'}"
+    puts "   Agent: #{catlet.agent || 'None'}" if catlet.respond_to?(:agent)
+    display_catlet_networks(catlet) if catlet.respond_to?(:networks)
+  end
+end
+
+def display_catlet_networks(catlet)
+  return unless catlet.networks&.any?
+
+  puts '   Networks:'
+  catlet.networks.each do |network|
+    network_info = network.name.to_s
+    if network.respond_to?(:ip_v4_addresses) && network.ip_v4_addresses&.any?
+      network_info += ": #{network.ip_v4_addresses.join(', ')}"
+    end
+    puts "     - #{network_info}"
+  end
+end
+
+
+
+begin
+  main
+  puts "\nCatlet management example completed"
+rescue Eryph::ClientRuntime::CredentialsNotFoundError => e
+  puts "Credentials not found: #{e.message}"
+  puts 'Please configure eryph-zero or set up client credentials'
+  exit 1
+rescue Eryph::ClientRuntime::TokenRequestError => e
+  puts "Authentication failed: #{e.message}"
+  puts 'Check your client credentials and eryph-zero configuration'
+  exit 1
+rescue Eryph::Compute::ApiError => e
+  puts "API Error: #{e.message}"
+  puts "Response Code: #{e.code}" if e.respond_to?(:code)
+  exit 1
+rescue StandardError => e
+  puts "Unexpected error: #{e.message}"
+  puts e.backtrace if ENV['DEBUG']
+  exit 1
+end

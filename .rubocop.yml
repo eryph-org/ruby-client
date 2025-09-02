@@ -1,0 +1,60 @@
+AllCops:
+  TargetRubyVersion: 2.7  # Match gemspec requirements
+  NewCops: enable
+  SuggestExtensions: false
+  Exclude:
+    - 'vendor/**/*'
+    - 'lib/eryph/compute/generated/**/*'  # Exclude generated OpenAPI code
+    - 'bin/**/*'
+    - 'node_modules/**/*'
+    - 'scripts/**/*'  # Build and maintenance scripts can be more flexible
+
+# Layout cops
+Layout/LineLength:
+  Max: 120
+  Exclude:
+    - 'spec/**/*'
+
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
+
+# Style cops
+Style/Documentation:
+  Enabled: false  # Don't require documentation for every class
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Style/StringLiterals:
+  EnforcedStyle: single_quotes
+
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: comma
+
+# Disable all Metrics cops - complex business logic is acceptable
+Metrics:
+  Enabled: false
+
+# Naming cops
+Naming/VariableNumber:
+  Enabled: false
+
+Naming/PredicateMethod:
+  Exclude:
+    - 'spec/support/**/*'  # Test helpers may need non-predicate method names
+
+# Style cops for test infrastructure
+Style/OptionalBooleanParameter:
+  Exclude:
+    - 'spec/support/**/*'  # Test helpers may need boolean defaults
+
+# Security cops
+Security/YAMLLoad:
+  Enabled: true
+
+Security/Eval:
+  Exclude:
+    - 'scripts/**/*'  # Build scripts may need eval for version parsing

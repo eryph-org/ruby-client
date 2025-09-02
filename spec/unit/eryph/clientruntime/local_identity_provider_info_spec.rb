@@ -27,16 +27,16 @@ RSpec.describe Eryph::ClientRuntime::LocalIdentityProviderInfo do
             'zero',
             '.lock'
           )
-          
+
           metadata = {
             'processName' => 'eryph-zero',
             'processId' => 1234,
             'endpoints' => {
               'identity' => 'https://localhost:8080/identity',
-              'compute' => 'https://localhost:8080/compute'
-            }
+              'compute' => 'https://localhost:8080/compute',
+            },
           }
-          
+
           test_environment
             .add_lock_file(lock_file_path, metadata)
             .add_running_process('eryph-zero', pid: 1234)
@@ -54,15 +54,15 @@ RSpec.describe Eryph::ClientRuntime::LocalIdentityProviderInfo do
             'zero',
             '.lock'
           )
-          
+
           metadata = {
             'processName' => 'eryph-zero',
             'processId' => 1234,
             'endpoints' => {
-              'identity' => 'https://localhost:8080/identity'
-            }
+              'identity' => 'https://localhost:8080/identity',
+            },
           }
-          
+
           test_environment.add_lock_file(lock_file_path, metadata)
           # Don't add running process - simulates stopped process
         end
@@ -79,14 +79,14 @@ RSpec.describe Eryph::ClientRuntime::LocalIdentityProviderInfo do
             'zero',
             '.lock'
           )
-          
+
           # Missing processName or processId
           metadata = {
             'endpoints' => {
-              'identity' => 'https://localhost:8080/identity'
-            }
+              'identity' => 'https://localhost:8080/identity',
+            },
           }
-          
+
           test_environment.add_lock_file(lock_file_path, metadata)
         end
 
@@ -108,7 +108,7 @@ RSpec.describe Eryph::ClientRuntime::LocalIdentityProviderInfo do
             'zero',
             '.lock'
           )
-          
+
           test_environment.add_raw_lock_file(lock_file_path, 'invalid json {')
         end
 
@@ -126,7 +126,7 @@ RSpec.describe Eryph::ClientRuntime::LocalIdentityProviderInfo do
             'zero',
             '.lock'
           )
-          
+
           metadata = {
             'processName' => 'eryph-zero',
             'processId' => 1234,
@@ -134,10 +134,10 @@ RSpec.describe Eryph::ClientRuntime::LocalIdentityProviderInfo do
               'identity' => 'https://localhost:8080/identity',
               'compute' => 'https://localhost:8080/compute',
               'invalid' => 'not-a-valid-uri',
-              'ftp' => 'ftp://localhost:21/ftp' # Not HTTP/HTTPS
-            }
+              'ftp' => 'ftp://localhost:21/ftp', # Not HTTP/HTTPS
+            },
           }
-          
+
           test_environment
             .add_lock_file(lock_file_path, metadata)
             .add_running_process('eryph-zero', pid: 1234)
@@ -145,12 +145,12 @@ RSpec.describe Eryph::ClientRuntime::LocalIdentityProviderInfo do
 
         it 'returns valid HTTP/HTTPS endpoints as URI objects' do
           endpoints_result = provider_info.endpoints
-          
+
           expect(endpoints_result).to have_key('identity')
           expect(endpoints_result).to have_key('compute')
           expect(endpoints_result).not_to have_key('invalid')
           expect(endpoints_result).not_to have_key('ftp')
-          
+
           expect(endpoints_result['identity']).to be_a(URI)
           expect(endpoints_result['identity'].to_s).to eq('https://localhost:8080/identity')
           expect(endpoints_result['compute'].to_s).to eq('https://localhost:8080/compute')
@@ -164,22 +164,22 @@ RSpec.describe Eryph::ClientRuntime::LocalIdentityProviderInfo do
             'zero',
             '.lock'
           )
-          
+
           metadata = {
             'processName' => 'eryph-zero',
             'processId' => 1234,
             'endpoints' => {
-              'identity' => 'https://localhost:8080/identity'
-            }
+              'identity' => 'https://localhost:8080/identity',
+            },
           }
-          
+
           test_environment.add_lock_file(lock_file_path, metadata)
           # Don't add running process
         end
 
         it 'returns empty hash when provider is not running' do
           endpoints_result = provider_info.endpoints
-          
+
           expect(endpoints_result).to eq({})
         end
       end
@@ -191,13 +191,13 @@ RSpec.describe Eryph::ClientRuntime::LocalIdentityProviderInfo do
             'zero',
             '.lock'
           )
-          
+
           metadata = {
             'processName' => 'eryph-zero',
-            'processId' => 1234
+            'processId' => 1234,
             # No endpoints key
           }
-          
+
           test_environment
             .add_lock_file(lock_file_path, metadata)
             .add_running_process('eryph-zero', pid: 1234)
@@ -205,7 +205,7 @@ RSpec.describe Eryph::ClientRuntime::LocalIdentityProviderInfo do
 
         it 'returns empty hash when no endpoints in metadata' do
           endpoints_result = provider_info.endpoints
-          
+
           expect(endpoints_result).to eq({})
         end
       end
@@ -221,16 +221,16 @@ RSpec.describe Eryph::ClientRuntime::LocalIdentityProviderInfo do
             'zero',
             '.lock'
           )
-          
+
           metadata = {
             'processName' => 'eryph-zero',
             'processId' => 1234,
             'endpoints' => {
               'identity' => 'https://localhost:8080/identity',
-              'compute' => 'https://localhost:8080/compute'
-            }
+              'compute' => 'https://localhost:8080/compute',
+            },
           }
-          
+
           test_environment
             .add_lock_file(lock_file_path, metadata)
             .add_running_process('eryph-zero', pid: 1234)
@@ -239,7 +239,7 @@ RSpec.describe Eryph::ClientRuntime::LocalIdentityProviderInfo do
 
         it 'returns system client private key' do
           private_key = provider_info.system_client_private_key
-          
+
           expect(private_key).to eq(test_key)
         end
       end
@@ -251,16 +251,16 @@ RSpec.describe Eryph::ClientRuntime::LocalIdentityProviderInfo do
             'zero',
             '.lock'
           )
-          
+
           metadata = {
             'processName' => 'eryph-zero',
             'processId' => 1234,
             'endpoints' => {
-              'compute' => 'https://localhost:8080/compute'
+              'compute' => 'https://localhost:8080/compute',
               # No identity endpoint
-            }
+            },
           }
-          
+
           test_environment
             .add_lock_file(lock_file_path, metadata)
             .add_running_process('eryph-zero', pid: 1234)
@@ -268,7 +268,7 @@ RSpec.describe Eryph::ClientRuntime::LocalIdentityProviderInfo do
 
         it 'returns nil when no identity endpoint' do
           private_key = provider_info.system_client_private_key
-          
+
           expect(private_key).to be_nil
         end
       end
@@ -276,7 +276,7 @@ RSpec.describe Eryph::ClientRuntime::LocalIdentityProviderInfo do
       context 'when provider is not running' do
         it 'returns nil when provider is not running' do
           private_key = provider_info.system_client_private_key
-          
+
           expect(private_key).to be_nil
         end
       end
@@ -292,16 +292,16 @@ RSpec.describe Eryph::ClientRuntime::LocalIdentityProviderInfo do
             'zero',
             '.lock'
           )
-          
+
           metadata = {
             'processName' => 'eryph-zero',
             'processId' => 1234,
             'endpoints' => {
               'identity' => 'https://localhost:8080/identity',
-              'compute' => 'https://localhost:8080/compute'
-            }
+              'compute' => 'https://localhost:8080/compute',
+            },
           }
-          
+
           test_environment
             .add_lock_file(lock_file_path, metadata)
             .add_running_process('eryph-zero', pid: 1234)
@@ -310,7 +310,7 @@ RSpec.describe Eryph::ClientRuntime::LocalIdentityProviderInfo do
 
         it 'returns complete system client credentials hash' do
           credentials = provider_info.system_client_credentials
-          
+
           expect(credentials).to include(
             'id' => 'system-client',
             'name' => 'Eryph Zero System Client',
@@ -327,15 +327,15 @@ RSpec.describe Eryph::ClientRuntime::LocalIdentityProviderInfo do
             'zero',
             '.lock'
           )
-          
+
           metadata = {
             'processName' => 'eryph-zero',
             'processId' => 1234,
             'endpoints' => {
-              'identity' => 'https://localhost:8080/identity'
-            }
+              'identity' => 'https://localhost:8080/identity',
+            },
           }
-          
+
           test_environment
             .add_lock_file(lock_file_path, metadata)
             .add_running_process('eryph-zero', pid: 1234)
@@ -344,7 +344,7 @@ RSpec.describe Eryph::ClientRuntime::LocalIdentityProviderInfo do
 
         it 'returns nil when no private key available' do
           credentials = provider_info.system_client_credentials
-          
+
           expect(credentials).to be_nil
         end
       end
@@ -356,16 +356,16 @@ RSpec.describe Eryph::ClientRuntime::LocalIdentityProviderInfo do
             'zero',
             '.lock'
           )
-          
+
           metadata = {
             'processName' => 'eryph-zero',
             'processId' => 1234,
             'endpoints' => {
-              'compute' => 'https://localhost:8080/compute'
+              'compute' => 'https://localhost:8080/compute',
               # No identity endpoint
-            }
+            },
           }
-          
+
           test_environment
             .add_lock_file(lock_file_path, metadata)
             .add_running_process('eryph-zero', pid: 1234)
@@ -373,7 +373,7 @@ RSpec.describe Eryph::ClientRuntime::LocalIdentityProviderInfo do
 
         it 'returns nil when no identity endpoint' do
           credentials = provider_info.system_client_credentials
-          
+
           expect(credentials).to be_nil
         end
       end
@@ -388,7 +388,7 @@ RSpec.describe Eryph::ClientRuntime::LocalIdentityProviderInfo do
     context 'when file I/O errors occur' do
       it 'handles file read errors gracefully' do
         lock_file_path = '/test/path/test/.lock'
-        
+
         allow(mock_environment).to receive(:get_application_data_path).and_return('/test/path')
         allow(mock_environment).to receive(:file_exists?).with(lock_file_path).and_return(true)
         allow(mock_environment).to receive(:read_file).with(lock_file_path).and_raise(IOError, 'Permission denied')
@@ -401,7 +401,7 @@ RSpec.describe Eryph::ClientRuntime::LocalIdentityProviderInfo do
     context 'when JSON parsing fails' do
       it 'handles JSON parser errors gracefully' do
         lock_file_path = '/test/path/test/.lock'
-        
+
         allow(mock_environment).to receive(:get_application_data_path).and_return('/test/path')
         allow(mock_environment).to receive(:file_exists?).with(lock_file_path).and_return(true)
         allow(mock_environment).to receive(:read_file).with(lock_file_path).and_return('invalid json {')

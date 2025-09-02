@@ -86,7 +86,7 @@ module Eryph
         # Ensure directory exists
         dir = File.dirname(path)
         FileUtils.mkdir_p(dir) unless directory_exists?(dir)
-        
+
         File.write(path, content)
       rescue Errno::EACCES, Errno::ENOENT => e
         raise IOError, "Cannot write file #{path}: #{e.message}"
@@ -97,7 +97,7 @@ module Eryph
       # @raise [IOError] if directory cannot be created
       def ensure_directory(path)
         return if directory_exists?(path)
-        
+
         FileUtils.mkdir_p(path)
       rescue Errno::EACCES => e
         raise IOError, "Cannot create directory #{path}: #{e.message}"
@@ -111,7 +111,7 @@ module Eryph
           check_windows_admin_privileges
         else
           # Check if running as root on Unix-like systems
-          Process.uid == 0
+          Process.uid.zero?
         end
       end
 
@@ -137,18 +137,16 @@ module Eryph
       # @return [Boolean] true if script executed successfully
       def execute_powershell_script_file(script_path)
         return false unless windows?
-        
+
         # Try regular PowerShell first
         success = execute_command('powershell.exe', '-ExecutionPolicy', 'Bypass', '-NoProfile', '-File', script_path)
-        
+
         # If that fails, try the full path
-        unless success
-          success = execute_command(
-            'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe',
-            '-ExecutionPolicy', 'Bypass', '-NoProfile', '-File', script_path
-          )
-        end
-        
+        success ||= execute_command(
+          'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe',
+          '-ExecutionPolicy', 'Bypass', '-NoProfile', '-File', script_path
+        )
+
         success
       end
 
@@ -175,36 +173,35 @@ module Eryph
 
         if windows?
           # On Windows, use PowerShell to check if process exists
-          execute_command('powershell', '-Command', "Get-Process -Id #{process_id} -ErrorAction SilentlyContinue | Out-Null")
-        else
+          execute_command('powershell', '-Command',
+                          "Get-Process -Id #{process_id} -ErrorAction SilentlyContinue | Out-Null")
+        elsif file_exists?("/proc/#{process_id}")
           # On Unix-like systems, check /proc or use ps
-          if file_exists?("/proc/#{process_id}")
-            return true unless process_name
-            
-            # Verify process name if provided
-            begin
-              cmdline = read_file("/proc/#{process_id}/cmdline")
-              cmdline.include?(process_name)
-            rescue IOError
-              false
-            end
-          else
-            # Fallback to ps command
-            execute_command('ps', '-p', process_id.to_s)
+          return true unless process_name
+
+          # Verify process name if provided
+          begin
+            cmdline = read_file("/proc/#{process_id}/cmdline")
+            cmdline.include?(process_name)
+          rescue IOError
+            false
           end
+        else
+          # Fallback to ps command
+          execute_command('ps', '-p', process_id.to_s)
         end
-      rescue
+      rescue StandardError
         false
       end
 
       # Get encrypted system client private key for identity provider
-      # @param provider_name [String] identity provider name  
+      # @param identity_provider_name [String] identity provider name ('zero' or 'local')
       # @param identity_endpoint [String] identity endpoint for DPAPI entropy
       # @return [String, nil] private key PEM content or nil if not found
-      def get_encrypted_system_client(identity_endpoint = nil)
+      def get_encrypted_system_client(identity_provider_name, identity_endpoint = nil)
         private_key_path = File.join(
           get_application_data_path,
-          'zero',
+          identity_provider_name,
           'private',
           'clients',
           'system-client.key'
@@ -213,13 +210,12 @@ module Eryph
         return nil unless file_exists?(private_key_path)
 
         encrypted_data = read_binary_file(private_key_path)
-        
+
         if windows?
           # On Windows, decrypt DPAPI-protected data
           decrypted_data = decrypt_dpapi_data(encrypted_data, identity_endpoint)
-          if decrypted_data.nil?
-            raise IOError, "Failed to decrypt system client private key using DPAPI"
-          end
+          raise IOError, 'Failed to decrypt system client private key using DPAPI' if decrypted_data.nil?
+
           decrypted_data
         else
           # On non-Windows systems, assume it's already in PEM format
@@ -237,16 +233,14 @@ module Eryph
         # Create cache key from encrypted data and entropy
         require 'digest'
         cache_key = Digest::SHA256.hexdigest("#{encrypted_data}#{entropy}")
-        
+
         # Check cache first
-        if @dpapi_cache && @dpapi_cache[cache_key]
-          return @dpapi_cache[cache_key]
-        end
+        return @dpapi_cache[cache_key] if @dpapi_cache && @dpapi_cache[cache_key]
 
         temp_file = nil
         script_file = nil
         output_file = nil
-        
+
         begin
           # Create temporary files for DPAPI decryption process
           temp_file = create_temp_file('encrypted_key', '.bin')
@@ -256,38 +250,38 @@ module Eryph
 
           script_file = create_temp_file('decrypt_dpapi', '.ps1')
           output_file = create_temp_file('decrypted_output', '.txt')
-          
+
           # Close output file immediately after creation so PowerShell can write to it
           output_file.close
-          
+
           # Create PowerShell script for DPAPI decryption
-          entropy_value = entropy ? entropy.gsub("'", "''") : nil
+          entropy_value = entropy&.gsub("'", "''")
           script_content = create_dpapi_decrypt_script(
             temp_file.path.gsub('/', '\\'),
             output_file.path.gsub('/', '\\'),
             entropy_value
           )
-          
+
           # Write script content and close file properly
           script_file.write(script_content)
           script_file.close
-          
+
           # Execute PowerShell script
           script_path = script_file.path.gsub('/', '\\')
-          
+
           success = execute_powershell_script_file(script_path)
-          
+
           result = nil
-          if success && file_exists?(output_file.path) && File.size(output_file.path) > 0
+          if success && file_exists?(output_file.path) && File.size(output_file.path).positive?
             output_content = read_file(output_file.path).strip
             # Return the result if it doesn't contain an error
             result = output_content.start_with?('ERROR:') ? nil : output_content
           end
-          
+
           # Cache the result (including nil results to avoid repeated failures)
           @dpapi_cache ||= {}
           @dpapi_cache[cache_key] = result
-          
+
           result
         ensure
           temp_file&.close
@@ -304,14 +298,14 @@ module Eryph
       # Check if running as administrator on Windows using PowerShell
       # @return [Boolean] true if current process has admin privileges
       def check_windows_admin_privileges
-        begin
-          # Use PowerShell to check if current user is in Administrators group and process is elevated
-          result = `powershell.exe -Command "([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)" 2>nul`.strip
-          result.downcase == 'true'
-        rescue => e
-          # If PowerShell fails for any reason, assume not admin
-          false
-        end
+        # Use PowerShell to check if current user is in Administrators group and process is elevated
+        cmd = '([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent())' \
+              '.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)'
+        result = `powershell.exe -Command "#{cmd}" 2>nul`.strip
+        result.downcase == 'true'
+      rescue StandardError
+        # If PowerShell fails for any reason, assume not admin
+        false
       end
 
       # Read binary file content
@@ -345,30 +339,30 @@ module Eryph
         require 'tempfile'
         script_file = nil
         output_file = nil
-        
+
         begin
           script_file = create_temp_file('powershell_script', '.ps1')
           output_file = create_temp_file('powershell_output', '.txt')
-          
+
           write_file(script_file.path, script_content)
-          
+
           # Execute PowerShell script
           script_path = script_file.path.gsub('/', '\\')
           output_path = output_file.path.gsub('/', '\\')
-          
+
           # Modify script to redirect output to file
-          modified_script = script_content + "\n} | Out-File -FilePath '#{output_path}' -Encoding UTF8" if !script_content.include?('Out-File')
+          unless script_content.include?('Out-File')
+            modified_script = script_content + "\n} | Out-File -FilePath '#{output_path}' -Encoding UTF8"
+          end
           write_file(script_file.path, modified_script || script_content)
-          
+
           success = execute_command('powershell.exe', '-ExecutionPolicy', 'Bypass', '-NoProfile', '-File', script_path)
-          
+
           if success && file_exists?(output_file.path)
             result = read_file(output_file.path).strip
             result.empty? ? nil : result
-          else
-            nil
           end
-        rescue => e
+        rescue StandardError
           nil
         ensure
           script_file&.close
@@ -403,22 +397,22 @@ module Eryph
           try {
             # Load required .NET assemblies
             Add-Type -AssemblyName System.Security -ErrorAction Stop
-            
+          #{'  '}
             $encryptedBytes = [System.IO.File]::ReadAllBytes('#{encrypted_file_path}')
-            
+          #{'  '}
             # Prepare entropy values to try
             $entropyValues = @()
-            
+          #{'  '}
             # First try the provided entropy (identity endpoint URI)
-            #{entropy_value ? "$entropyValues += ,[System.Text.Encoding]::UTF8.GetBytes('#{entropy_value}')" : ""}
-            
+            #{"$entropyValues += ,[System.Text.Encoding]::UTF8.GetBytes('#{entropy_value}')" if entropy_value}
+          #{'  '}
             # Also try some fallback values
             $entropyValues += ,$null
             $entropyValues += ,[System.Text.Encoding]::UTF8.GetBytes("eryph")
             $entropyValues += ,[System.Text.Encoding]::UTF8.GetBytes("zero")
-            
+          #{'  '}
             $scopes = @([System.Security.Cryptography.DataProtectionScope]::CurrentUser, [System.Security.Cryptography.DataProtectionScope]::LocalMachine)
-            
+          #{'  '}
             foreach ($entropy in $entropyValues) {
               foreach ($scope in $scopes) {
                 try {
@@ -431,7 +425,7 @@ module Eryph
                 }
               }
             }
-            
+          #{'  '}
             # If we get here, all combinations failed
             [System.IO.File]::WriteAllText('#{output_file_path}', "ERROR: All DPAPI decryption attempts failed")
             exit 1
