@@ -120,6 +120,16 @@ module Eryph
         token.authorization_header
       end
 
+      # Force a token refresh
+      # @return [String] new access token
+      # @raise [TokenRequestError] if token request fails
+      def refresh_token
+        @token_mutex.synchronize do
+          @current_token = request_new_token
+          @current_token.access_token
+        end
+      end
+
       private
 
       # Get cached access token without forcing refresh
@@ -133,16 +143,6 @@ module Eryph
             @current_token = request_new_token
           end
 
-          @current_token.access_token
-        end
-      end
-
-      # Force a token refresh
-      # @return [String] new access token
-      # @raise [TokenRequestError] if token request fails
-      def refresh_token
-        @token_mutex.synchronize do
-          @current_token = request_new_token
           @current_token.access_token
         end
       end

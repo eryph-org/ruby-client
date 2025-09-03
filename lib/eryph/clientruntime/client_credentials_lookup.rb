@@ -38,15 +38,6 @@ module Eryph
         @configuration = configuration
       end
 
-      # Test if credentials are available
-      # @return [Boolean] true if credentials can be found
-      def credentials_available?
-        find_credentials
-        true
-      rescue CredentialsNotFoundError, NoUserCredentialsError
-        false
-      end
-
       private
 
       def parse_private_key(key)
@@ -172,6 +163,11 @@ module Eryph
       # @param config_name [String] configuration name to search in
       # @return [ClientCredentials, nil] credentials if found, nil otherwise
       def get_credentials_by_client_id(client_id, config_name = 'default')
+        # Handle system-client specially
+        if client_id == 'system-client'
+          return get_system_client_credentials(config_name)
+        end
+
         client = @reader.get_client(config_name, client_id)
         return nil unless client
 
@@ -249,6 +245,15 @@ module Eryph
           token_endpoint: "#{system_creds['identity_endpoint']}/connect/token",
           configuration: config_name
         )
+      end
+
+      # Test if credentials are available
+      # @return [Boolean] true if credentials can be found
+      def credentials_available?
+        find_credentials
+        true
+      rescue CredentialsNotFoundError, NoUserCredentialsError
+        false
       end
 
       private

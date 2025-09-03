@@ -19,13 +19,13 @@ RSpec.describe Eryph::Compute::Client do
 
   describe '.new' do
     it 'creates a client with configuration' do
-      client = described_class.new(config_name)
+      client = described_class.new(config_name, environment: mock_environment)
       expect(client.config_name).to eq(config_name)
       expect(client.token_provider).to be_a(Eryph::ClientRuntime::TokenProvider)
     end
 
     it 'uses default scopes' do
-      client = described_class.new(config_name)
+      client = described_class.new(config_name, environment: mock_environment)
       expect(client.token_provider.scopes).to include('compute:read')
     end
   end
@@ -39,7 +39,7 @@ RSpec.describe Eryph::Compute::Client do
     end
 
     it 'creates a client with specific client ID' do
-      client = described_class.new(config_name, client_id: client_id)
+      client = described_class.new(config_name, client_id: client_id, environment: mock_environment)
 
       expect(client).to be_a(described_class)
       expect(client.token_provider).to be_a(Eryph::ClientRuntime::TokenProvider)
@@ -60,7 +60,7 @@ RSpec.describe Eryph::Compute::Client do
         .with(client_id, config_name)
         .and_return(specific_credentials)
 
-      client = described_class.new(config_name, client_id: client_id)
+      client = described_class.new(config_name, client_id: client_id, environment: mock_environment)
       expect(client).to be_a(described_class)
     end
 
@@ -70,7 +70,7 @@ RSpec.describe Eryph::Compute::Client do
         .and_return(nil)
 
       expect do
-        described_class.new(config_name, client_id: client_id)
+        described_class.new(config_name, client_id: client_id, environment: mock_environment)
       end.to raise_error(Eryph::ClientRuntime::CredentialsNotFoundError, /Client 'specific-client' not found in configuration 'test'/)
     end
   end
@@ -85,7 +85,7 @@ RSpec.describe Eryph::Compute::Client do
         .with(anything, client_id)
         .and_return(found_credentials)
 
-      client = described_class.new(nil, client_id: client_id)
+      client = described_class.new(nil, client_id: client_id, environment: mock_environment)
       expect(client).to be_a(described_class)
     end
 
@@ -95,13 +95,13 @@ RSpec.describe Eryph::Compute::Client do
         .and_return(nil)
 
       expect do
-        described_class.new(nil, client_id: client_id)
+        described_class.new(nil, client_id: client_id, environment: mock_environment)
       end.to raise_error(Eryph::ClientRuntime::CredentialsNotFoundError, /not found in any configuration/)
     end
   end
 
   describe '#wait_for_operation' do
-    let(:client) { described_class.new(config_name, logger: test_logger) }
+    let(:client) { described_class.new(config_name, logger: test_logger, environment: mock_environment) }
     let(:operation_id) { 'test-op-123' }
     let(:operations_api) { double('OperationsApi') }
 
@@ -355,7 +355,7 @@ RSpec.describe Eryph::Compute::Client do
     let(:client) do
       # Mock TokenProvider during construction
       allow(Eryph::ClientRuntime::TokenProvider).to receive(:new).and_return(mock_token_provider)
-      described_class.new(config_name, logger: test_logger)
+      described_class.new(config_name, logger: test_logger, environment: mock_environment)
     end
 
     before do
@@ -397,7 +397,7 @@ RSpec.describe Eryph::Compute::Client do
     let(:client) do
       # Mock TokenProvider during construction
       allow(Eryph::ClientRuntime::TokenProvider).to receive(:new).and_return(mock_token_provider)
-      described_class.new(config_name)
+      described_class.new(config_name, environment: mock_environment)
     end
 
 
@@ -421,7 +421,7 @@ RSpec.describe Eryph::Compute::Client do
   end
 
   describe 'API client getters' do
-    let(:client) { described_class.new(config_name) }
+    let(:client) { described_class.new(config_name, environment: mock_environment) }
 
     before do
       # Mock the create_api_client method to return a placeholder
@@ -501,7 +501,7 @@ RSpec.describe Eryph::Compute::Client do
   end
 
   describe '#compute_endpoint_url' do
-    let(:client) { described_class.new(config_name) }
+    let(:client) { described_class.new(config_name, environment: mock_environment) }
 
     it 'returns the compute endpoint URL' do
       # The endpoint is set during initialization, so we can test it directly
@@ -511,7 +511,7 @@ RSpec.describe Eryph::Compute::Client do
   end
 
   describe '#validate_catlet_config' do
-    let(:client) { described_class.new(config_name) }
+    let(:client) { described_class.new(config_name, environment: mock_environment) }
     let(:mock_catlets_api) { double('CatletsApi') }
     let(:validation_result) { double('ValidationResult', is_valid: true, errors: []) }
 
@@ -569,7 +569,7 @@ RSpec.describe Eryph::Compute::Client do
   end
 
   describe '#handle_api_errors' do
-    let(:client) { described_class.new(config_name) }
+    let(:client) { described_class.new(config_name, environment: mock_environment) }
 
     it 'returns block result when no errors occur' do
       result = client.send(:handle_api_errors) { 'success' }
@@ -610,7 +610,7 @@ RSpec.describe Eryph::Compute::Client do
   end
 
   describe 'fallback behavior when generated client unavailable' do
-    let(:client) { described_class.new(config_name) }
+    let(:client) { described_class.new(config_name, environment: mock_environment) }
 
     it 'creates placeholder API clients when generated client fails to load' do
       # Mock the create_api_client method to return PlaceholderApiClient directly
@@ -635,7 +635,7 @@ RSpec.describe Eryph::Compute::Client do
 
   describe 'default logger creation' do
     it 'creates default logger when none provided' do
-      client = described_class.new(config_name, logger: nil)
+      client = described_class.new(config_name, logger: nil, environment: mock_environment)
 
       # Access the logger to ensure default was created
       logger = client.instance_variable_get(:@logger)
@@ -645,7 +645,7 @@ RSpec.describe Eryph::Compute::Client do
   end
 
   describe 'SSL configuration' do
-    let(:client) { described_class.new(config_name, ssl_config: ssl_config) }
+    let(:client) { described_class.new(config_name, ssl_config: ssl_config, environment: mock_environment) }
     let(:ssl_config) { { verify_ssl: false, verify_hostname: false } }
 
     it 'applies SSL configuration to generated API client' do

@@ -20,18 +20,18 @@ RSpec.describe Eryph do
       end
 
       it 'creates compute client with automatic discovery' do
-        client = described_class.compute_client
+        client = described_class.compute_client(environment: mock_environment)
         expect(client).to be_a(Eryph::Compute::Client)
       end
 
       it 'creates compute client with specific config' do
-        client = described_class.compute_client('test')
+        client = described_class.compute_client('test', environment: mock_environment)
         expect(client).to be_a(Eryph::Compute::Client)
       end
 
       it 'passes through options' do
-        expect(Eryph::Compute::Client).to receive(:new).with('test', client_id: 'my-client', environment: nil, logger: nil, scopes: nil, ssl_config: {})
-        described_class.compute_client('test', client_id: 'my-client')
+        expect(Eryph::Compute::Client).to receive(:new).with('test', client_id: 'my-client', environment: mock_environment, logger: nil, scopes: nil, ssl_config: {})
+        described_class.compute_client('test', client_id: 'my-client', environment: mock_environment)
       end
     end
 
@@ -55,6 +55,9 @@ RSpec.describe Eryph do
         # Mock file operations but delegate to real file system
         allow(mock_environment).to receive(:file_exists?) { |path| File.exist?(path) }
         allow(mock_environment).to receive(:read_config_file) { |path| File.exist?(path) ? File.read(path) : nil }
+        
+        # Mock process detection to avoid system client access
+        allow(mock_environment).to receive(:get_running_processes).and_return([])
 
         # Create minimal config structure
         FileUtils.mkdir_p(config_dir)
@@ -66,8 +69,8 @@ RSpec.describe Eryph do
 
       it 'does not crash on nil.downcase during automatic discovery' do
         expect do
-          described_class.compute_client(nil)
-        end.not_to raise_error
+          described_class.compute_client(nil, environment: mock_environment)
+        end.to raise_error(Eryph::ClientRuntime::CredentialsNotFoundError)
       end
     end
   end

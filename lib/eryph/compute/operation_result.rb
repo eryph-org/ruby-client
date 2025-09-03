@@ -85,17 +85,9 @@ module Eryph
         @operation.log_entries || []
       end
 
-      # Get the projects from the operation (auto-expands if needed)
+      # Get the projects from the operation
       def projects
-        return @cached_collections[:projects] if @cached_collections.key?(:projects)
-        
-        # If projects are not available, fetch with expansion
-        if @operation.projects.nil? || @operation.projects.empty?
-          expanded_operation = @client.operations.operations_get(id, expand: 'projects')
-          @operation = expanded_operation
-        end
-        
-        @cached_collections[:projects] = @operation.projects || []
+        @operation.projects || []
       end
 
       # Get the raw operation result object
@@ -245,7 +237,6 @@ module Eryph
           tasks_count: tasks.size,
           resources_count: resources.size,
           resource_types: resource_counts,
-          projects_count: projects.size,
           has_result: result?,
           result_type: result_type,
         }

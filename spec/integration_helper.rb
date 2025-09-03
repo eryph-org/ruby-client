@@ -61,8 +61,75 @@ module IntegrationHelpers
   def skip_unless_eryph_available
     skip 'Eryph instance not available for testing' unless eryph_available?
   end
+
+  # Final cleanup method to delete all test catlets
+  def self.final_cleanup
+    puts "\n=== Final Integration Test Cleanup ==="
+    
+    begin
+      # Try different client configurations to find one that works
+      client = nil
+      
+      %w[zero local default].each do |config|
+        begin
+          client = Eryph.compute_client(config, ssl_config: { verify_ssl: false }, scopes: %w[compute:write])
+          break if client&.test_connection
+        rescue StandardError
+          client = nil
+        end
+      end
+      
+      unless client
+        puts "Warning: No working client found for final cleanup"
+        return
+      end
+      
+      # Get all catlets and find test catlets
+      catlets_response = client.catlets.catlets_list
+      catlets_array = catlets_response.respond_to?(:value) ? catlets_response.value : catlets_response
+      catlets_array = [catlets_array] unless catlets_array.is_a?(Array)
+
+      test_catlets = catlets_array.select do |catlet|
+        catlet.name&.start_with?('integration-test-')
+      end
+
+      if test_catlets.any?
+        puts "Found #{test_catlets.length} test catlets to clean up:"
+        test_catlets.each do |catlet|
+          puts "  - #{catlet.name} (#{catlet.id})"
+          begin
+            delete_operation = client.catlets.catlets_delete(catlet.id)
+            if delete_operation&.id
+              puts "    Delete operation started: #{delete_operation.id} (fire-and-forget)"
+            else
+              puts "    Warning: Delete operation returned nil"
+            end
+          rescue StandardError => e
+            puts "    Error: Delete failed: #{e.class}: #{e.message}"
+          end
+        end
+        puts "All delete operations submitted - cleanup will continue in background"
+      else
+        puts "No test catlets found - cleanup complete"
+      end
+      
+    rescue StandardError => e
+      puts "Error during final cleanup: #{e.class}: #{e.message}"
+      puts "Backtrace: #{e.backtrace.first(3).join('\n')}" if e.backtrace
+    end
+    
+    puts "=== Final Cleanup Complete ===\n"
+  end
 end
 
 RSpec.configure do |config|
   config.include IntegrationHelpers, :integration
+  
+  # Run final cleanup after all integration tests
+  config.after(:suite) do
+    # Only run cleanup if we're running integration tests
+    if ENV['INTEGRATION_TESTS'] == '1'
+      IntegrationHelpers.final_cleanup
+    end
+  end
 end

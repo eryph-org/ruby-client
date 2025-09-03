@@ -50,13 +50,6 @@ stages:
       env:
         INTEGRATION_TESTS: '1'
 
-    # Run all tests together
-    - script: |
-        set PATH=$(RUBY_PATH);%PATH%
-        bundle exec rake spec
-      displayName: 'Run all tests with Rake'
-      continueOnError: true
-
     # Build gems
     - script: |
         set PATH=$(RUBY_PATH);%PATH%
