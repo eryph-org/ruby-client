@@ -44,11 +44,23 @@ stages:
     - script: |
         set PATH=$(RUBY_PATH);%PATH%
         set INTEGRATION_TESTS=1
+        set DISABLE_COVERAGE=1
         bundle exec rspec spec/integration --format progress --format RspecJunitFormatter --out test-results-integration.xml
       displayName: 'Run integration tests'
       continueOnError: true
       env:
         INTEGRATION_TESTS: '1'
+        DISABLE_COVERAGE: '1'
+
+    # Install pnpm
+    - script: |
+        npm install -g pnpm@10.5.2
+      displayName: 'Install pnpm'
+
+    # Install Node.js dependencies
+    - script: |
+        pnpm install --frozen-lockfile
+      displayName: 'Install Node.js dependencies'
 
     # Build gems
     - script: |

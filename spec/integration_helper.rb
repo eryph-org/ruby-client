@@ -100,7 +100,7 @@ module IntegrationHelpers
           begin
             delete_operation = client.catlets.catlets_delete(catlet.id)
             if delete_operation&.id
-              puts "    Delete operation started: #{delete_operation.id} (fire-and-forget)"
+              puts "    Delete operation started: #{delete_operation.id}"
             else
               puts "    Warning: Delete operation returned nil"
             end
