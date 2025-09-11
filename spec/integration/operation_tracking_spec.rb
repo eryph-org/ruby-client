@@ -151,8 +151,8 @@ RSpec.describe 'Operation Tracking Integration', :integration do
 
       # Verify operation completed
       expect(result).to be_a(Eryph::Compute::OperationResult)
-      expect(result.completed?).to be(true), "Expected operation to be completed but got status: '#{result.status}'. Message: '#{result.status_message}'. Failed?: #{result.failed?}, Running?: #{result.running?}, Queued?: #{result.queued?}"
-      expect(result.failed?).to be(false), "Operation failed with status: '#{result.status}' and message: '#{result.status_message}'"
+      expect(result.completed?).to be(true), "Expected operation to be completed but got status: \"#{result.status}\". Message: \"#{result.status_message}\". Failed?: #{result.failed?}, Running?: #{result.running?}, Queued?: #{result.queued?}"
+      expect(result.failed?).to be(false), "Operation failed with status: \"#{result.status}\" and message: \"#{result.status_message}\""
 
       # Verify we received events during the operation
       expect(events[:log_entries]).not_to be_empty
@@ -213,8 +213,8 @@ RSpec.describe 'Operation Tracking Integration', :integration do
 
       # Verify operation completed
       expect(result).to be_a(Eryph::Compute::OperationResult)
-      expect(result.completed?).to be(true), "Expected operation to be completed but got status: '#{result.status}'. Message: '#{result.status_message}'. Failed?: #{result.failed?}, Running?: #{result.running?}, Queued?: #{result.queued?}"
-      expect(result.failed?).to be(false), "Operation failed with status: '#{result.status}' and message: '#{result.status_message}'"
+      expect(result.completed?).to be(true), "Expected operation to be completed but got status: \"#{result.status}\". Message: \"#{result.status_message}\". Failed?: #{result.failed?}, Running?: #{result.running?}, Queued?: #{result.queued?}"
+      expect(result.failed?).to be(false), "Operation failed with status: \"#{result.status}\" and message: \"#{result.status_message}\""
 
       # Verify we received events during the operation
       expect(events[:log_entries]).not_to be_empty
@@ -267,7 +267,7 @@ RSpec.describe 'Operation Tracking Integration', :integration do
       result = tracker.track_to_completion(timeout: 600, poll_interval: 2)
 
       expect(result).to be_a(Eryph::Compute::OperationResult)
-      expect(result.completed?).to be(true), "Expected operation to be completed but got status: '#{result.status}'"
+      expect(result.completed?).to be(true), "Expected operation to be completed but got status: \"#{result.status}\". Message: \"#{result.status_message}\". Failed?: #{result.failed?}, Running?: #{result.running?}, Queued?: #{result.queued?}"
       expect(error_count).to be > 2 # Errors occurred but processing continued
       
       # Verify that callback errors were logged properly
@@ -282,7 +282,7 @@ RSpec.describe 'Operation Tracking Integration', :integration do
 
       # Wait for completion
       result = client.wait_for_operation(operation.id, timeout: 600, poll_interval: 5)
-      expect(result.completed?).to be(true), "Expected operation to be completed but got status: '#{result.status}'"
+      expect(result.completed?).to be(true), "Expected operation to be completed but got status: \"#{result.status}\". Message: \"#{result.status_message}\". Failed?: #{result.failed?}, Running?: #{result.running?}, Queued?: #{result.queued?}"
 
       # Test catlet fetching and caching
       first_fetch = result.catlets
@@ -339,7 +339,7 @@ RSpec.describe 'Operation Tracking Integration', :integration do
         end
       end
 
-      expect(result.completed?).to be(true), "Expected operation to be completed but got status: '#{result.status}'"
+      expect(result.completed?).to be(true), "Expected operation to be completed but got status: \"#{result.status}\". Message: \"#{result.status_message}\". Failed?: #{result.failed?}, Running?: #{result.running?}, Queued?: #{result.queued?}"
 
       # Should have received some task progress updates during catlet creation
       # Note: This may be empty if tasks complete too quickly, which is acceptable
@@ -378,8 +378,8 @@ RSpec.describe 'Operation Tracking Integration', :integration do
       result = client.wait_for_operation(operation.id, timeout: 600, poll_interval: 2)
 
       # Verify operation completed successfully
-      expect(result.completed?).to be(true), "Expected operation to be completed but got status: '#{result.status}'. Message: '#{result.status_message}'. Failed?: #{result.failed?}, Running?: #{result.running?}, Queued?: #{result.queued?}"
-      expect(result.failed?).to be(false), "Operation failed with status: '#{result.status}' and message: '#{result.status_message}'"
+      expect(result.completed?).to be(true), "Expected operation to be completed but got status: \"#{result.status}\". Message: \"#{result.status_message}\". Failed?: #{result.failed?}, Running?: #{result.running?}, Queued?: #{result.queued?}"
+      expect(result.failed?).to be(false), "Operation failed with status: \"#{result.status}\" and message: \"#{result.status_message}\""
 
       # Verify typed result extraction works
       expect(result.result?).to be true
