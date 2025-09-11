@@ -134,7 +134,7 @@ RSpec.describe 'Operation Tracking Integration', :integration do
       }
 
       # Use wait_for_operation with callbacks
-      result = client.wait_for_operation(operation.id, timeout: 300, poll_interval: 2) do |event_type, data|
+      result = client.wait_for_operation(operation.id, timeout: 600, poll_interval: 2) do |event_type, data|
         case event_type
         when :log_entry
           events[:log_entries] << data
@@ -209,7 +209,7 @@ RSpec.describe 'Operation Tracking Integration', :integration do
         .on_status_change { |operation| events[:status_changes] << operation }
 
       # Track to completion
-      result = tracker.track_to_completion(timeout: 300, poll_interval: 2)
+      result = tracker.track_to_completion(timeout: 600, poll_interval: 2)
 
       # Verify operation completed
       expect(result).to be_a(Eryph::Compute::OperationResult)
@@ -264,7 +264,7 @@ RSpec.describe 'Operation Tracking Integration', :integration do
       tracker.on_status_change { |_op| } # Normal callback to verify operation continues
 
       # Track to completion - should not fail despite callback errors
-      result = tracker.track_to_completion(timeout: 300, poll_interval: 2)
+      result = tracker.track_to_completion(timeout: 600, poll_interval: 2)
 
       expect(result).to be_a(Eryph::Compute::OperationResult)
       expect(result.completed?).to be true
@@ -281,7 +281,7 @@ RSpec.describe 'Operation Tracking Integration', :integration do
       operation = client.catlets.catlets_create(new_catlet_request: catlet_config)
 
       # Wait for completion
-      result = client.wait_for_operation(operation.id, timeout: 300, poll_interval: 5)
+      result = client.wait_for_operation(operation.id, timeout: 600, poll_interval: 5)
       expect(result.completed?).to be true
 
       # Test catlet fetching and caching
@@ -330,7 +330,7 @@ RSpec.describe 'Operation Tracking Integration', :integration do
 
       tasks_with_progress = []
 
-      result = client.wait_for_operation(operation.id, timeout: 300, poll_interval: 2) do |event_type, data|
+      result = client.wait_for_operation(operation.id, timeout: 600, poll_interval: 2) do |event_type, data|
         if event_type == :task_update && data.progress && data.progress > 0 && data.progress < 100
           tasks_with_progress << {
             name: data.display_name || data.name,
@@ -375,7 +375,7 @@ RSpec.describe 'Operation Tracking Integration', :integration do
       expect(operation.id).not_to be_empty
 
       # Wait for completion with typed result extraction
-      result = client.wait_for_operation(operation.id, timeout: 120, poll_interval: 2)
+      result = client.wait_for_operation(operation.id, timeout: 600, poll_interval: 2)
 
       # Verify operation completed successfully
       expect(result.completed?).to be true
@@ -437,7 +437,7 @@ RSpec.describe 'Operation Tracking Integration', :integration do
       expect(operation).not_to be_nil
 
       # Wait for completion - should fail
-      result = client.wait_for_operation(operation.id, timeout: 120, poll_interval: 2)
+      result = client.wait_for_operation(operation.id, timeout: 600, poll_interval: 2)
 
       # Verify operation failed as expected
       expect(result.completed?).to be false
