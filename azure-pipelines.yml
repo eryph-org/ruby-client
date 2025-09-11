@@ -52,13 +52,10 @@ stages:
         INTEGRATION_TESTS: '1'
         DISABLE_COVERAGE: '1'
 
-    # Install pnpm
-    - script: |
-        npm install -g pnpm@10.5.2
-      displayName: 'Install pnpm'
-
     # Install Node.js dependencies
-    - script: |
+    - powershell: |
+        npm install -g pnpm
+        $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("PATH","User")
         pnpm install --frozen-lockfile
       displayName: 'Install Node.js dependencies'
 
