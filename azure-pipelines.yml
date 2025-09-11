@@ -55,14 +55,13 @@ stages:
     # Install Node.js dependencies
     - powershell: |
         npm install -g pnpm
-        $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("PATH","User")
-        pnpm install --frozen-lockfile
+        npx pnpm install
       displayName: 'Install Node.js dependencies'
 
     # Build gems
     - script: |
         set PATH=$(RUBY_PATH);%PATH%
-        bundle exec rake build_all
+        npx pnpm build:gems
       displayName: 'Build all gems'
 
     # Create artifacts directory and copy gems
