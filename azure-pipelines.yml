@@ -67,7 +67,7 @@ stages:
     # Create artifacts directory and copy gems
     - script: |
         mkdir $(Build.ArtifactStagingDirectory)\gems
-        copy pkg\*.gem $(Build.ArtifactStagingDirectory)\gems\
+        copy build\gems\*.gem $(Build.ArtifactStagingDirectory)\gems\
       displayName: 'Prepare gem artifacts'
 
     # Publish test results
@@ -95,7 +95,7 @@ stages:
         ruby --version
         bundle --version
         echo "Built gems:"
-        dir pkg\*.gem
+        dir build\gems\*.gem
         echo "=== End Summary ==="
       displayName: 'Build summary'
       condition: always()
