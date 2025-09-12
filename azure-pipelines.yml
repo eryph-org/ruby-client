@@ -152,9 +152,11 @@ stages:
     displayName: 'Bump Versions with Changeset'
     
     steps:
-    # Checkout with credentials for pushing
+    # Checkout with credentials for pushing and full history for changeset
     - checkout: self
       persistCredentials: true
+      fetchDepth: 0
+      fetchTags: true
       
     # Configure git for version commits
     - script: |
