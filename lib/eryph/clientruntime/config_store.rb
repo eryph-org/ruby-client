@@ -6,9 +6,9 @@ module Eryph
     # Represents a configuration store for eryph client settings
     # Manages JSON configuration files and private key storage
     class ConfigStore
-      STORE_DIR = '.eryph'
-      PRIVATE_DIR = 'private'
-      CONFIG_EXTENSION = '.config'
+      STORE_DIR = '.eryph'.freeze
+      PRIVATE_DIR = 'private'.freeze
+      CONFIG_EXTENSION = '.config'.freeze
 
       # @return [String] base path for this configuration store
       attr_reader :base_path
@@ -79,6 +79,32 @@ module Eryph
         clients.find { |client| client['id'] == client_id }
       end
 
+      # Get the default client configuration
+      # @return [Hash, nil] default client configuration or nil if not found
+      def default_client
+        config = configuration
+        default_client_id = config['defaultClientId']
+
+        all_clients = clients
+        return nil if all_clients.empty?
+
+        # If explicit defaultClient is set, use that
+        return all_clients.find { |client| client['id'] == default_client_id } if default_client_id
+
+        # Otherwise, return first client
+        all_clients.first
+      end
+
+      # Get the private key for a client configuration
+      # @param client_config [Hash] client configuration (may include '_store' key)
+      # @return [String, nil] private key content or nil if not found
+      def get_client_private_key(client_config)
+        client_id = client_config['id']
+        return nil unless client_id
+
+        get_private_key(client_id)
+      end
+
       # Get the private key for a client
       # @param client_id [String] client ID
       # @return [String, nil] private key content or nil if not found
@@ -99,16 +125,16 @@ module Eryph
       def store_client(client_config)
         config = configuration
         config['clients'] ||= []
-        
+
         # Remove existing client with same ID
         config['clients'].reject! { |c| c['id'] == client_config['id'] }
-        
+
         # Add new client
         config['clients'] << client_config
-        
+
         # Set as default if no default exists
         config['defaultClient'] ||= client_config['id']
-        
+
         save_configuration(config)
       end
 
@@ -118,15 +144,13 @@ module Eryph
       # @raise [ConfigurationError] if private key cannot be saved
       def store_private_key(client_id, private_key)
         key_path = private_key_path(client_id)
-        
+
         begin
           @environment.ensure_directory(File.dirname(key_path))
           @environment.write_file(key_path, private_key)
-          
+
           # Set restrictive permissions on Unix-like systems
-          unless @environment.windows?
-            File.chmod(0600, key_path)
-          end
+          File.chmod(0o600, key_path) unless @environment.windows?
         rescue IOError => e
           raise ConfigurationError, "Cannot store private key: #{e.message}"
         end
@@ -171,13 +195,11 @@ module Eryph
       private
 
       def save_configuration(config)
-        begin
-          @environment.ensure_directory(store_path)
-          content = JSON.pretty_generate(config)
-          @environment.write_file(config_file_path, content)
-        rescue IOError => e
-          raise ConfigurationError, "Cannot save configuration: #{e.message}"
-        end
+        @environment.ensure_directory(store_path)
+        content = JSON.pretty_generate(config)
+        @environment.write_file(config_file_path, content)
+      rescue IOError => e
+        raise ConfigurationError, "Cannot save configuration: #{e.message}"
       end
     end
   end

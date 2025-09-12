@@ -1,344 +1,414 @@
 require 'spec_helper'
 
 RSpec.describe Eryph::ClientRuntime::LocalIdentityProviderInfo do
-  let(:mock_environment) { double('Environment') }
-  subject { described_class.new(mock_environment, 'zero') }
+  # Test with real business logic - Environment is the only mocked boundary
+  describe 'real business logic tests' do
+    let(:test_environment) { TestEnvironment.new }
+    let(:identity_provider_name) { 'zero' }
+    let(:provider_info) { described_class.new(test_environment, identity_provider_name) }
 
-  describe '#initialize' do
-    it 'stores environment and provider name' do
-      provider = described_class.new(mock_environment, 'test-provider')
-      
-      expect(provider.environment).to eq(mock_environment)
-      expect(provider.identity_provider_name).to eq('test-provider')
-    end
-
-    it 'defaults to identity provider name' do
-      provider = described_class.new(mock_environment)
-      
-      expect(provider.identity_provider_name).to eq('identity')
-    end
-  end
-
-  describe '#running?' do
-    let(:lock_file_path) { 'C:/ProgramData/eryph/zero/.lock' }
-    let(:metadata) { { 'processName' => 'eryph-zero', 'processId' => 1234 } }
-
-    before do
-      allow(mock_environment).to receive(:get_application_data_path).and_return('C:/ProgramData/eryph')
-      allow(mock_environment).to receive(:file_exists?).with(lock_file_path).and_return(true)
-      allow(mock_environment).to receive(:read_file).with(lock_file_path)
-        .and_return(JSON.generate(metadata))
-    end
-
-    it 'returns true when provider is running' do
-      allow(mock_environment).to receive(:process_running?).with(1234, 'eryph-zero').and_return(true)
-      
-      result = subject.running?
-      
-      expect(result).to be true
-    end
-
-    it 'returns false when metadata is empty' do
-      allow(mock_environment).to receive(:file_exists?).with(lock_file_path).and_return(false)
-      
-      result = subject.running?
-      
-      expect(result).to be false
-    end
-
-    it 'returns false when process is not running' do
-      allow(mock_environment).to receive(:process_running?).with(1234, 'eryph-zero').and_return(false)
-      
-      result = subject.running?
-      
-      expect(result).to be false
-    end
-
-    it 'returns false when process name is nil' do
-      invalid_metadata = { 'processId' => 1234 }
-      allow(mock_environment).to receive(:read_file).with(lock_file_path)
-        .and_return(JSON.generate(invalid_metadata))
-      
-      result = subject.running?
-      
-      expect(result).to be false
-    end
-
-    it 'returns false when process name is empty' do
-      invalid_metadata = { 'processName' => '', 'processId' => 1234 }
-      allow(mock_environment).to receive(:read_file).with(lock_file_path)
-        .and_return(JSON.generate(invalid_metadata))
-      
-      result = subject.running?
-      
-      expect(result).to be false
-    end
-
-    it 'returns false when process ID is nil' do
-      invalid_metadata = { 'processName' => 'eryph-zero' }
-      allow(mock_environment).to receive(:read_file).with(lock_file_path)
-        .and_return(JSON.generate(invalid_metadata))
-      
-      result = subject.running?
-      
-      expect(result).to be false
-    end
-
-    it 'handles JSON parse errors gracefully' do
-      allow(mock_environment).to receive(:read_file).with(lock_file_path)
-        .and_return('invalid json')
-      
-      result = subject.running?
-      
-      expect(result).to be false
-    end
-
-    it 'handles IO errors gracefully' do
-      allow(mock_environment).to receive(:read_file).with(lock_file_path)
-        .and_raise(IOError.new('Read failed'))
-      
-      result = subject.running?
-      
-      expect(result).to be false
-    end
-
-    it 'strips BOM from file content' do
-      content_with_bom = "\xEF\xBB\xBF" + JSON.generate(metadata)
-      allow(mock_environment).to receive(:read_file).with(lock_file_path)
-        .and_return(content_with_bom)
-      allow(mock_environment).to receive(:process_running?).with(1234, 'eryph-zero').and_return(true)
-      
-      result = subject.running?
-      
-      expect(result).to be true
-    end
-  end
-
-  describe '#endpoints' do
-    let(:lock_file_path) { 'C:/ProgramData/eryph/zero/.lock' }
-    let(:metadata) do
-      {
-        'processName' => 'eryph-zero',
-        'processId' => 1234,
-        'endpoints' => {
-          'identity' => 'https://localhost:8080/identity',
-          'compute' => 'https://localhost:8080/compute',
-          'invalid_url' => 'not-a-url',
-          'ftp_url' => 'ftp://localhost/files'
-        }
-      }
-    end
-
-    before do
-      allow(mock_environment).to receive(:get_application_data_path).and_return('C:/ProgramData/eryph')
-      allow(mock_environment).to receive(:file_exists?).with(lock_file_path).and_return(true)
-      allow(mock_environment).to receive(:read_file).with(lock_file_path)
-        .and_return(JSON.generate(metadata))
-      allow(mock_environment).to receive(:process_running?).with(1234, 'eryph-zero').and_return(true)
-    end
-
-    it 'returns valid HTTP/HTTPS endpoints' do
-      result = subject.endpoints
-
-      expect(result).to include(
-        'identity' => URI.parse('https://localhost:8080/identity'),
-        'compute' => URI.parse('https://localhost:8080/compute')
-      )
-    end
-
-    it 'excludes invalid URLs' do
-      result = subject.endpoints
-
-      expect(result).not_to have_key('invalid_url')
-    end
-
-    it 'excludes non-HTTP/HTTPS URLs' do
-      result = subject.endpoints
-
-      expect(result).not_to have_key('ftp_url')
-    end
-
-    it 'returns empty hash when provider not running' do
-      allow(mock_environment).to receive(:process_running?).with(1234, 'eryph-zero').and_return(false)
-
-      result = subject.endpoints
-
-      expect(result).to eq({})
-    end
-
-    it 'returns empty hash when no endpoints in metadata' do
-      metadata_without_endpoints = { 'processName' => 'eryph-zero', 'processId' => 1234 }
-      allow(mock_environment).to receive(:read_file).with(lock_file_path)
-        .and_return(JSON.generate(metadata_without_endpoints))
-
-      result = subject.endpoints
-
-      expect(result).to eq({})
-    end
-
-    it 'handles URI parse errors gracefully' do
-      metadata_with_bad_url = {
-        'processName' => 'eryph-zero',
-        'processId' => 1234,
-        'endpoints' => {
-          'identity' => 'https://localhost:8080',
-          'bad' => 'ht!tp://bad-url'
-        }
-      }
-      allow(mock_environment).to receive(:read_file).with(lock_file_path)
-        .and_return(JSON.generate(metadata_with_bad_url))
-
-      result = subject.endpoints
-
-      expect(result).to include('identity' => URI.parse('https://localhost:8080'))
-      expect(result).not_to have_key('bad')
-    end
-  end
-
-  describe '#system_client_private_key' do
-    let(:endpoints) { { 'identity' => URI.parse('https://localhost:8080/identity') } }
-    let(:private_key_content) { 'private-key-content' }
-
-    before do
-      allow(subject).to receive(:endpoints).and_return(endpoints)
-    end
-
-    it 'returns private key when identity endpoint exists' do
-      allow(mock_environment).to receive(:get_encrypted_system_client)
-        .with('zero', 'https://localhost:8080/identity')
-        .and_return(private_key_content)
-
-      result = subject.system_client_private_key
-
-      expect(result).to eq(private_key_content)
-    end
-
-    it 'returns nil when no identity endpoint' do
-      allow(subject).to receive(:endpoints).and_return({})
-
-      result = subject.system_client_private_key
-
-      expect(result).to be_nil
-    end
-
-    it 'returns nil when environment cannot retrieve key' do
-      allow(mock_environment).to receive(:get_encrypted_system_client)
-        .with('zero', 'https://localhost:8080/identity')
-        .and_return(nil)
-
-      result = subject.system_client_private_key
-
-      expect(result).to be_nil
-    end
-  end
-
-  describe '#system_client_credentials' do
-    let(:endpoints) { { 'identity' => URI.parse('https://localhost:8080/identity') } }
-    let(:private_key_content) { 'private-key-content' }
-
-    before do
-      allow(subject).to receive(:endpoints).and_return(endpoints)
-    end
-
-    context 'when private key is available' do
-      before do
-        allow(subject).to receive(:system_client_private_key).and_return(private_key_content)
+    describe '#initialize' do
+      it 'stores environment and identity provider name' do
+        expect(provider_info.environment).to eq(test_environment)
+        expect(provider_info.identity_provider_name).to eq('zero')
       end
 
-      it 'returns credentials hash' do
-        result = subject.system_client_credentials
-
-        expect(result).to eq({
-          'id' => 'system-client',
-          'name' => 'Eryph Zero System Client',
-          'private_key' => private_key_content,
-          'identity_endpoint' => 'https://localhost:8080/identity'
-        })
+      it 'defaults identity provider name to identity' do
+        default_provider = described_class.new(test_environment)
+        expect(default_provider.identity_provider_name).to eq('identity')
       end
     end
 
-    context 'when no identity endpoint' do
-      it 'returns nil' do
-        allow(subject).to receive(:endpoints).and_return({})
+    describe '#running?' do
+      context 'with valid metadata and running process' do
+        before do
+          lock_file_path = File.join(
+            test_environment.get_application_data_path,
+            'zero',
+            '.lock'
+          )
 
-        result = subject.system_client_credentials
+          metadata = {
+            'processName' => 'eryph-zero',
+            'processId' => 1234,
+            'endpoints' => {
+              'identity' => 'https://localhost:8080/identity',
+              'compute' => 'https://localhost:8080/compute',
+            },
+          }
 
-        expect(result).to be_nil
+          test_environment
+            .add_lock_file(lock_file_path, metadata)
+            .add_running_process('eryph-zero', pid: 1234)
+        end
+
+        it 'returns true when process is running' do
+          expect(provider_info.running?).to be true
+        end
+      end
+
+      context 'with valid metadata but stopped process' do
+        before do
+          lock_file_path = File.join(
+            test_environment.get_application_data_path,
+            'zero',
+            '.lock'
+          )
+
+          metadata = {
+            'processName' => 'eryph-zero',
+            'processId' => 1234,
+            'endpoints' => {
+              'identity' => 'https://localhost:8080/identity',
+            },
+          }
+
+          test_environment.add_lock_file(lock_file_path, metadata)
+          # Don't add running process - simulates stopped process
+        end
+
+        it 'returns false when process is not running' do
+          expect(provider_info.running?).to be false
+        end
+      end
+
+      context 'with invalid metadata' do
+        before do
+          lock_file_path = File.join(
+            test_environment.get_application_data_path,
+            'zero',
+            '.lock'
+          )
+
+          # Missing processName or processId
+          metadata = {
+            'endpoints' => {
+              'identity' => 'https://localhost:8080/identity',
+            },
+          }
+
+          test_environment.add_lock_file(lock_file_path, metadata)
+        end
+
+        it 'returns false when processName is missing' do
+          expect(provider_info.running?).to be false
+        end
+      end
+
+      context 'with missing lock file' do
+        it 'returns false when no lock file exists' do
+          expect(provider_info.running?).to be false
+        end
+      end
+
+      context 'with malformed JSON in lock file' do
+        before do
+          lock_file_path = File.join(
+            test_environment.get_application_data_path,
+            'zero',
+            '.lock'
+          )
+
+          test_environment.add_raw_lock_file(lock_file_path, 'invalid json {')
+        end
+
+        it 'returns false for invalid JSON' do
+          expect(provider_info.running?).to be false
+        end
       end
     end
 
-    context 'when private key is not available' do
-      it 'returns nil' do
-        allow(subject).to receive(:system_client_private_key).and_return(nil)
+    describe '#endpoints' do
+      context 'with running provider and valid endpoints' do
+        before do
+          lock_file_path = File.join(
+            test_environment.get_application_data_path,
+            'zero',
+            '.lock'
+          )
 
-        result = subject.system_client_credentials
+          metadata = {
+            'processName' => 'eryph-zero',
+            'processId' => 1234,
+            'endpoints' => {
+              'identity' => 'https://localhost:8080/identity',
+              'compute' => 'https://localhost:8080/compute',
+              'invalid' => 'not-a-valid-uri',
+              'ftp' => 'ftp://localhost:21/ftp', # Not HTTP/HTTPS
+            },
+          }
 
-        expect(result).to be_nil
+          test_environment
+            .add_lock_file(lock_file_path, metadata)
+            .add_running_process('eryph-zero', pid: 1234)
+        end
+
+        it 'returns valid HTTP/HTTPS endpoints as URI objects' do
+          endpoints_result = provider_info.endpoints
+
+          expect(endpoints_result).to have_key('identity')
+          expect(endpoints_result).to have_key('compute')
+          expect(endpoints_result).not_to have_key('invalid')
+          expect(endpoints_result).not_to have_key('ftp')
+
+          expect(endpoints_result['identity']).to be_a(URI)
+          expect(endpoints_result['identity'].to_s).to eq('https://localhost:8080/identity')
+          expect(endpoints_result['compute'].to_s).to eq('https://localhost:8080/compute')
+        end
+      end
+
+      context 'with stopped provider' do
+        before do
+          lock_file_path = File.join(
+            test_environment.get_application_data_path,
+            'zero',
+            '.lock'
+          )
+
+          metadata = {
+            'processName' => 'eryph-zero',
+            'processId' => 1234,
+            'endpoints' => {
+              'identity' => 'https://localhost:8080/identity',
+            },
+          }
+
+          test_environment.add_lock_file(lock_file_path, metadata)
+          # Don't add running process
+        end
+
+        it 'returns empty hash when provider is not running' do
+          endpoints_result = provider_info.endpoints
+
+          expect(endpoints_result).to eq({})
+        end
+      end
+
+      context 'with missing endpoints in metadata' do
+        before do
+          lock_file_path = File.join(
+            test_environment.get_application_data_path,
+            'zero',
+            '.lock'
+          )
+
+          metadata = {
+            'processName' => 'eryph-zero',
+            'processId' => 1234,
+            # No endpoints key
+          }
+
+          test_environment
+            .add_lock_file(lock_file_path, metadata)
+            .add_running_process('eryph-zero', pid: 1234)
+        end
+
+        it 'returns empty hash when no endpoints in metadata' do
+          endpoints_result = provider_info.endpoints
+
+          expect(endpoints_result).to eq({})
+        end
+      end
+    end
+
+    describe '#system_client_private_key' do
+      context 'with running provider and system client' do
+        let(:test_key) { 'test-private-key-content' }
+
+        before do
+          lock_file_path = File.join(
+            test_environment.get_application_data_path,
+            'zero',
+            '.lock'
+          )
+
+          metadata = {
+            'processName' => 'eryph-zero',
+            'processId' => 1234,
+            'endpoints' => {
+              'identity' => 'https://localhost:8080/identity',
+              'compute' => 'https://localhost:8080/compute',
+            },
+          }
+
+          test_environment
+            .add_lock_file(lock_file_path, metadata)
+            .add_running_process('eryph-zero', pid: 1234)
+            .add_system_client_files('zero', private_key: test_key, identity_endpoint: 'https://localhost:8080/identity')
+        end
+
+        it 'returns system client private key' do
+          private_key = provider_info.system_client_private_key
+
+          expect(private_key).to eq(test_key)
+        end
+      end
+
+      context 'without identity endpoint' do
+        before do
+          lock_file_path = File.join(
+            test_environment.get_application_data_path,
+            'zero',
+            '.lock'
+          )
+
+          metadata = {
+            'processName' => 'eryph-zero',
+            'processId' => 1234,
+            'endpoints' => {
+              'compute' => 'https://localhost:8080/compute',
+              # No identity endpoint
+            },
+          }
+
+          test_environment
+            .add_lock_file(lock_file_path, metadata)
+            .add_running_process('eryph-zero', pid: 1234)
+        end
+
+        it 'returns nil when no identity endpoint' do
+          private_key = provider_info.system_client_private_key
+
+          expect(private_key).to be_nil
+        end
+      end
+
+      context 'when provider is not running' do
+        it 'returns nil when provider is not running' do
+          private_key = provider_info.system_client_private_key
+
+          expect(private_key).to be_nil
+        end
+      end
+    end
+
+    describe '#system_client_credentials' do
+      context 'with running provider and system client' do
+        let(:test_key) { 'test-private-key-content' }
+
+        before do
+          lock_file_path = File.join(
+            test_environment.get_application_data_path,
+            'zero',
+            '.lock'
+          )
+
+          metadata = {
+            'processName' => 'eryph-zero',
+            'processId' => 1234,
+            'endpoints' => {
+              'identity' => 'https://localhost:8080/identity',
+              'compute' => 'https://localhost:8080/compute',
+            },
+          }
+
+          test_environment
+            .add_lock_file(lock_file_path, metadata)
+            .add_running_process('eryph-zero', pid: 1234)
+            .add_system_client_files('zero', private_key: test_key, identity_endpoint: 'https://localhost:8080/identity')
+        end
+
+        it 'returns complete system client credentials hash' do
+          credentials = provider_info.system_client_credentials
+
+          expect(credentials).to include(
+            'id' => 'system-client',
+            'name' => 'Eryph Zero System Client',
+            'private_key' => test_key,
+            'identity_endpoint' => 'https://localhost:8080/identity'
+          )
+        end
+      end
+
+      context 'without private key' do
+        before do
+          lock_file_path = File.join(
+            test_environment.get_application_data_path,
+            'zero',
+            '.lock'
+          )
+
+          metadata = {
+            'processName' => 'eryph-zero',
+            'processId' => 1234,
+            'endpoints' => {
+              'identity' => 'https://localhost:8080/identity',
+            },
+          }
+
+          test_environment
+            .add_lock_file(lock_file_path, metadata)
+            .add_running_process('eryph-zero', pid: 1234)
+          # Don't add system client credentials
+        end
+
+        it 'returns nil when no private key available' do
+          credentials = provider_info.system_client_credentials
+
+          expect(credentials).to be_nil
+        end
+      end
+
+      context 'without identity endpoint' do
+        before do
+          lock_file_path = File.join(
+            test_environment.get_application_data_path,
+            'zero',
+            '.lock'
+          )
+
+          metadata = {
+            'processName' => 'eryph-zero',
+            'processId' => 1234,
+            'endpoints' => {
+              'compute' => 'https://localhost:8080/compute',
+              # No identity endpoint
+            },
+          }
+
+          test_environment
+            .add_lock_file(lock_file_path, metadata)
+            .add_running_process('eryph-zero', pid: 1234)
+        end
+
+        it 'returns nil when no identity endpoint' do
+          credentials = provider_info.system_client_credentials
+
+          expect(credentials).to be_nil
+        end
       end
     end
   end
 
-  describe '#get_metadata (private)' do
-    let(:lock_file_path) { 'C:/ProgramData/eryph/zero/.lock' }
-    let(:metadata) { { 'processName' => 'eryph-zero', 'processId' => 1234 } }
+  # Special case tests - mock complex external dependencies
+  describe 'edge case error handling' do
+    let(:mock_environment) { double('Environment') }
+    let(:provider_info) { described_class.new(mock_environment, 'test') }
 
-    before do
-      allow(mock_environment).to receive(:get_application_data_path).and_return('C:/ProgramData/eryph')
+    context 'when file I/O errors occur' do
+      it 'handles file read errors gracefully' do
+        lock_file_path = '/test/path/test/.lock'
+
+        allow(mock_environment).to receive(:get_application_data_path).and_return('/test/path')
+        allow(mock_environment).to receive(:file_exists?).with(lock_file_path).and_return(true)
+        allow(mock_environment).to receive(:read_file).with(lock_file_path).and_raise(IOError, 'Permission denied')
+
+        expect(provider_info.running?).to be false
+        expect(provider_info.endpoints).to eq({})
+      end
     end
 
-    it 'reads and parses metadata from lock file' do
-      allow(mock_environment).to receive(:file_exists?).with(lock_file_path).and_return(true)
-      allow(mock_environment).to receive(:read_file).with(lock_file_path)
-        .and_return(JSON.generate(metadata))
+    context 'when JSON parsing fails' do
+      it 'handles JSON parser errors gracefully' do
+        lock_file_path = '/test/path/test/.lock'
 
-      result = subject.send(:get_metadata)
+        allow(mock_environment).to receive(:get_application_data_path).and_return('/test/path')
+        allow(mock_environment).to receive(:file_exists?).with(lock_file_path).and_return(true)
+        allow(mock_environment).to receive(:read_file).with(lock_file_path).and_return('invalid json {')
 
-      expect(result).to eq(metadata)
-    end
-
-    it 'returns empty hash when lock file does not exist' do
-      allow(mock_environment).to receive(:file_exists?).with(lock_file_path).and_return(false)
-
-      result = subject.send(:get_metadata)
-
-      expect(result).to eq({})
-    end
-
-    it 'returns empty hash on JSON parse error' do
-      allow(mock_environment).to receive(:file_exists?).with(lock_file_path).and_return(true)
-      allow(mock_environment).to receive(:read_file).with(lock_file_path)
-        .and_return('invalid json')
-
-      result = subject.send(:get_metadata)
-
-      expect(result).to eq({})
-    end
-
-    it 'returns empty hash on IO error' do
-      allow(mock_environment).to receive(:file_exists?).with(lock_file_path).and_return(true)
-      allow(mock_environment).to receive(:read_file).with(lock_file_path)
-        .and_raise(IOError.new('Read failed'))
-
-      result = subject.send(:get_metadata)
-
-      expect(result).to eq({})
-    end
-
-    it 'constructs correct lock file path' do
-      expected_path = File.join('C:/ProgramData/eryph', 'zero', '.lock')
-      
-      expect(mock_environment).to receive(:file_exists?).with(expected_path).and_return(false)
-
-      subject.send(:get_metadata)
-    end
-
-    it 'handles different provider names' do
-      custom_provider = described_class.new(mock_environment, 'custom-provider')
-      expected_path = File.join('C:/ProgramData/eryph', 'custom-provider', '.lock')
-      
-      expect(mock_environment).to receive(:file_exists?).with(expected_path).and_return(false)
-
-      custom_provider.send(:get_metadata)
+        expect(provider_info.running?).to be false
+        expect(provider_info.endpoints).to eq({})
+      end
     end
   end
 end

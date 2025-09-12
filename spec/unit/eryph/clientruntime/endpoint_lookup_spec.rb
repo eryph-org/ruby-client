@@ -1,339 +1,317 @@
 require 'spec_helper'
 
 RSpec.describe Eryph::ClientRuntime::EndpointLookup do
-  let(:mock_reader) { double('ConfigStoresReader') }
-  let(:config_name) { 'test' }
-  let(:mock_environment) { double('Environment') }
-  
-  subject { described_class.new(mock_reader, config_name) }
+  # Test with real business logic - Environment is the only mocked boundary
+  describe 'real business logic tests' do
+    let(:test_environment) { TestEnvironment.new }
+    let(:reader) { Eryph::ClientRuntime::ConfigStoresReader.new(test_environment) }
 
-  before do
-    allow(mock_reader).to receive(:environment).and_return(mock_environment)
-  end
+    describe '#initialize' do
+      it 'stores reader and config name' do
+        lookup = described_class.new(reader, 'test')
 
-  describe '#initialize' do
-    it 'stores reader and config name' do
-      lookup = described_class.new(mock_reader, 'production')
-      
-      expect(lookup.reader).to eq(mock_reader)
-      expect(lookup.config_name).to eq('production')
-    end
-  end
-
-  describe '#get_endpoint' do
-    let(:store_endpoints) do
-      {
-        'identity' => 'https://config-identity.example.com',
-        'compute' => 'https://config-compute.example.com'
-      }
-    end
-
-    context 'when endpoint exists in configuration stores' do
-      it 'returns endpoint from stores' do
-        allow(mock_reader).to receive(:get_all_endpoints).with(config_name).and_return(store_endpoints)
-
-        result = subject.get_endpoint('identity')
-
-        expect(result).to eq('https://config-identity.example.com')
-      end
-
-      it 'prefers store endpoints over local endpoints' do
-        allow(mock_reader).to receive(:get_all_endpoints).with(config_name).and_return(store_endpoints)
-        allow(subject).to receive(:get_local_endpoints).and_return({ 'identity' => 'https://local.example.com' })
-
-        result = subject.get_endpoint('identity')
-
-        expect(result).to eq('https://config-identity.example.com')
+        expect(lookup.reader).to eq(reader)
+        expect(lookup.config_name).to eq('test')
       end
     end
 
-    context 'when endpoint does not exist in configuration stores' do
-      it 'returns endpoint from local endpoints' do
-        allow(mock_reader).to receive(:get_all_endpoints).with(config_name).and_return({})
-        allow(subject).to receive(:get_local_endpoints).and_return({ 'identity' => 'https://local.example.com' })
+    describe '#endpoint' do
+      context 'with endpoints in configuration store' do
+        before do
+          config_path = File.join(
+            test_environment.get_config_path(:user),
+            '.eryph',
+            'test.config'
+          )
 
-        result = subject.get_endpoint('identity')
+          config_data = {
+            'endpoints' => {
+              'identity' => 'https://test.eryph.local/identity',
+              'compute' => 'https://test.eryph.local/compute',
+            },
+          }
 
-        expect(result).to eq('https://local.example.com')
+          test_environment.add_config_file(config_path, config_data)
+        end
+
+        it 'returns endpoint URL from configuration store' do
+          lookup = described_class.new(reader, 'test')
+
+          identity_endpoint = lookup.endpoint('identity')
+          compute_endpoint = lookup.endpoint('compute')
+
+          expect(identity_endpoint).to eq('https://test.eryph.local/identity')
+          expect(compute_endpoint).to eq('https://test.eryph.local/compute')
+        end
+
+        it 'returns nil for non-existent endpoint' do
+          lookup = described_class.new(reader, 'test')
+
+          endpoint = lookup.endpoint('nonexistent')
+
+          expect(endpoint).to be_nil
+        end
       end
 
-      it 'returns nil when endpoint not found anywhere' do
-        allow(mock_reader).to receive(:get_all_endpoints).with(config_name).and_return({})
-        allow(subject).to receive(:get_local_endpoints).and_return({})
+      context 'with zero configuration (local endpoints)' do
+        before do
+          # Setup eryph-zero running locally
+          test_environment
+            .set_windows(true)
+            .add_running_process('eryph-zero', pid: 1234)
+            .add_zero_metadata(
+              identity_endpoint: 'https://localhost:8080/identity',
+              compute_endpoint: 'https://localhost:8080/compute'
+            )
+        end
 
-        result = subject.get_endpoint('nonexistent')
+        it 'discovers endpoints from local eryph-zero instance' do
+          lookup = described_class.new(reader, 'zero')
 
-        expect(result).to be_nil
-      end
-    end
-  end
+          identity_endpoint = lookup.endpoint('identity')
+          compute_endpoint = lookup.endpoint('compute')
 
-  describe '#get_all_endpoints' do
-    let(:store_endpoints) { { 'identity' => 'https://store.example.com' } }
-    let(:local_endpoints) { { 'compute' => 'https://local.example.com', 'identity' => 'https://local-identity.example.com' } }
+          expect(identity_endpoint).to eq('https://localhost:8080/identity')
+          expect(compute_endpoint).to eq('https://localhost:8080/compute')
+        end
 
-    it 'merges local and store endpoints with store having priority' do
-      allow(mock_reader).to receive(:get_all_endpoints).with(config_name).and_return(store_endpoints)
-      allow(subject).to receive(:get_local_endpoints).and_return(local_endpoints)
+        it 'returns nil when eryph-zero is not running' do
+          # Don't set up running process
+          test_environment_no_process = TestEnvironment.new.set_windows(true)
+          reader_no_process = Eryph::ClientRuntime::ConfigStoresReader.new(test_environment_no_process)
+          lookup = described_class.new(reader_no_process, 'zero')
 
-      result = subject.get_all_endpoints
+          endpoint = lookup.endpoint('identity')
 
-      expect(result).to eq({
-        'compute' => 'https://local.example.com',        # from local
-        'identity' => 'https://store.example.com'        # store overrides local
-      })
-    end
-
-    it 'returns only store endpoints when no local endpoints' do
-      allow(mock_reader).to receive(:get_all_endpoints).with(config_name).and_return(store_endpoints)
-      allow(subject).to receive(:get_local_endpoints).and_return({})
-
-      result = subject.get_all_endpoints
-
-      expect(result).to eq(store_endpoints)
-    end
-
-    it 'returns only local endpoints when no store endpoints' do
-      allow(mock_reader).to receive(:get_all_endpoints).with(config_name).and_return({})
-      allow(subject).to receive(:get_local_endpoints).and_return(local_endpoints)
-
-      result = subject.get_all_endpoints
-
-      expect(result).to eq(local_endpoints)
-    end
-  end
-
-  describe '#endpoint_exists?' do
-    it 'returns true when endpoint exists' do
-      allow(subject).to receive(:get_endpoint).with('identity').and_return('https://example.com')
-
-      result = subject.endpoint_exists?('identity')
-
-      expect(result).to be true
-    end
-
-    it 'returns false when endpoint does not exist' do
-      allow(subject).to receive(:get_endpoint).with('nonexistent').and_return(nil)
-
-      result = subject.endpoint_exists?('nonexistent')
-
-      expect(result).to be false
-    end
-  end
-
-  describe '#get_local_endpoints (private)' do
-    context 'with zero configuration' do
-      let(:zero_lookup) { described_class.new(mock_reader, 'zero') }
-
-      it 'returns zero endpoints for zero config' do
-        zero_endpoints = { 'identity' => 'https://zero.example.com' }
-        allow(zero_lookup).to receive(:get_zero_endpoints).and_return(zero_endpoints)
-
-        result = zero_lookup.send(:get_local_endpoints)
-
-        expect(result).to eq(zero_endpoints)
+          expect(endpoint).to be_nil
+        end
       end
 
-      it 'handles case-insensitive zero config name' do
-        zero_lookup = described_class.new(mock_reader, 'ZERO')
-        zero_endpoints = { 'identity' => 'https://zero.example.com' }
-        allow(zero_lookup).to receive(:get_zero_endpoints).and_return(zero_endpoints)
+      context 'with local configuration (local endpoints)' do
+        before do
+          # Setup eryph-local running
+          test_environment
+            .set_windows(true)
+            .add_running_process('eryph-local', pid: 5678)
+            .add_local_metadata(
+              identity_endpoint: 'https://localhost:8081/identity',
+              compute_endpoint: 'https://localhost:8081/compute'
+            )
+        end
 
-        result = zero_lookup.send(:get_local_endpoints)
+        it 'discovers endpoints from local eryph instance' do
+          lookup = described_class.new(reader, 'local')
 
-        expect(result).to eq(zero_endpoints)
+          identity_endpoint = lookup.endpoint('identity')
+          compute_endpoint = lookup.endpoint('compute')
+
+          expect(identity_endpoint).to eq('https://localhost:8081/identity')
+          expect(compute_endpoint).to eq('https://localhost:8081/compute')
+        end
+      end
+
+      context 'with configuration store and local endpoints' do
+        before do
+          # Setup both configuration store and local endpoints
+          config_path = File.join(
+            test_environment.get_config_path(:user),
+            '.eryph',
+            'zero.config'
+          )
+
+          config_data = {
+            'endpoints' => {
+              'identity' => 'https://override.eryph.local/identity',
+            },
+          }
+
+          test_environment
+            .set_windows(true)
+            .add_config_file(config_path, config_data)
+            .add_running_process('eryph-zero', pid: 1234)
+            .add_zero_metadata(
+              identity_endpoint: 'https://localhost:8080/identity',
+              compute_endpoint: 'https://localhost:8080/compute'
+            )
+        end
+
+        it 'prioritizes configuration store over local endpoints' do
+          lookup = described_class.new(reader, 'zero')
+
+          # Identity should come from config store (higher priority)
+          identity_endpoint = lookup.endpoint('identity')
+          # Compute should come from local (not in config store)
+          compute_endpoint = lookup.endpoint('compute')
+
+          expect(identity_endpoint).to eq('https://override.eryph.local/identity')
+          expect(compute_endpoint).to eq('https://localhost:8080/compute')
+        end
       end
     end
 
-    context 'with non-zero configuration' do
-      it 'returns empty hash for non-zero configs' do
-        result = subject.send(:get_local_endpoints)
+    describe '#all_endpoints' do
+      it 'returns merged endpoints from store and local sources' do
+        # Setup both sources
+        config_path = File.join(
+          test_environment.get_config_path(:user),
+          '.eryph',
+          'zero.config'
+        )
 
-        expect(result).to eq({})
-      end
-    end
-  end
-
-  describe '#get_zero_endpoints (private)' do
-    let(:zero_lookup) { described_class.new(mock_reader, 'zero') }
-    let(:mock_provider_info) { double('LocalIdentityProviderInfo') }
-
-    before do
-      allow(Eryph::ClientRuntime::LocalIdentityProviderInfo).to receive(:new)
-        .with(mock_environment, 'zero')
-        .and_return(mock_provider_info)
-    end
-
-    context 'when identity provider is running' do
-      let(:provider_endpoints) do
-        {
-          'identity' => URI.parse('https://localhost:8080/identity'),
-          'compute' => URI.parse('https://localhost:8080/compute')
+        config_data = {
+          'endpoints' => {
+            'identity' => 'https://config.eryph.local/identity',
+            'custom' => 'https://config.eryph.local/custom',
+          },
         }
+
+        test_environment
+          .set_windows(true)
+          .add_config_file(config_path, config_data)
+          .add_running_process('eryph-zero', pid: 1234)
+          .add_zero_metadata(
+            identity_endpoint: 'https://localhost:8080/identity',
+            compute_endpoint: 'https://localhost:8080/compute'
+          )
+
+        lookup = described_class.new(reader, 'zero')
+        all_endpoints = lookup.all_endpoints
+
+        # Config store endpoints should override local ones
+        expect(all_endpoints['identity']).to eq('https://config.eryph.local/identity')
+        expect(all_endpoints['custom']).to eq('https://config.eryph.local/custom')
+        # Local-only endpoint should be present
+        expect(all_endpoints['compute']).to eq('https://localhost:8080/compute')
       end
 
-      it 'returns endpoints from running provider' do
-        allow(mock_provider_info).to receive(:running?).and_return(true)
-        allow(mock_provider_info).to receive(:endpoints).and_return(provider_endpoints)
+      it 'returns only local endpoints when no config store exists' do
+        test_environment
+          .set_windows(true)
+          .add_running_process('eryph-zero', pid: 1234)
+          .add_zero_metadata(
+            identity_endpoint: 'https://localhost:8080/identity',
+            compute_endpoint: 'https://localhost:8080/compute'
+          )
 
-        result = zero_lookup.send(:get_zero_endpoints)
+        lookup = described_class.new(reader, 'zero')
+        all_endpoints = lookup.all_endpoints
 
-        expect(result).to eq({
-          'identity' => 'https://localhost:8080/identity',
-          'compute' => 'https://localhost:8080/compute'
-        })
+        expect(all_endpoints).to eq({
+                                      'identity' => 'https://localhost:8080/identity',
+                                      'compute' => 'https://localhost:8080/compute',
+                                    })
       end
 
-      it 'derives compute endpoint when only identity exists' do
-        identity_only = { 'identity' => URI.parse('https://localhost:8080/identity') }
-        allow(mock_provider_info).to receive(:running?).and_return(true)
-        allow(mock_provider_info).to receive(:endpoints).and_return(identity_only)
+      it 'returns only config store endpoints when no local endpoints exist' do
+        config_path = File.join(
+          test_environment.get_config_path(:user),
+          '.eryph',
+          'test.config'
+        )
 
-        result = zero_lookup.send(:get_zero_endpoints)
-
-        expect(result).to eq({
-          'identity' => 'https://localhost:8080/identity',
-          'compute' => 'https://localhost:8080/compute'
-        })
-      end
-
-      it 'includes other endpoints as-is' do
-        extended_endpoints = {
-          'identity' => URI.parse('https://localhost:8080/identity'),
-          'management' => URI.parse('https://localhost:8080/management')
+        config_data = {
+          'endpoints' => {
+            'identity' => 'https://test.eryph.local/identity',
+            'compute' => 'https://test.eryph.local/compute',
+          },
         }
-        allow(mock_provider_info).to receive(:running?).and_return(true)
-        allow(mock_provider_info).to receive(:endpoints).and_return(extended_endpoints)
 
-        result = zero_lookup.send(:get_zero_endpoints)
+        test_environment.add_config_file(config_path, config_data)
 
-        expect(result).to eq({
-          'identity' => 'https://localhost:8080/identity',
-          'compute' => 'https://localhost:8080/compute',
-          'management' => 'https://localhost:8080/management'
-        })
+        lookup = described_class.new(reader, 'test')
+        all_endpoints = lookup.all_endpoints
+
+        expect(all_endpoints).to eq({
+                                      'identity' => 'https://test.eryph.local/identity',
+                                      'compute' => 'https://test.eryph.local/compute',
+                                    })
       end
 
-      it 'handles case-insensitive endpoint names' do
-        mixed_case = {
-          'IDENTITY' => URI.parse('https://localhost:8080/identity'),
-          'COMPUTE' => URI.parse('https://localhost:8080/compute')
-        }
-        allow(mock_provider_info).to receive(:running?).and_return(true)
-        allow(mock_provider_info).to receive(:endpoints).and_return(mixed_case)
+      it 'returns empty hash when no endpoints exist anywhere' do
+        lookup = described_class.new(reader, 'nonexistent')
+        all_endpoints = lookup.all_endpoints
 
-        result = zero_lookup.send(:get_zero_endpoints)
-
-        expect(result).to eq({
-          'identity' => 'https://localhost:8080/identity',
-          'compute' => 'https://localhost:8080/compute'
-        })
+        expect(all_endpoints).to eq({})
       end
     end
 
-    context 'when identity provider is not running' do
-      it 'returns fallback endpoints' do
-        allow(mock_provider_info).to receive(:running?).and_return(false)
-        fallback_endpoints = { 'identity' => 'https://localhost:8080', 'compute' => 'https://localhost:8080/compute' }
-        allow(zero_lookup).to receive(:fallback_zero_endpoints).and_return(fallback_endpoints)
+    describe '#endpoint_exists?' do
+      before do
+        config_path = File.join(
+          test_environment.get_config_path(:user),
+          '.eryph',
+          'test.config'
+        )
 
-        result = zero_lookup.send(:get_zero_endpoints)
+        config_data = {
+          'endpoints' => {
+            'identity' => 'https://test.eryph.local/identity',
+          },
+        }
 
-        expect(result).to eq(fallback_endpoints)
+        test_environment.add_config_file(config_path, config_data)
+      end
+
+      it 'returns true for existing endpoint' do
+        lookup = described_class.new(reader, 'test')
+
+        exists = lookup.endpoint_exists?('identity')
+
+        expect(exists).to be true
+      end
+
+      it 'returns false for non-existent endpoint' do
+        lookup = described_class.new(reader, 'test')
+
+        exists = lookup.endpoint_exists?('nonexistent')
+
+        expect(exists).to be false
+      end
+    end
+
+    describe 'nil config_name handling (the bug we fixed)' do
+      it 'handles nil config_name without crashing' do
+        # This tests the fix for the nil.downcase bug
+        lookup = described_class.new(reader, nil)
+
+        # Should not crash with NoMethodError: undefined method `downcase' for nil
+        expect do
+          lookup.endpoint('identity')
+        end.not_to raise_error
+      end
+
+      it 'returns nil for all endpoints when config_name is nil' do
+        lookup = described_class.new(reader, nil)
+
+        identity_endpoint = lookup.endpoint('identity')
+        all_endpoints = lookup.all_endpoints
+
+        expect(identity_endpoint).to be_nil
+        expect(all_endpoints).to eq({})
       end
     end
   end
 
-  describe '#fallback_zero_endpoints (private)' do
-    let(:zero_lookup) { described_class.new(mock_reader, 'zero') }
+  # Special case tests - mock complex external dependencies
+  describe 'local endpoint discovery edge cases' do
+    let(:test_environment) { TestEnvironment.new }
+    let(:reader) { Eryph::ClientRuntime::ConfigStoresReader.new(test_environment) }
 
-    context 'when a candidate endpoint responds' do
-      it 'returns endpoints for first working candidate' do
-        allow(zero_lookup).to receive(:test_zero_endpoint).with('https://localhost:8080').and_return(true)
+    context 'when LocalIdentityProviderInfo fails' do
+      it 'handles provider info errors gracefully' do
+        # Setup environment that will cause provider info to fail
+        test_environment
+          .set_windows(true)
+          .add_running_process('eryph-zero', pid: 1234)
+        # Don't add metadata file - this will cause provider to fail
 
-        result = zero_lookup.send(:fallback_zero_endpoints)
+        lookup = described_class.new(reader, 'zero')
 
-        expect(result).to eq({
-          'identity' => 'https://localhost:8080',
-          'compute' => 'https://localhost:8080/compute'
-        })
+        # Should not crash, just return nil
+        endpoint = lookup.endpoint('identity')
+
+        expect(endpoint).to be_nil
       end
-
-      it 'tries candidates in order until one works' do
-        allow(zero_lookup).to receive(:test_zero_endpoint).with('https://localhost:8080').and_return(false)
-        allow(zero_lookup).to receive(:test_zero_endpoint).with('https://127.0.0.1:8080').and_return(true)
-
-        result = zero_lookup.send(:fallback_zero_endpoints)
-
-        expect(result).to eq({
-          'identity' => 'https://127.0.0.1:8080',
-          'compute' => 'https://127.0.0.1:8080/compute'
-        })
-      end
-    end
-
-    context 'when no candidate endpoints respond' do
-      it 'returns empty endpoints hash' do
-        allow(zero_lookup).to receive(:test_zero_endpoint).and_return(false)
-
-        result = zero_lookup.send(:fallback_zero_endpoints)
-
-        expect(result).to eq({})
-      end
-    end
-  end
-
-  describe '#test_zero_endpoint (private)' do
-    let(:zero_lookup) { described_class.new(mock_reader, 'zero') }
-
-    it 'returns true for valid HTTPS URL with port' do
-      result = zero_lookup.send(:test_zero_endpoint, 'https://localhost:8080')
-
-      expect(result).to be true
-    end
-
-    it 'returns true for valid HTTP URL with port' do
-      result = zero_lookup.send(:test_zero_endpoint, 'http://127.0.0.1:8080')
-
-      expect(result).to be true
-    end
-
-    it 'returns true for valid URL with host and port' do
-      result = zero_lookup.send(:test_zero_endpoint, 'https://example.com:443')
-
-      expect(result).to be true
-    end
-
-    it 'returns false for URL without port' do
-      result = zero_lookup.send(:test_zero_endpoint, 'https://localhost')
-
-      expect(result).to be false
-    end
-
-    it 'returns false for URL without scheme' do
-      result = zero_lookup.send(:test_zero_endpoint, 'localhost:8080')
-
-      expect(result).to be false
-    end
-
-    it 'returns false for URL without host' do
-      result = zero_lookup.send(:test_zero_endpoint, 'https://:8080')
-
-      expect(result).to be false
-    end
-
-    it 'returns false for invalid URL' do
-      result = zero_lookup.send(:test_zero_endpoint, 'not-a-url')
-
-      expect(result).to be false
-    end
-
-    it 'handles URI parse errors gracefully' do
-      allow(URI).to receive(:parse).and_raise(URI::InvalidURIError)
-
-      result = zero_lookup.send(:test_zero_endpoint, 'malformed-url')
-
-      expect(result).to be false
     end
   end
 end

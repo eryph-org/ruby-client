@@ -21,10 +21,7 @@ module Eryph
     # @param options [Hash] additional options
     # @option options [Logger] :logger logger instance
     # @option options [Array<String>] :scopes OAuth2 scopes
-    # @option options [Boolean] :verify_ssl (true) whether to verify SSL certificates
-    # @option options [Boolean] :verify_hostname (true) whether to verify hostname
-    # @option options [String] :ca_file path to CA certificate file
-    # @option options [OpenSSL::X509::Certificate] :ca_cert CA certificate object
+    # @option options [Hash] :ssl_config SSL configuration options
     # @option options [Environment] :environment environment for dependency injection
     # @return [Compute::Client] a new compute client instance
     # @example Automatic discovery
@@ -34,18 +31,14 @@ module Eryph
     # @example Specific client ID
     #   client = Eryph.compute_client('myconfig', client_id: 'my-client-id')
     # @example With options
-    #   client = Eryph.compute_client(logger: my_logger, verify_ssl: false)
+    #   client = Eryph.compute_client(logger: my_logger, ssl_config: { verify_ssl: false })
     def compute_client(config_name = nil, client_id: nil, **options)
-      # Extract SSL config from options
-      ssl_keys = [:verify_ssl, :verify_hostname, :ca_file, :ca_cert]
-      ssl_config = options.select { |key, _| ssl_keys.include?(key) }
-      
       Compute::Client.new(
         config_name,
         client_id: client_id,
         logger: options[:logger],
         scopes: options[:scopes],
-        ssl_config: ssl_config,
+        ssl_config: options[:ssl_config] || {},
         environment: options[:environment]
       )
     end

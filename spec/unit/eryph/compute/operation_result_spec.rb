@@ -10,20 +10,19 @@ RSpec.describe Eryph::Compute::OperationResult do
 
   let(:basic_operation) do
     double('Operation',
-      id: operation_id,
-      status: 'Completed',
-      status_message: 'Success',
-      log_entries: [],
-      tasks: [],
-      resources: []
-    )
+           id: operation_id,
+           status: 'Completed',
+           status_message: 'Success',
+           log_entries: [],
+           tasks: [],
+           resources: [])
   end
 
   subject { described_class.new(basic_operation, client) }
 
   before do
     allow(client).to receive(:catlets).and_return(catlets_api)
-    allow(client).to receive(:virtual_disks).and_return(virtual_disks_api)  
+    allow(client).to receive(:virtual_disks).and_return(virtual_disks_api)
     allow(client).to receive(:virtual_networks).and_return(virtual_networks_api)
     allow(client).to receive(:logger).and_return(logger)
   end
@@ -86,13 +85,12 @@ RSpec.describe Eryph::Compute::OperationResult do
     it 'returns operation resources when available' do
       resource1 = double('Resource', resource_type: 'Catlet', resource_id: 'cat-1')
       resource2 = double('Resource', resource_type: 'VirtualDisk', resource_id: 'disk-1')
-      operation_with_resources = double('Operation', 
-        id: operation_id,
-        status: 'Completed',
-        status_message: 'Success',
-        resources: [resource1, resource2]
-      )
-      
+      operation_with_resources = double('Operation',
+                                        id: operation_id,
+                                        status: 'Completed',
+                                        status_message: 'Success',
+                                        resources: [resource1, resource2])
+
       result = described_class.new(operation_with_resources, client)
       expect(result.resources).to eq([resource1, resource2])
     end
@@ -107,12 +105,11 @@ RSpec.describe Eryph::Compute::OperationResult do
       log1 = double('LogEntry', message: 'First log')
       log2 = double('LogEntry', message: 'Second log')
       operation_with_logs = double('Operation',
-        id: operation_id,
-        status: 'Completed',
-        status_message: 'Success',
-        log_entries: [log1, log2]
-      )
-      
+                                   id: operation_id,
+                                   status: 'Completed',
+                                   status_message: 'Success',
+                                   log_entries: [log1, log2])
+
       result = described_class.new(operation_with_logs, client)
       expect(result.log_entries).to eq([log1, log2])
     end
@@ -127,12 +124,11 @@ RSpec.describe Eryph::Compute::OperationResult do
       task1 = double('Task', name: 'First task')
       task2 = double('Task', name: 'Second task')
       operation_with_tasks = double('Operation',
-        id: operation_id,
-        status: 'Completed',
-        status_message: 'Success',
-        tasks: [task1, task2]
-      )
-      
+                                    id: operation_id,
+                                    status: 'Completed',
+                                    status_message: 'Success',
+                                    tasks: [task1, task2])
+
       result = described_class.new(operation_with_tasks, client)
       expect(result.tasks).to eq([task1, task2])
     end
@@ -142,14 +138,13 @@ RSpec.describe Eryph::Compute::OperationResult do
     let(:catlet_resource) { double('Resource', resource_type: 'Catlet', resource_id: 'catlet-123') }
     let(:disk_resource) { double('Resource', resource_type: 'VirtualDisk', resource_id: 'disk-456') }
     let(:network_resource) { double('Resource', resource_type: 'VirtualNetwork', resource_id: 'net-789') }
-    
+
     let(:operation_with_resources) do
       double('Operation',
-        id: operation_id,
-        status: 'Completed',
-        status_message: 'Success',
-        resources: [catlet_resource, disk_resource, network_resource]
-      )
+             id: operation_id,
+             status: 'Completed',
+             status_message: 'Success',
+             resources: [catlet_resource, disk_resource, network_resource])
     end
 
     subject { described_class.new(operation_with_resources, client) }
@@ -158,7 +153,7 @@ RSpec.describe Eryph::Compute::OperationResult do
       it 'fetches and returns catlet resources' do
         catlet_data = { 'id' => 'catlet-123', 'name' => 'test-catlet' }
         expect(catlets_api).to receive(:catlets_get).with('catlet-123').and_return(catlet_data)
-        
+
         catlets = subject.catlets
         expect(catlets).to eq([catlet_data])
       end
@@ -166,11 +161,11 @@ RSpec.describe Eryph::Compute::OperationResult do
       it 'caches fetched catlets' do
         catlet_data = { 'id' => 'catlet-123', 'name' => 'test-catlet' }
         expect(catlets_api).to receive(:catlets_get).with('catlet-123').once.and_return(catlet_data)
-        
+
         # Call twice, should only fetch once
         first_call = subject.catlets
         second_call = subject.catlets
-        
+
         expect(first_call).to eq([catlet_data])
         expect(second_call).to eq([catlet_data])
       end
@@ -178,19 +173,18 @@ RSpec.describe Eryph::Compute::OperationResult do
       it 'handles API errors gracefully' do
         expect(catlets_api).to receive(:catlets_get).with('catlet-123').and_raise(StandardError, 'API Error')
         expect(logger).to receive(:error).with(/Error fetching catlet catlet-123: API Error/)
-        
+
         catlets = subject.catlets
         expect(catlets).to eq([])
       end
 
       it 'returns empty array when no catlet resources' do
         operation_without_catlets = double('Operation',
-          id: operation_id,
-          status: 'Completed',
-          status_message: 'Success',
-          resources: [disk_resource, network_resource] # No catlets
-        )
-        
+                                           id: operation_id,
+                                           status: 'Completed',
+                                           status_message: 'Success',
+                                           resources: [disk_resource, network_resource]) # No catlets
+
         result = described_class.new(operation_without_catlets, client)
         expect(result.catlets).to eq([])
       end
@@ -200,7 +194,7 @@ RSpec.describe Eryph::Compute::OperationResult do
       it 'fetches and returns virtual disk resources' do
         disk_data = { 'id' => 'disk-456', 'name' => 'test-disk' }
         expect(virtual_disks_api).to receive(:virtual_disks_get).with('disk-456').and_return(disk_data)
-        
+
         disks = subject.virtual_disks
         expect(disks).to eq([disk_data])
       end
@@ -208,11 +202,11 @@ RSpec.describe Eryph::Compute::OperationResult do
       it 'caches fetched virtual disks' do
         disk_data = { 'id' => 'disk-456', 'name' => 'test-disk' }
         expect(virtual_disks_api).to receive(:virtual_disks_get).with('disk-456').once.and_return(disk_data)
-        
+
         # Call twice, should only fetch once
         first_call = subject.virtual_disks
         second_call = subject.virtual_disks
-        
+
         expect(first_call).to eq([disk_data])
         expect(second_call).to eq([disk_data])
       end
@@ -220,7 +214,7 @@ RSpec.describe Eryph::Compute::OperationResult do
       it 'handles API errors gracefully' do
         expect(virtual_disks_api).to receive(:virtual_disks_get).with('disk-456').and_raise(StandardError, 'API Error')
         expect(logger).to receive(:error).with(/Error fetching virtualdisk disk-456: API Error/)
-        
+
         disks = subject.virtual_disks
         expect(disks).to eq([])
       end
@@ -230,7 +224,7 @@ RSpec.describe Eryph::Compute::OperationResult do
       it 'fetches and returns virtual network resources' do
         network_data = { 'id' => 'net-789', 'name' => 'test-network' }
         expect(virtual_networks_api).to receive(:virtual_networks_get).with('net-789').and_return(network_data)
-        
+
         networks = subject.virtual_networks
         expect(networks).to eq([network_data])
       end
@@ -238,11 +232,11 @@ RSpec.describe Eryph::Compute::OperationResult do
       it 'caches fetched virtual networks' do
         network_data = { 'id' => 'net-789', 'name' => 'test-network' }
         expect(virtual_networks_api).to receive(:virtual_networks_get).with('net-789').once.and_return(network_data)
-        
+
         # Call twice, should only fetch once
         first_call = subject.virtual_networks
         second_call = subject.virtual_networks
-        
+
         expect(first_call).to eq([network_data])
         expect(second_call).to eq([network_data])
       end
@@ -250,7 +244,7 @@ RSpec.describe Eryph::Compute::OperationResult do
       it 'handles API errors gracefully' do
         expect(virtual_networks_api).to receive(:virtual_networks_get).with('net-789').and_raise(StandardError, 'API Error')
         expect(logger).to receive(:error).with(/Error fetching virtualnetwork net-789: API Error/)
-        
+
         networks = subject.virtual_networks
         expect(networks).to eq([])
       end
@@ -261,14 +255,13 @@ RSpec.describe Eryph::Compute::OperationResult do
     let(:catlet_resource1) { double('Resource', resource_type: 'Catlet', resource_id: 'cat-1') }
     let(:catlet_resource2) { double('Resource', resource_type: 'Catlet', resource_id: 'cat-2') }
     let(:disk_resource) { double('Resource', resource_type: 'VirtualDisk', resource_id: 'disk-1') }
-    
+
     let(:mixed_operation) do
       double('Operation',
-        id: operation_id,
-        status: 'Completed',
-        status_message: 'Success',
-        resources: [catlet_resource1, disk_resource, catlet_resource2]
-      )
+             id: operation_id,
+             status: 'Completed',
+             status_message: 'Success',
+             resources: [catlet_resource1, disk_resource, catlet_resource2])
     end
 
     subject { described_class.new(mixed_operation, client) }
@@ -294,23 +287,22 @@ RSpec.describe Eryph::Compute::OperationResult do
     let(:log2) { double('LogEntry', message: 'Log 2') }
     let(:task1) { double('Task', name: 'Task 1') }
     let(:resource1) { double('Resource', resource_type: 'Catlet', resource_id: 'cat-1') }
-    
+
     let(:detailed_operation) do
       double('Operation',
-        id: operation_id,
-        status: 'Completed',
-        status_message: 'Success',
-        log_entries: [log1, log2],
-        tasks: [task1],
-        resources: [resource1],
-        result: nil
-      )
+             id: operation_id,
+             status: 'Completed',
+             status_message: 'Success',
+             log_entries: [log1, log2],
+             tasks: [task1],
+             resources: [resource1],
+             result: nil)
     end
 
     it 'returns a summary hash with counts' do
       result = described_class.new(detailed_operation, client)
       summary = result.summary
-      
+
       expect(summary).to be_a(Hash)
       expect(summary[:operation_id]).to eq(operation_id)
       expect(summary[:status]).to eq('Completed')
@@ -325,57 +317,53 @@ RSpec.describe Eryph::Compute::OperationResult do
       catlet_resource = double('Resource', resource_type: 'Catlet', resource_id: 'cat-1')
       disk_resource1 = double('Resource', resource_type: 'VirtualDisk', resource_id: 'disk-1')
       disk_resource2 = double('Resource', resource_type: 'VirtualDisk', resource_id: 'disk-2')
-      
+
       multi_resource_operation = double('Operation',
-        id: operation_id,
-        status: 'Completed',
-        status_message: 'Success',
-        resources: [catlet_resource, disk_resource1, disk_resource2],
-        log_entries: [],
-        tasks: [],
-        result: nil
-      )
-      
+                                        id: operation_id,
+                                        status: 'Completed',
+                                        status_message: 'Success',
+                                        resources: [catlet_resource, disk_resource1, disk_resource2],
+                                        log_entries: [],
+                                        tasks: [],
+                                        result: nil)
+
       result = described_class.new(multi_resource_operation, client)
       summary = result.summary
-      
-      expect(summary[:resource_types]).to eq({ 
-        'Catlet' => 1, 
-        'VirtualDisk' => 2 
-      })
+
+      expect(summary[:resource_types]).to eq({
+                                               'Catlet' => 1,
+                                               'VirtualDisk' => 2,
+                                             })
     end
   end
-  
+
   describe 'operation result extraction' do
     let(:catlet_config_result) do
       double('CatletConfigOperationResult',
-        result_type: 'CatletConfig',
-        configuration: { 'name' => 'test-catlet', 'cpu' => 2, 'memory' => '4GB' }
-      )
+             result_type: 'CatletConfig',
+             configuration: { 'name' => 'test-catlet', 'cpu' => 2, 'memory' => '4GB' })
     end
-    
+
     let(:operation_with_result) do
       double('Operation',
-        id: operation_id,
-        status: 'Completed',
-        status_message: 'Success',
-        result: catlet_config_result,
-        resources: [],
-        log_entries: [],
-        tasks: []
-      )
+             id: operation_id,
+             status: 'Completed',
+             status_message: 'Success',
+             result: catlet_config_result,
+             resources: [],
+             log_entries: [],
+             tasks: [])
     end
-    
+
     let(:operation_without_result) do
       double('Operation',
-        id: operation_id,
-        status: 'Completed',
-        status_message: 'Success',
-        result: nil,
-        resources: [],
-        log_entries: [],
-        tasks: []
-      )
+             id: operation_id,
+             status: 'Completed',
+             status_message: 'Success',
+             result: nil,
+             resources: [],
+             log_entries: [],
+             tasks: [])
     end
 
     describe '#result' do
@@ -383,22 +371,22 @@ RSpec.describe Eryph::Compute::OperationResult do
         result = described_class.new(operation_with_result, client)
         expect(result.result).to eq(catlet_config_result)
       end
-      
+
       it 'returns nil when no result' do
         result = described_class.new(operation_without_result, client)
         expect(result.result).to be_nil
       end
     end
 
-    describe '#has_result?' do
+    describe '#result?' do
       it 'returns true when operation has a result' do
         result = described_class.new(operation_with_result, client)
-        expect(result.has_result?).to be true
+        expect(result.result?).to be true
       end
-      
+
       it 'returns false when operation has no result' do
         result = described_class.new(operation_without_result, client)
-        expect(result.has_result?).to be false
+        expect(result.result?).to be false
       end
     end
 
@@ -407,7 +395,7 @@ RSpec.describe Eryph::Compute::OperationResult do
         result = described_class.new(operation_with_result, client)
         expect(result.result_type).to eq('CatletConfig')
       end
-      
+
       it 'returns nil when no result' do
         result = described_class.new(operation_without_result, client)
         expect(result.result_type).to be_nil
@@ -418,37 +406,36 @@ RSpec.describe Eryph::Compute::OperationResult do
       it 'returns a CatletConfigResult struct for CatletConfig type' do
         result = described_class.new(operation_with_result, client)
         typed_result = result.typed_result
-        
+
         expect(typed_result).to be_a(Eryph::Compute::CatletConfigResult)
         expect(typed_result.result_type).to eq('CatletConfig')
         expect(typed_result.configuration).to be_nil # No raw JSON provided
       end
-      
+
       it 'returns nil when no result' do
         result = described_class.new(operation_without_result, client)
         expect(result.typed_result).to be_nil
       end
-      
+
       it 'logs warning for unknown result types and returns nil' do
         unknown_result = double('UnknownOperationResult', result_type: 'UnknownType')
         operation_with_unknown_result = double('Operation',
-          id: operation_id,
-          status: 'Completed',
-          result: unknown_result
-        )
-        
+                                               id: operation_id,
+                                               status: 'Completed',
+                                               result: unknown_result)
+
         expect(logger).to receive(:warn).with('Unknown operation result type: UnknownType')
-        
+
         result = described_class.new(operation_with_unknown_result, client)
         expect(result.typed_result).to be_nil
       end
-      
+
       it 'caches the typed result' do
         result = described_class.new(operation_with_result, client)
-        
+
         first_call = result.typed_result
         second_call = result.typed_result
-        
+
         expect(first_call).to be_a(Eryph::Compute::CatletConfigResult)
         expect(second_call).to equal(first_call) # Same object reference due to caching
       end
@@ -459,15 +446,15 @@ RSpec.describe Eryph::Compute::OperationResult do
       it 'includes result information in summary' do
         result = described_class.new(operation_with_result, client)
         summary = result.summary
-        
+
         expect(summary[:has_result]).to be true
         expect(summary[:result_type]).to eq('CatletConfig')
       end
-      
+
       it 'includes nil result information when no result' do
         result = described_class.new(operation_without_result, client)
         summary = result.summary
-        
+
         expect(summary[:has_result]).to be false
         expect(summary[:result_type]).to be_nil
       end
@@ -477,18 +464,18 @@ RSpec.describe Eryph::Compute::OperationResult do
   describe 'typed result handling with raw JSON' do
     let(:catlet_config_raw_json) do
       JSON.generate({
-        id: operation_id,
-        status: 'Completed',
-        result: {
-          result_type: 'CatletConfig',
-          configuration: {
-            name: 'test-catlet',
-            parent: 'dbosoft/ubuntu-22.04/starter',
-            cpu: { count: 2 },
-            memory: { startup: 2048 }
-          }
-        }
-      })
+                      id: operation_id,
+                      status: 'Completed',
+                      result: {
+                        result_type: 'CatletConfig',
+                        configuration: {
+                          name: 'test-catlet',
+                          parent: 'dbosoft/ubuntu-22.04/starter',
+                          cpu: { count: 2 },
+                          memory: { startup: 2048 },
+                        },
+                      },
+                    })
     end
 
     let(:incomplete_operation_result) do
@@ -497,40 +484,39 @@ RSpec.describe Eryph::Compute::OperationResult do
 
     let(:operation_with_incomplete_result) do
       double('Operation',
-        id: operation_id,
-        status: 'Completed',
-        status_message: 'Success',
-        result: incomplete_operation_result,
-        resources: [],
-        log_entries: [],
-        tasks: []
-      )
+             id: operation_id,
+             status: 'Completed',
+             status_message: 'Success',
+             result: incomplete_operation_result,
+             resources: [],
+             log_entries: [],
+             tasks: [])
     end
 
     describe '#typed_result' do
       context 'with CatletConfig result and raw JSON' do
         it 'returns CatletConfigResult Struct with configuration' do
           result = described_class.new(operation_with_incomplete_result, client, catlet_config_raw_json)
-          
+
           expect(logger).to receive(:info).with(/Creating typed CatletConfigResult/)
-          
+
           typed = result.typed_result
           expect(typed).to be_a(Eryph::Compute::CatletConfigResult)
           expect(typed.result_type).to eq('CatletConfig')
           expect(typed.configuration).to be_a(Hash)
           expect(typed.name).to eq('test-catlet')
           expect(typed.parent).to eq('dbosoft/ubuntu-22.04/starter')
-          expect(typed.has_configuration?).to be true
+          expect(typed.configuration?).to be true
         end
 
         it 'caches the typed result' do
           result = described_class.new(operation_with_incomplete_result, client, catlet_config_raw_json)
-          
+
           expect(logger).to receive(:info).with(/Creating typed CatletConfigResult/).once
-          
+
           first_call = result.typed_result
           second_call = result.typed_result
-          
+
           expect(first_call).to eq(second_call)
         end
       end
@@ -538,14 +524,14 @@ RSpec.describe Eryph::Compute::OperationResult do
       context 'with CatletConfig result but no raw JSON' do
         it 'returns CatletConfigResult Struct without configuration' do
           result = described_class.new(operation_with_incomplete_result, client)
-          
+
           expect(logger).to receive(:warn).with(/No raw JSON available/)
-          
+
           typed = result.typed_result
           expect(typed).to be_a(Eryph::Compute::CatletConfigResult)
           expect(typed.result_type).to eq('CatletConfig')
           expect(typed.configuration).to be_nil
-          expect(typed.has_configuration?).to be false
+          expect(typed.configuration?).to be false
           expect(typed.name).to be_nil
           expect(typed.parent).to be_nil
         end
@@ -558,10 +544,9 @@ RSpec.describe Eryph::Compute::OperationResult do
 
         let(:operation_with_unknown_result) do
           double('Operation',
-            id: operation_id,
-            status: 'Completed',
-            result: unknown_result
-          )
+                 id: operation_id,
+                 status: 'Completed',
+                 result: unknown_result)
         end
 
         it 'returns nil for unknown result types' do
@@ -575,60 +560,59 @@ RSpec.describe Eryph::Compute::OperationResult do
 
         it 'handles JSON parse errors gracefully' do
           result = described_class.new(operation_with_incomplete_result, client, invalid_json)
-          
+
           typed = result.typed_result
           expect(typed).to be_a(Eryph::Compute::CatletConfigResult)
           expect(typed.configuration).to be_nil
-          expect(typed.has_configuration?).to be false
+          expect(typed.configuration?).to be false
         end
       end
     end
-
   end
 
   describe Eryph::Compute::CatletConfigResult do
     describe '.from_raw_json' do
       let(:valid_raw_json) do
         JSON.generate({
-          result: {
-            result_type: 'CatletConfig',
-            configuration: {
-              name: 'test-catlet',
-              parent: 'dbosoft/ubuntu-22.04/starter',
-              cpu: { count: 1 },
-              memory: { startup: 1024 }
-            }
-          }
-        })
+                        result: {
+                          result_type: 'CatletConfig',
+                          configuration: {
+                            name: 'test-catlet',
+                            parent: 'dbosoft/ubuntu-22.04/starter',
+                            cpu: { count: 1 },
+                            memory: { startup: 1024 },
+                          },
+                        },
+                      })
       end
 
       it 'creates Struct from valid JSON' do
         result = described_class.from_raw_json(valid_raw_json)
-        
+
         expect(result.result_type).to eq('CatletConfig')
         expect(result.configuration).to be_a(Hash)
         expect(result.name).to eq('test-catlet')
         expect(result.parent).to eq('dbosoft/ubuntu-22.04/starter')
-        expect(result.has_configuration?).to be true
+        expect(result.configuration?).to be true
       end
 
       it 'handles missing configuration gracefully' do
         json_without_config = JSON.generate({
-          result: { result_type: 'CatletConfig' }
-        })
-        
+                                              result: { result_type: 'CatletConfig' },
+                                            })
+
         result = described_class.from_raw_json(json_without_config)
         expect(result.result_type).to eq('CatletConfig')
         expect(result.configuration).to be_nil
-        expect(result.has_configuration?).to be false
+        expect(result.configuration?).to be false
       end
 
       it 'handles invalid JSON gracefully' do
         result = described_class.from_raw_json('invalid json')
-        
+
         expect(result.result_type).to eq('CatletConfig')
         expect(result.configuration).to be_nil
-        expect(result.has_configuration?).to be false
+        expect(result.configuration?).to be false
       end
     end
 
@@ -637,7 +621,7 @@ RSpec.describe Eryph::Compute::OperationResult do
         {
           'name' => 'my-catlet',
           'parent' => 'dbosoft/ubuntu-22.04/starter',
-          'cpu' => { 'count' => 4 }
+          'cpu' => { 'count' => 4 },
         }
       end
 
@@ -665,14 +649,14 @@ RSpec.describe Eryph::Compute::OperationResult do
         end
       end
 
-      describe '#has_configuration?' do
+      describe '#configuration?' do
         it 'returns true when configuration is present' do
-          expect(subject.has_configuration?).to be true
+          expect(subject.configuration?).to be true
         end
 
         it 'returns false when configuration is nil' do
           empty_result = described_class.new(result_type: 'CatletConfig', configuration: nil)
-          expect(empty_result.has_configuration?).to be false
+          expect(empty_result.configuration?).to be false
         end
       end
     end

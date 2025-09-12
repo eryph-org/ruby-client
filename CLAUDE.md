@@ -177,7 +177,7 @@ ruby generate.rb
 
 1. **Make changes** to runtime or client code
 2. **Run unit tests**: `bundle exec rspec spec/unit`
-3. **Run integration tests**: `INTEGRATION_TESTS=1 bundle exec rspec spec/integration`
+3. **Run integration tests**: `bundle exec rspec spec/integration`
 4. **Build gems**: `rake build_all`
 5. **Test with examples**: `ruby examples/basic_usage.rb`
 6. **Update generated client** (if API changed): `ruby generate.rb`
@@ -202,9 +202,24 @@ ruby generate.rb
 
 ### Test Structure
 
+#### Environment-as-Boundary Testing Pattern
+
+**🚨 CRITICAL TESTING MENTAL MODEL:**
+- **Business Logic**: REAL (ConfigStoresReader, ClientCredentialsLookup, etc.)
+- **External Dependencies**: MOCKED (Environment only)
+- **When tests fail with business logic errors**: The problem is almost ALWAYS in the test setup/simulation, NOT the business logic!
+- **Rule**: Business logic errors in tests are either TEST DATA errors OR real bugs in business logic
+
+**Debug Strategy for Test Failures:**
+1. **FIRST question**: "What data/files is the real code expecting?"
+2. **SECOND question**: "Is TestEnvironment providing exactly that?"
+3. **NEVER assume** the business logic is wrong without investigation
+4. **Remember**: We're testing REAL code against SIMULATED data
+
 #### Unit Tests (`spec/unit/`)
-- Test individual classes and modules in isolation
-- Use mocks and stubs extensively
+- Test individual classes and modules with REAL business logic
+- Mock ONLY the Environment boundary (external dependencies)
+- TestEnvironment must perfectly simulate what real Environment provides
 - Use FactoryBot factories for test data
 - Example structure:
 ```ruby
@@ -306,7 +321,7 @@ Run specific test types:
 bundle exec rspec spec/unit
 
 # Integration tests only
-INTEGRATION_TESTS=1 bundle exec rspec spec/integration
+bundle exec rspec spec/integration
 
 # All tests
 bundle exec rake spec

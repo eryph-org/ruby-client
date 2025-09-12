@@ -66,7 +66,7 @@ module Eryph
       def zero_endpoints(identity_provider_name: 'zero')
         environment = Environment.new
         provider_info = LocalIdentityProviderInfo.new(environment, identity_provider_name)
-        
+
         if provider_info.running?
           # Convert URI objects to strings
           provider_info.endpoints.transform_values(&:to_s)

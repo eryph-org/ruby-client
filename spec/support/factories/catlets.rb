@@ -11,28 +11,28 @@ FactoryBot.define do
         'environment' => 'default',
         'dataStore' => 'default',
         'fodderName' => nil,
-        'metadata' => []
+        'metadata' => [],
       }
     end
-    
+
     trait :running do
       initialize_with do
         attributes.merge('status' => 'Running')
       end
     end
-    
-    trait :starting do
+
+    trait :pending do
       initialize_with do
-        attributes.merge('status' => 'Starting')
+        attributes.merge('status' => 'Pending')
       end
     end
-    
-    trait :stopping do
+
+    trait :error do
       initialize_with do
-        attributes.merge('status' => 'Stopping')
+        attributes.merge('status' => 'Error')
       end
     end
-    
+
     trait :with_fodder do
       initialize_with do
         attributes.merge(
@@ -40,30 +40,30 @@ FactoryBot.define do
           'metadata' => [
             {
               'name' => 'eryph.org/catlet',
-              'value' => 'dbosoft/winsrv2022-standard/20230901'
-            }
+              'value' => 'dbosoft/winsrv2022-standard/20230901',
+            },
           ]
         )
       end
     end
   end
-  
+
   factory :project_data, class: 'Hash' do
     initialize_with do
       {
         'id' => Faker::Internet.uuid,
         'name' => Faker::Lorem.word,
-        'tenantId' => Faker::Internet.uuid
+        'tenantId' => Faker::Internet.uuid,
       }
     end
-    
+
     trait :default do
       initialize_with do
         attributes.merge('name' => 'default')
       end
     end
   end
-  
+
   factory :operation_data, class: 'Hash' do
     initialize_with do
       {
@@ -75,13 +75,13 @@ FactoryBot.define do
         'resources' => [
           {
             'resourceType' => 'catlet',
-            'resourceId' => Faker::Internet.uuid
-          }
+            'resourceId' => Faker::Internet.uuid,
+          },
         ],
-        'logEntries' => []
+        'logEntries' => [],
       }
     end
-    
+
     trait :running do
       initialize_with do
         attributes.merge(
@@ -90,7 +90,7 @@ FactoryBot.define do
         )
       end
     end
-    
+
     trait :failed do
       initialize_with do
         attributes.merge(
@@ -100,7 +100,7 @@ FactoryBot.define do
       end
     end
   end
-  
+
   factory :virtual_disk_data, class: 'Hash' do
     initialize_with do
       {
@@ -113,18 +113,18 @@ FactoryBot.define do
         'sizeBytes' => 10_737_418_240, # 10 GB
         'usedSizeBytes' => 1_073_741_824, # 1 GB
         'status' => 'Online',
-        'attachedCatlets' => []
+        'attachedCatlets' => [],
       }
     end
-    
+
     trait :attached do
       initialize_with do
         attributes.merge(
           'attachedCatlets' => [
             {
               'id' => Faker::Internet.uuid,
-              'name' => "catlet-#{Faker::Lorem.word}"
-            }
+              'name' => "catlet-#{Faker::Lorem.word}",
+            },
           ]
         )
       end

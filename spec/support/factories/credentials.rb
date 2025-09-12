@@ -2,13 +2,13 @@ FactoryBot.define do
   factory :rsa_private_key, class: 'OpenSSL::PKey::RSA' do
     initialize_with { OpenSSL::PKey::RSA.generate(2048) }
   end
-  
+
   factory :client_credentials, class: 'Eryph::ClientRuntime::ClientCredentials', aliases: [:credentials] do
     client_id { 'test-client-id' }
     client_name { 'Test Client' }
     token_endpoint { 'https://test.eryph.local/identity/connect/token' }
     configuration { 'default' }
-    
+
     transient do
       # Generate a test RSA key pair
       private_key_content do
@@ -16,9 +16,9 @@ FactoryBot.define do
         key.to_pem
       end
     end
-    
+
     private_key { OpenSSL::PKey::RSA.new(private_key_content) }
-    
+
     initialize_with do
       new(
         client_id: client_id,
@@ -28,72 +28,72 @@ FactoryBot.define do
         configuration: configuration
       )
     end
-    
+
     trait :eryph_zero do
       token_endpoint { 'https://localhost:8080/identity/connect/token' }
       client_id { 'system-client' }
       client_name { 'System Client' }
       configuration { 'zero' }
     end
-    
+
     trait :invalid do
       client_id { 'invalid-client-id' }
       client_name { 'Invalid Client' }
     end
   end
-  
+
   factory :token_response, class: 'Eryph::ClientRuntime::TokenResponse' do
     access_token { 'test_access_token_12345' }
     token_type { 'Bearer' }
     expires_in { 3600 }
     scopes { ['compute:read', 'compute:write'] }
-    
+
     initialize_with { new(**attributes) }
-    
+
     trait :expired do
       expires_in { 0 }
     end
-    
+
     trait :short_lived do
       expires_in { 60 }
     end
-    
+
     trait :read_only do
       scopes { ['compute:read'] }
     end
   end
-  
+
   factory :config_data, class: 'Hash' do
     initialize_with do
       {
         'endpoints' => {
           'identity' => 'https://test.eryph.local/identity',
-          'compute' => 'https://test.eryph.local/compute'
+          'compute' => 'https://test.eryph.local/compute',
         },
         'clients' => [
           {
             'id' => 'test-client-id',
-            'name' => 'Test Client'
-          }
+            'name' => 'Test Client',
+          },
         ],
-        'defaultClient' => 'test-client-id'
+        'defaultClient' => 'test-client-id',
       }
     end
-    
+
     trait :eryph_zero do
       initialize_with do
         {
           'endpoints' => {
             'identity' => 'https://localhost:8080/identity',
-            'compute' => 'https://localhost:8080/compute'
+            'compute' => 'https://localhost:8080/compute',
           },
           'clients' => [
             {
               'id' => 'system-client',
-              'name' => 'System Client'
-            }
+              'name' => 'System Client',
+            },
           ],
-          'defaultClient' => 'system-client'
+          'defaultClient' => 'system-client',
         }
       end
     end

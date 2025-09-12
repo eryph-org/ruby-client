@@ -1,0 +1,13 @@
+#!/usr/bin/env ruby
+
+# Ruby LSP launcher script for VSCode integration
+# This script ensures that ruby-lsp runs in the correct bundle context
+
+require 'pathname'
+
+# Find the project root (where Gemfile is located)
+project_root = Pathname.new(__FILE__).dirname.parent
+Dir.chdir(project_root)
+
+# Execute ruby-lsp through bundle exec
+exec('bundle', 'exec', 'ruby-lsp', *ARGV)

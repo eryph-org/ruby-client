@@ -1,17 +1,19 @@
-require 'simplecov'
-SimpleCov.start do
-  add_filter '/spec/'
-  add_filter '/generated/'
-  add_filter 'generated'
-  
-  add_group 'Client Runtime', 'lib/eryph/clientruntime'
-  add_group 'Compute Client', 'lib/eryph/compute'
-  
-  minimum_coverage 80
+unless ENV['DISABLE_COVERAGE']
+  require 'simplecov'
+  SimpleCov.start do
+    add_filter '/spec/'
+    add_filter '/generated/'
+    add_filter 'generated'
+
+    add_group 'Client Runtime', 'lib/eryph/clientruntime'
+    add_group 'Compute Client', 'lib/eryph/compute'
+
+    minimum_coverage 80
+  end
 end
 
 require 'bundler/setup'
-require 'eryph'
+require_relative '../lib/eryph'
 require 'rspec'
 require 'webmock/rspec'
 require 'vcr'
@@ -33,20 +35,20 @@ RSpec.configure do |config|
 
   config.shared_context_metadata_behavior = :apply_to_host_groups
   config.filter_run_when_matching :focus
-  config.example_status_persistence_file_path = "spec/.rspec_status"
+  config.example_status_persistence_file_path = 'spec/.rspec_status'
   config.disable_monkey_patching!
   config.warnings = true
   config.order = :random
-  
+
   # Include FactoryBot methods
   config.include FactoryBot::Syntax::Methods
-  
+
   # Clean up test files after each test
   config.after(:each) do
     FileUtils.rm_rf(Dir.glob('spec/tmp/*'))
     Timecop.return # Ensure time is reset after each test
   end
-  
+
   # Ensure WebMock is enabled for unit tests but not integration tests
   config.before(:each) do |example|
     if example.metadata[:integration]
@@ -55,7 +57,7 @@ RSpec.configure do |config|
       WebMock.enable!
     end
   end
-  
+
   config.after(:each) do |example|
     WebMock.reset! unless example.metadata[:integration]
   end

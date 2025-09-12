@@ -59,7 +59,7 @@ RSpec.describe Eryph::ClientRuntime::Environment do
     end
   end
 
-  describe '#execute_powershell_script_file', :skip => !RbConfig::CONFIG['target_os'].match(/mswin|mingw|cygwin/) do
+  describe '#execute_powershell_script_file', skip: !RbConfig::CONFIG['target_os'].match(/mswin|mingw|cygwin/) do
     it 'executes command and parses output' do
       script_file = nil
       begin

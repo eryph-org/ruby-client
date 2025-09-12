@@ -4,12 +4,12 @@ require 'time'
 RSpec.describe Eryph::ClientRuntime::TokenProvider do
   let(:credentials) { build(:credentials) }
   let(:token_provider) { described_class.new(credentials) }
-  
+
   describe '#initialize' do
     it 'creates a token provider with credentials' do
       expect(token_provider.credentials).to eq(credentials)
     end
-    
+
     it 'sets default scopes when none provided' do
       expect(token_provider.scopes).to include('compute:read', 'compute:write')
     end
@@ -35,14 +35,14 @@ RSpec.describe Eryph::ClientRuntime::TokenProvider do
     end
   end
 
-  describe '#get_token' do
+  describe '#token' do
     let(:mock_response) { double('HTTPResponse') }
     let(:token_data) do
       {
         'access_token' => 'test_access_token',
         'token_type' => 'Bearer',
         'expires_in' => 3600,
-        'scope' => 'compute:read compute:write'
+        'scope' => 'compute:read compute:write',
       }.to_json
     end
 
@@ -52,7 +52,7 @@ RSpec.describe Eryph::ClientRuntime::TokenProvider do
     end
 
     it 'returns a TokenResponse object' do
-      result = token_provider.get_token
+      result = token_provider.token
 
       expect(result).to be_a(Eryph::ClientRuntime::TokenResponse)
       expect(result.access_token).to eq('test_access_token')
@@ -62,8 +62,8 @@ RSpec.describe Eryph::ClientRuntime::TokenProvider do
     end
 
     it 'caches the token' do
-      first_token = token_provider.get_token
-      second_token = token_provider.get_token
+      first_token = token_provider.token
+      second_token = token_provider.token
 
       expect(first_token).to be(second_token)
       expect(token_provider).to have_received(:make_token_request).once
@@ -74,7 +74,7 @@ RSpec.describe Eryph::ClientRuntime::TokenProvider do
       expired_token = double('TokenResponse', expired?: true)
       token_provider.instance_variable_set(:@current_token, expired_token)
 
-      result = token_provider.get_token
+      result = token_provider.token
 
       expect(result).not_to be(expired_token)
       expect(result.access_token).to eq('test_access_token')
@@ -92,24 +92,24 @@ RSpec.describe Eryph::ClientRuntime::TokenProvider do
       end
 
       threads = 10.times.map do
-        Thread.new { token_provider.get_token }
+        Thread.new { token_provider.token }
       end
 
       tokens = threads.map(&:value)
-      
+
       # All tokens should be the same (only one request made)
       expect(tokens.uniq.size).to eq(1)
       expect(call_count).to eq(1)
     end
   end
 
-  describe '#get_access_token' do
+  describe '#ensure_access_token' do
     before do
       stub_token_request(endpoint: credentials.token_endpoint)
     end
-    
+
     it 'returns an access token string' do
-      token = token_provider.get_access_token
+      token = token_provider.ensure_access_token
       expect(token).to eq('test_access_token')
     end
 
@@ -117,11 +117,11 @@ RSpec.describe Eryph::ClientRuntime::TokenProvider do
       # Create expired token
       expired_token = Eryph::ClientRuntime::TokenResponse.new(
         access_token: 'old_token',
-        expires_in: -1  # Already expired
+        expires_in: -1 # Already expired
       )
       token_provider.instance_variable_set(:@current_token, expired_token)
 
-      token = token_provider.get_access_token
+      token = token_provider.ensure_access_token
 
       expect(token).to eq('test_access_token')
       expect(token).not_to eq('old_token')
@@ -129,8 +129,11 @@ RSpec.describe Eryph::ClientRuntime::TokenProvider do
   end
 
   describe '#access_token' do
-    it 'returns nil when no token cached' do
-      expect(token_provider.access_token).to be_nil
+    it 'requests new token when none cached' do
+      stub_token_request(endpoint: credentials.token_endpoint)
+      
+      token = token_provider.access_token
+      expect(token).to eq('test_access_token')
     end
 
     it 'returns cached token when not expired' do
@@ -147,7 +150,7 @@ RSpec.describe Eryph::ClientRuntime::TokenProvider do
 
     it 'refreshes expired token automatically' do
       stub_token_request(endpoint: credentials.token_endpoint)
-      
+
       expired_token = Eryph::ClientRuntime::TokenResponse.new(
         access_token: 'expired_token',
         expires_in: -1
@@ -238,9 +241,9 @@ RSpec.describe Eryph::ClientRuntime::TokenProvider do
     it 'can be verified with the private key' do
       public_key = OpenSSL::PKey::RSA.new(credentials.private_key).public_key
 
-      expect {
+      expect do
         JWT.decode(assertion, public_key, true, { algorithm: 'RS256' })
-      }.not_to raise_error
+      end.not_to raise_error
     end
   end
 
@@ -249,7 +252,7 @@ RSpec.describe Eryph::ClientRuntime::TokenProvider do
       {
         'grant_type' => 'client_credentials',
         'client_id' => credentials.client_id,
-        'scope' => 'compute:read compute:write'
+        'scope' => 'compute:read compute:write',
       }
     end
 
@@ -269,9 +272,9 @@ RSpec.describe Eryph::ClientRuntime::TokenProvider do
 
       expect(WebMock).to have_requested(:post, credentials.token_endpoint)
         .with(headers: {
-          'Content-Type' => 'application/x-www-form-urlencoded',
-          'User-Agent' => /eryph-ruby-clientruntime/
-        })
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'User-Agent' => /eryph-ruby-clientruntime/,
+              })
     end
 
     it 'sends form-encoded body' do
@@ -286,30 +289,30 @@ RSpec.describe Eryph::ClientRuntime::TokenProvider do
         stub_request(:post, credentials.token_endpoint)
           .to_return(status: 400, body: { error: 'invalid_client' }.to_json)
 
-        expect {
+        expect do
           token_provider.send(:make_token_request, request_body)
-        }.to raise_error(Eryph::ClientRuntime::TokenRequestError, /invalid_client/)
+        end.to raise_error(Eryph::ClientRuntime::TokenRequestError, /invalid_client/)
       end
 
       it 'parses error response JSON' do
         stub_request(:post, credentials.token_endpoint)
           .to_return(
-            status: 400, 
+            status: 400,
             body: { error: 'invalid_scope', error_description: 'Requested scope is invalid' }.to_json
           )
 
-        expect {
+        expect do
           token_provider.send(:make_token_request, request_body)
-        }.to raise_error(Eryph::ClientRuntime::TokenRequestError, /invalid_scope: Requested scope is invalid/)
+        end.to raise_error(Eryph::ClientRuntime::TokenRequestError, /invalid_scope: Requested scope is invalid/)
       end
 
       it 'handles non-JSON error responses' do
         stub_request(:post, credentials.token_endpoint)
           .to_return(status: 500, body: 'Internal Server Error')
 
-        expect {
+        expect do
           token_provider.send(:make_token_request, request_body)
-        }.to raise_error(Eryph::ClientRuntime::TokenRequestError, /Internal Server Error/)
+        end.to raise_error(Eryph::ClientRuntime::TokenRequestError, /Internal Server Error/)
       end
     end
   end
@@ -320,7 +323,7 @@ RSpec.describe Eryph::ClientRuntime::TokenProvider do
         'access_token' => 'parsed_token',
         'token_type' => 'Bearer',
         'expires_in' => 7200,
-        'scope' => 'read write'
+        'scope' => 'read write',
       }.to_json)
     end
 
@@ -331,12 +334,12 @@ RSpec.describe Eryph::ClientRuntime::TokenProvider do
       expect(result.access_token).to eq('parsed_token')
       expect(result.token_type).to eq('Bearer')
       expect(result.expires_in).to eq(7200)
-      expect(result.scopes).to eq(['read', 'write'])
+      expect(result.scopes).to eq(%w[read write])
     end
 
     it 'uses default values for missing fields' do
       minimal_response = double('HTTPResponse', body: {
-        'access_token' => 'minimal_token'
+        'access_token' => 'minimal_token',
       }.to_json)
 
       result = token_provider.send(:parse_token_response, minimal_response)
@@ -349,14 +352,13 @@ RSpec.describe Eryph::ClientRuntime::TokenProvider do
     it 'raises TokenRequestError for invalid JSON' do
       invalid_response = double('HTTPResponse', body: 'invalid json')
 
-      expect {
+      expect do
         token_provider.send(:parse_token_response, invalid_response)
-      }.to raise_error(Eryph::ClientRuntime::TokenRequestError, /Invalid JSON response/)
+      end.to raise_error(Eryph::ClientRuntime::TokenRequestError, /Invalid JSON response/)
     end
   end
 
   describe 'HTTP configuration' do
-
     describe '#build_ssl_options (private)' do
       context 'when SSL verification enabled' do
         let(:provider) { described_class.new(credentials, http_config: { verify_ssl: true, verify_hostname: true }) }
@@ -402,21 +404,20 @@ RSpec.describe Eryph::ClientRuntime::TokenProvider do
           cert_store = double('OpenSSL::X509::Store')
           allow(OpenSSL::X509::Store).to receive(:new).and_return(cert_store)
           allow(cert_store).to receive(:set_default_paths)
-          
-          # Override the defaults to test this specific path  
-          provider = described_class.new(credentials, http_config: { 
-            verify_ssl: true, 
-            verify_hostname: true, 
-            ca_cert: nil, 
-            ca_file: nil, 
- 
-          })
+
+          # Override the defaults to test this specific path
+          provider = described_class.new(credentials, http_config: {
+                                           verify_ssl: true,
+                                           verify_hostname: true,
+                                           ca_cert: nil,
+                                           ca_file: nil,
+
+                                         })
 
           ssl_options = provider.send(:build_ssl_options)
 
           expect(ssl_options[:verify]).to be true
         end
-
       end
 
       context 'when SSL verification disabled' do
@@ -428,9 +429,7 @@ RSpec.describe Eryph::ClientRuntime::TokenProvider do
           expect(ssl_options[:verify]).to be false
         end
       end
-
     end
-
   end
 
   describe 'error handling' do
@@ -440,9 +439,9 @@ RSpec.describe Eryph::ClientRuntime::TokenProvider do
       end
 
       it 'propagates JWT errors' do
-        expect {
+        expect do
           token_provider.send(:create_client_assertion)
-        }.to raise_error(JWT::EncodeError, 'Invalid key')
+        end.to raise_error(JWT::EncodeError, 'Invalid key')
       end
     end
 
@@ -452,9 +451,9 @@ RSpec.describe Eryph::ClientRuntime::TokenProvider do
       end
 
       it 'propagates network errors' do
-        expect {
-          token_provider.get_access_token
-        }.to raise_error(SocketError, 'Network unreachable')
+        expect do
+          token_provider.ensure_access_token
+        end.to raise_error(SocketError, 'Network unreachable')
       end
     end
   end
@@ -474,9 +473,9 @@ RSpec.describe Eryph::ClientRuntime::TokenProvider do
     end
 
     it 'does not log when no logger provided' do
-      expect {
+      expect do
         token_provider.send(:log_debug, 'Test message')
-      }.not_to raise_error
+      end.not_to raise_error
     end
   end
 end
@@ -488,7 +487,7 @@ RSpec.describe Eryph::ClientRuntime::TokenResponse do
       access_token: 'test_token',
       token_type: 'Bearer',
       expires_in: 3600,
-      scopes: ['read', 'write']
+      scopes: %w[read write]
     )
   end
 
@@ -497,7 +496,7 @@ RSpec.describe Eryph::ClientRuntime::TokenResponse do
       expect(token_response.access_token).to eq('test_token')
       expect(token_response.token_type).to eq('Bearer')
       expect(token_response.expires_in).to eq(3600)
-      expect(token_response.scopes).to eq(['read', 'write'])
+      expect(token_response.scopes).to eq(%w[read write])
       expect(token_response.issued_at).to be_within(1).of(Time.now)
     end
 
@@ -529,7 +528,7 @@ RSpec.describe Eryph::ClientRuntime::TokenResponse do
     it 'returns true for expired token' do
       expired_response = described_class.new(
         access_token: 'token',
-        expires_in: -1  # Already expired
+        expires_in: -1 # Already expired
       )
 
       expect(expired_response.expired?).to be true
@@ -553,7 +552,7 @@ RSpec.describe Eryph::ClientRuntime::TokenResponse do
     end
 
     it 'handles time drift correctly' do
-      past_time = Time.now - 3700  # 1 hour and 10 minutes ago
+      past_time = Time.now - 3700 # 1 hour and 10 minutes ago
       allow(Time).to receive(:now).and_return(past_time, Time.now)
 
       # Token was issued 1 hour 10 minutes ago, expires in 1 hour, so should be expired

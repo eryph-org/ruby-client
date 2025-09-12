@@ -1,0 +1,330 @@
+# Triggers
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    exclude:
+    - '*.md'
+    - '.changeset/**'
+
+pr:
+  branches:
+    include:
+    - main
+
+# Manual trigger parameters for releases
+parameters:
+- name: runRelease
+  displayName: 'Run Release Stage'
+  type: boolean
+  default: false
+- name: dryRun
+  displayName: 'Dry Run (test release without publishing)'
+  type: boolean
+  default: true
+
+pool:
+  name: eryph
+  demands:
+  - Agent.Name -equals vsts-agent
+
+variables:
+  RUBY_VERSION: '3.4'
+  BUNDLER_VERSION: '2.4.10'
+  RUBY_PATH: 'C:\Ruby34-x64\bin'
+
+stages:
+# Stage 1: Build and Test
+- stage: Build
+  displayName: 'Build and Test'
+  jobs:
+  - job: TestAndBuild
+    displayName: 'Test Ruby Client and Build Gems'
+    
+    steps:
+    # Update RubyGems and install Bundler
+    - script: |
+        set PATH=$(RUBY_PATH);%PATH%
+        gem update --system --no-document
+        gem install bundler -v $(BUNDLER_VERSION) --no-document
+      displayName: 'Update RubyGems and install Bundler'
+
+    # Install dependencies
+    - script: |
+        set PATH=$(RUBY_PATH);%PATH%
+        bundle install --jobs 4 --retry 3
+      displayName: 'Bundle install'
+
+    # Run unit tests
+    - script: |
+        set PATH=$(RUBY_PATH);%PATH%
+        bundle exec rspec spec/unit --format progress --format RspecJunitFormatter --out test-results-unit.xml
+      displayName: 'Run unit tests'
+      continueOnError: true
+
+    # Run integration tests (assuming Eryph is preinstalled)
+    - script: |
+        set PATH=$(RUBY_PATH);%PATH%
+        set INTEGRATION_TESTS=1
+        set DISABLE_COVERAGE=1
+        bundle exec rspec spec/integration --format progress --format RspecJunitFormatter --out test-results-integration.xml
+      displayName: 'Run integration tests'
+      continueOnError: true
+      env:
+        INTEGRATION_TESTS: '1'
+        DISABLE_COVERAGE: '1'
+
+    # Check changeset status for PRs
+    - powershell: |
+        npm install -g pnpm
+        npx pnpm install
+        
+        if ($env:BUILD_REASON -eq 'PullRequest') {
+          Write-Host "Checking changeset status for PR..."
+          $result = npx pnpm changeset:status
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "##vso[task.logissue type=error]Changeset validation failed. Please add a changeset with: pnpm changeset"
+            exit 1
+          }
+          Write-Host "Changeset validation passed"
+        } else {
+          Write-Host "Skipping changeset check (not a PR build)"
+        }
+      displayName: 'Validate changesets for PRs'
+      condition: always()
+
+    # Install Node.js dependencies
+    - powershell: |
+        npm install -g pnpm
+        npx pnpm install
+      displayName: 'Install Node.js dependencies'
+
+    # Build gems
+    - script: |
+        set PATH=$(RUBY_PATH);%PATH%
+        npx pnpm build:gems
+      displayName: 'Build all gems'
+
+    # Create artifacts directory and copy gems
+    - script: |
+        mkdir $(Build.ArtifactStagingDirectory)\gems
+        copy build\gems\*.gem $(Build.ArtifactStagingDirectory)\gems\
+      displayName: 'Prepare gem artifacts'
+
+    # Publish test results
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: 'test-results-*.xml'
+        failTaskOnFailedTests: true
+        testRunTitle: 'Ruby Client Tests'
+      displayName: 'Publish test results'
+      condition: always()
+
+    # Publish gem artifacts
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathToPublish: '$(Build.ArtifactStagingDirectory)\gems'
+        artifactName: 'ruby-gems'
+        artifactType: 'container'
+      displayName: 'Publish gem artifacts'
+      condition: succeeded()
+
+    # Display build summary
+    - script: |
+        set PATH=$(RUBY_PATH);%PATH%
+        echo "=== Build Summary ==="
+        ruby --version
+        bundle --version
+        echo "Built gems:"
+        dir build\gems\*.gem
+        echo "=== End Summary ==="
+      displayName: 'Build summary'
+      condition: always()
+
+# Stage 2: Prepare Release (Optional, manual trigger only)
+- stage: PrepareRelease
+  displayName: 'Prepare Release'
+  condition: and(succeeded(), eq('${{ parameters.runRelease }}', true))
+  jobs:
+  - job: VersionBump
+    displayName: 'Bump Versions with Changeset'
+    
+    steps:
+    # Checkout with credentials for pushing
+    - checkout: self
+      persistCredentials: true
+      
+    # Configure git for version commits
+    - script: |
+        git config --global user.email "ci@eryph.io"
+        git config --global user.name "Eryph CI"
+      displayName: 'Configure git'
+
+    # Install Node.js dependencies
+    - powershell: |
+        npm install -g pnpm
+        npx pnpm install
+      displayName: 'Install Node.js dependencies'
+
+    # Show current changeset status
+    - powershell: |
+        Write-Host "Current changeset status:"
+        npx pnpm changeset:status
+      displayName: 'Show changeset status'
+      
+    # Bump versions using changeset
+    - powershell: |
+        Write-Host "Running changeset version to bump package versions..."
+        npx pnpm changeset:version
+        
+        # Show what changed
+        Write-Host "Version changes made:"
+        git diff --name-only HEAD~1 HEAD || echo "No version changes"
+        
+        Write-Host "Git status after version bump:"
+        git status
+      displayName: 'Bump versions with changeset'
+      
+    # Commit version changes
+    - powershell: |
+        $changes = git diff --name-only
+        if ($changes) {
+          Write-Host "Committing version changes..."
+          git add .
+          git commit -m "Version packages [skip ci]"
+          git push origin HEAD:$(Build.SourceBranchName)
+          Write-Host "Version changes committed and pushed"
+        } else {
+          Write-Host "No version changes to commit"
+        }
+      displayName: 'Commit version changes'
+      condition: succeeded()
+
+    # Show what will be released (dry run)
+    - powershell: |
+        Write-Host "=== RELEASE PREVIEW ==="
+        Write-Host "The following gems would be published:"
+        
+        # Set up Ruby path
+        $env:PATH = "$(RUBY_PATH);$env:PATH"
+        
+        # Run dry run of publish
+        ruby scripts/publish-gems.rb --dry-run
+      displayName: 'Preview release (dry run)'
+      env:
+        RUBY_PATH: $(RUBY_PATH)
+
+# Stage 3: Release to RubyGems (Requires Manual Approval)
+- stage: Release
+  displayName: 'Release to RubyGems'
+  dependsOn: PrepareRelease
+  condition: and(succeeded(), eq('${{ parameters.runRelease }}', true))
+  variables:
+  - group: rubygems-eryph # Contains RUBYGEMS_API_TOKEN
+  
+  jobs:
+  - deployment: PublishGems
+    displayName: 'Publish Gems to RubyGems.org'
+    environment: 'rubygems-production'  # ← MANUAL APPROVAL REQUIRED HERE
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          # Checkout code
+          - checkout: self
+            persistCredentials: true
+          
+          # Set up Ruby
+          - script: |
+              set PATH=$(RUBY_PATH);%PATH%
+              gem update --system --no-document
+              gem install bundler -v $(BUNDLER_VERSION) --no-document
+            displayName: 'Set up Ruby'
+          
+          # Install dependencies
+          - script: |
+              set PATH=$(RUBY_PATH);%PATH%
+              bundle install --jobs 4 --retry 3
+            displayName: 'Install Ruby dependencies'
+          
+          # Install Node.js dependencies
+          - powershell: |
+              npm install -g pnpm
+              npx pnpm install
+            displayName: 'Install Node.js dependencies'
+          
+          # Publish gems to RubyGems.org
+          - powershell: |
+              # Set up Ruby path
+              $env:PATH = "$(RUBY_PATH);$env:PATH"
+              
+              # Set RubyGems API token from secret variable
+              $env:GEM_HOST_API_KEY = "$(RUBYGEMS_API_TOKEN)"
+              
+              if ('${{ parameters.dryRun }}' -eq 'true') {
+                Write-Host "=== DRY RUN MODE - No gems will be published ==="
+                ruby scripts/publish-gems.rb --dry-run
+              } else {
+                Write-Host "=== PUBLISHING GEMS TO RUBYGEMS.ORG ==="
+                ruby scripts/publish-gems.rb
+              }
+            displayName: 'Publish gems to RubyGems'
+            env:
+              RUBY_PATH: $(RUBY_PATH)
+              GEM_HOST_API_KEY: $(RUBYGEMS_API_TOKEN)
+          
+          # Create git tags for published versions
+          - powershell: |
+              if ('${{ parameters.dryRun }}' -eq 'false') {
+                Write-Host "Creating git tags for published versions..."
+                
+                # Set up Ruby path
+                $env:PATH = "$(RUBY_PATH);$env:PATH"
+                
+                # Get gem versions and create tags
+                ruby -e "
+                  require 'json'
+                  
+                  # Read package.json files to get versions
+                  packages = [
+                    { name: 'eryph-clientruntime', path: 'packages/clientruntime/package.json' },
+                    { name: 'eryph-compute', path: 'packages/compute-client/package.json' }
+                  ]
+                  
+                  packages.each do |pkg|
+                    if File.exist?(pkg[:path])
+                      data = JSON.parse(File.read(pkg[:path]))
+                      version = data['version']
+                      tag = \"#{pkg[:name]}-v#{version}\"
+                      
+                      puts \"Creating tag: #{tag}\"
+                      system(\"git tag #{tag}\")
+                    end
+                  end
+                "
+                
+                Write-Host "Pushing tags to repository..."
+                git push origin --tags
+              } else {
+                Write-Host "Skipping git tag creation (dry run mode)"
+              }
+            displayName: 'Create and push git tags'
+            condition: succeeded()
+            env:
+              RUBY_PATH: $(RUBY_PATH)
+          
+          # Final summary
+          - powershell: |
+              Write-Host "=== RELEASE SUMMARY ==="
+              if ('${{ parameters.dryRun }}' -eq 'true') {
+                Write-Host "✅ DRY RUN COMPLETED - No gems were published"
+                Write-Host "To publish for real, re-run with Dry Run = false"
+              } else {
+                Write-Host "🎉 RELEASE COMPLETED - Gems published to RubyGems.org"
+                Write-Host "Check your gems at: https://rubygems.org/profiles/eryph"
+              }
+              Write-Host "=== END SUMMARY ==="
+            displayName: 'Release summary'
+            condition: always()

@@ -4,18 +4,18 @@
 # Add the generated lib directory to the load path
 # Try multiple path resolution strategies for different contexts (development vs gem)
 generated_lib_paths = [
-  File.expand_path('generated/lib', __dir__),  # Development path
-  File.expand_path('generated/lib', File.dirname(__FILE__)),  # From current file directory
-  File.expand_path('../compute/generated/lib', __dir__),  # Alternative relative path  
-  File.expand_path('../../../../compute/generated/lib', __FILE__)  # From gem context
+  File.expand_path('generated/lib', __dir__), # Development path
+  File.expand_path('generated/lib', File.dirname(__FILE__)), # From current file directory
+  File.expand_path('../compute/generated/lib', __dir__), # Alternative relative path
+  File.expand_path('../../../compute/generated/lib', __dir__), # From gem context
 ]
 
 # Debug: print attempted paths in development mode
 if ENV['ERYPH_DEBUG'] || $DEBUG
-  puts "DEBUG: Attempting to find generated client in:"
+  puts 'DEBUG: Attempting to find generated client in:'
   generated_lib_paths.each_with_index do |path, i|
     exists = File.exist?(path)
-    puts "  #{i+1}. #{path} (exists: #{exists})"
+    puts "  #{i + 1}. #{path} (exists: #{exists})"
   end
 end
 
@@ -23,7 +23,7 @@ generated_lib_path = generated_lib_paths.find { |path| File.exist?(path) }
 
 if generated_lib_path
   $LOAD_PATH.unshift(generated_lib_path) unless $LOAD_PATH.include?(generated_lib_path)
-  
+
   begin
     require 'compute_client'
   rescue LoadError => e
@@ -31,12 +31,16 @@ if generated_lib_path
     error_msg = "Failed to load compute_client from #{generated_lib_path}: #{e.message}"
     if ENV['ERYPH_DEBUG'] || $DEBUG
       error_msg += "\nLoad path: #{$LOAD_PATH.join(':')}"
-      error_msg += "\nFiles in #{generated_lib_path}: #{Dir.entries(generated_lib_path).join(', ')}" if File.exist?(generated_lib_path)
+      if File.exist?(generated_lib_path)
+        error_msg += "\nFiles in #{generated_lib_path}: #{Dir.entries(generated_lib_path).join(', ')}"
+      end
     end
     raise LoadError, "#{error_msg}. Please run generate.rb to regenerate the client."
   end
 else
-  raise LoadError, "Generated compute client directory not found in any of: #{generated_lib_paths.join(', ')}. Please run generate.rb to regenerate the client."
+  raise LoadError,
+        'Generated compute client directory not found in any of: ' \
+        "#{generated_lib_paths.join(', ')}. Please run generate.rb to regenerate the client."
 end
 
 module Eryph
@@ -46,7 +50,7 @@ module Eryph
     ApiClient = ::ComputeClient::ApiClient
     Configuration = ::ComputeClient::Configuration
     ApiError = ::ComputeClient::ApiError
-    
+
     # Re-export all API endpoint classes
     CatletsApi = ::ComputeClient::CatletsApi
     GenesApi = ::ComputeClient::GenesApi
@@ -56,8 +60,8 @@ module Eryph
     VersionApi = ::ComputeClient::VersionApi
     VirtualDisksApi = ::ComputeClient::VirtualDisksApi
     VirtualNetworksApi = ::ComputeClient::VirtualNetworksApi
-    
-    # Re-export all model classes  
+
+    # Re-export all model classes
     ApiVersion = ::ComputeClient::ApiVersion
     ApiVersionResponse = ::ComputeClient::ApiVersionResponse
     Catlet = ::ComputeClient::Catlet
@@ -113,7 +117,7 @@ module Eryph
     VirtualNetworkConfiguration = ::ComputeClient::VirtualNetworkConfiguration
     VirtualNetworkList = ::ComputeClient::VirtualNetworkList
   end
-  
+
   # Keep the old Generated namespace for backward compatibility
   module Generated
     # Alias the main classes for backward compatibility
@@ -123,7 +127,7 @@ module Eryph
     ApiClient = ::ComputeClient::ApiClient
     Configuration = ::ComputeClient::Configuration
   end
-  
+
   module Compute
     module Generated
       # Re-export the generated client classes for easier access

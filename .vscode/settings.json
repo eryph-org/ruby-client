@@ -1,0 +1,6 @@
+{
+  "rubyLsp.bundleGemfile": "Gemfile",
+  "rubyLsp.formatter": "rubocop",
+  "rubyLsp.linters": ["rubocop"],
+  "rubyLsp.rubyVersionManager": "none"
+}
