@@ -53,8 +53,17 @@ end
 
 def gem_published?(name, version)
   # Check if gem version is already published
+  puts "  🔍 Checking if #{name} v#{version} is already published..."
   result = `gem list #{name} --remote --exact 2>/dev/null`
-  result.include?("#{name} (") && result.include?(version)
+  is_published = result.include?("#{name} (") && result.include?(version)
+  
+  if is_published
+    puts "  ✅ Version #{version} found on RubyGems.org"
+  else
+    puts "  🆕 Version #{version} not found, ready to publish"
+  end
+  
+  is_published
 end
 
 def publish_gem(gem_info, dry_run: false)
@@ -64,9 +73,16 @@ def publish_gem(gem_info, dry_run: false)
 
   puts "📦 Publishing #{name} v#{version}..."
 
-  # Check if gem file exists
-  unless File.exist?(gem_file)
-    puts "  ❌ Gem file #{gem_file} not found. Run 'pnpm build:gems' first."
+  # Check if gem file exists (look in build directory first)
+  build_gem_file = File.join('build', 'gems', gem_file)
+  if File.exist?(build_gem_file)
+    gem_file = build_gem_file
+    puts "  📦 Using gem file: #{gem_file}"
+  elsif File.exist?(gem_file)
+    puts "  📦 Using gem file: #{gem_file}"
+  else
+    puts "  ❌ Gem file not found at #{gem_file} or #{build_gem_file}"
+    puts "      Run 'pnpm build:gems' first."
     return false
   end
 
@@ -95,6 +111,7 @@ end
 
 def main
   dry_run = ARGV.include?('--dry-run')
+  ci_mode = ENV['CI'] == 'true' || ENV['TF_BUILD'] == 'True' || !ENV['RUBYGEMS_API_TOKEN'].nil?
 
   puts '📡 Publishing Eryph Ruby gems to RubyGems.org'
   puts '=' * 50
@@ -104,17 +121,26 @@ def main
     puts ''
   end
 
+  if ci_mode
+    puts '🤖 CI MODE - Running in continuous integration environment'
+    puts ''
+  end
+
   # Ensure we're in the right directory
   script_dir = File.dirname(__FILE__)
   project_root = File.expand_path('..', script_dir)
   Dir.chdir(project_root)
 
-  # Ensure gems are built first
-  puts '🔨 Ensuring gems are built with latest versions...'
-  build_result = system('ruby scripts/build-gems.rb')
-  unless build_result
-    puts '❌ Failed to build gems'
-    exit 1
+  # Ensure gems are built first (skip in CI if they should already be built)
+  if ci_mode && File.exist?('build/gems') && Dir.glob('build/gems/*.gem').any?
+    puts '🔨 Using pre-built gems from CI artifacts...'
+  else
+    puts '🔨 Ensuring gems are built with latest versions...'
+    build_result = system('ruby scripts/build-gems.rb')
+    unless build_result
+      puts '❌ Failed to build gems'
+      exit 1
+    end
   end
   puts ''
 
@@ -136,12 +162,23 @@ def main
 
   puts ''
   if success
-    puts '🎉 All gems published successfully!'
-    puts ''
-    puts 'Next steps:'
-    puts "  1. Create a git tag for the release: git tag v#{gems.first[:version]}"
-    puts "  2. Push the tag: git push origin v#{gems.first[:version]}"
-    puts '  3. Create a GitHub release from the tag'
+    if dry_run
+      puts '🎉 Dry run completed successfully!'
+      puts ''
+      puts 'All gems are ready to publish. To publish for real:'
+      puts '  ruby scripts/publish-gems.rb'
+    else
+      puts '🎉 All gems published successfully!'
+      puts ''
+      if ci_mode
+        puts 'CI will handle git tagging and repository updates.'
+      else
+        puts 'Next steps:'
+        puts "  1. Create git tags for each gem version"
+        puts "  2. Push tags to repository"
+        puts "  3. Update changelog or create release notes"
+      end
+    end
   else
     puts '❌ Some gems failed to publish. Check the output above.'
     exit 1
