@@ -158,6 +158,15 @@ stages:
       fetchDepth: 0
       fetchTags: true
       
+    # Fix detached HEAD state for changeset
+    - script: |
+        echo "Current git state:"
+        git status
+        echo "Checking out branch to fix detached HEAD..."
+        git checkout $(Build.SourceBranchName)
+        git status
+      displayName: 'Fix detached HEAD state'
+    
     # Configure git for version commits
     - script: |
         git config --global user.email "ci@eryph.io"
@@ -170,14 +179,8 @@ stages:
         npx pnpm install
       displayName: 'Install Node.js dependencies'
 
-    # Fix detached HEAD for changeset and show status
+    # Show current changeset status
     - powershell: |
-        Write-Host "Fixing detached HEAD for changeset..."
-        # Create a proper branch reference from detached HEAD
-        git checkout -b temp-main
-        git fetch origin main
-        git branch --set-upstream-to=origin/main temp-main
-        
         Write-Host "Current changeset status:"
         npx pnpm changeset:status
       displayName: 'Show changeset status'
