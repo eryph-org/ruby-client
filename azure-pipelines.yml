@@ -143,94 +143,9 @@ stages:
       displayName: 'Build summary'
       condition: always()
 
-# Stage 2: Prepare Release (Optional, manual trigger only)
-- stage: PrepareRelease
-  displayName: 'Prepare Release'
-  condition: and(succeeded(), eq('${{ parameters.runRelease }}', true))
-  jobs:
-  - job: VersionBump
-    displayName: 'Bump Versions with Changeset'
-    
-    steps:
-    # Checkout with credentials for pushing and full history for changeset
-    - checkout: self
-      persistCredentials: true
-      fetchDepth: 0
-      fetchTags: true
-      
-    # Fix detached HEAD state for changeset
-    - script: |
-        echo "Current git state:"
-        git status
-        echo "Checking out branch to fix detached HEAD..."
-        git checkout $(Build.SourceBranchName)
-        git status
-      displayName: 'Fix detached HEAD state'
-    
-    # Configure git for version commits
-    - script: |
-        git config --global user.email "ci@eryph.io"
-        git config --global user.name "Eryph CI"
-      displayName: 'Configure git'
-
-    # Install Node.js dependencies
-    - powershell: |
-        npm install -g pnpm
-        npx pnpm install
-      displayName: 'Install Node.js dependencies'
-
-    # Show current changeset status
-    - powershell: |
-        Write-Host "Current changeset status:"
-        npx pnpm changeset:status
-      displayName: 'Show changeset status'
-      
-    # Bump versions using changeset
-    - powershell: |
-        Write-Host "Running changeset version to bump package versions..."
-        npx pnpm changeset:version
-        
-        # Show what changed
-        Write-Host "Version changes made:"
-        git diff --name-only HEAD~1 HEAD || echo "No version changes"
-        
-        Write-Host "Git status after version bump:"
-        git status
-      displayName: 'Bump versions with changeset'
-      
-    # Commit version changes
-    - powershell: |
-        $changes = git diff --name-only
-        if ($changes) {
-          Write-Host "Committing version changes..."
-          git add .
-          git commit -m "Version packages [skip ci]"
-          git push origin HEAD:$(Build.SourceBranchName)
-          Write-Host "Version changes committed and pushed"
-        } else {
-          Write-Host "No version changes to commit"
-        }
-      displayName: 'Commit version changes'
-      condition: succeeded()
-
-    # Show what will be released (dry run)
-    - powershell: |
-        Write-Host "=== RELEASE PREVIEW ==="
-        Write-Host "The following gems would be published:"
-        
-        # Set up Ruby path
-        $env:PATH = "$(RUBY_PATH);$env:PATH"
-        
-        # Run dry run of publish
-        ruby scripts/publish-gems.rb --dry-run
-      displayName: 'Preview release (dry run)'
-      env:
-        RUBY_PATH: $(RUBY_PATH)
-
-# Stage 3: Release to RubyGems (Requires Manual Approval)
+# Stage 2: Release to RubyGems (Requires Manual Approval)
 - stage: Release
   displayName: 'Release to RubyGems'
-  dependsOn: PrepareRelease
   condition: and(succeeded(), eq('${{ parameters.runRelease }}', true))
   variables:
   - group: rubygems-eryph # Contains RUBYGEMS_API_TOKEN
@@ -243,9 +158,34 @@ stages:
       runOnce:
         deploy:
           steps:
-          # Checkout code
+          # Checkout with full history for changeset
           - checkout: self
             persistCredentials: true
+            fetchDepth: 0
+            fetchTags: true
+          
+          # Fix detached HEAD state for changeset
+          - script: |
+              echo "Checking out branch to fix detached HEAD..."
+              git checkout $(Build.SourceBranchName)
+              git config --global user.email "ci@eryph.io"
+              git config --global user.name "Eryph CI"
+            displayName: 'Fix detached HEAD and configure git'
+          
+          # Install Node.js dependencies and run changeset
+          - powershell: |
+              npm install -g pnpm
+              npx pnpm install
+              
+              Write-Host "Current changeset status:"
+              npx pnpm changeset:status
+              
+              Write-Host "Running changeset version to bump package versions..."
+              npx pnpm changeset:version
+              
+              Write-Host "Git status after version bump:"
+              git status
+            displayName: 'Bump versions with changeset'
           
           # Set up Ruby
           - script: |
@@ -260,11 +200,6 @@ stages:
               bundle install --jobs 4 --retry 3
             displayName: 'Install Ruby dependencies'
           
-          # Install Node.js dependencies
-          - powershell: |
-              npm install -g pnpm
-              npx pnpm install
-            displayName: 'Install Node.js dependencies'
           
           # Publish gems using existing changeset workflow
           - powershell: |
@@ -281,6 +216,29 @@ stages:
             displayName: 'Publish gems to RubyGems'
             env:
               GEM_HOST_API_KEY: $(RUBYGEMS_API_TOKEN)
+          
+          # Commit version changes after successful publish
+          - powershell: |
+              if ('${{ parameters.dryRun }}' -eq 'false') {
+                Write-Host "Committing version changes after successful publish..."
+                
+                # Re-run changeset version to get the changes in this stage
+                npx pnpm changeset:version
+                
+                $changes = git diff --name-only
+                if ($changes) {
+                  git add .
+                  git commit -m "Version packages [skip ci]"
+                  git push origin HEAD:$(Build.SourceBranchName)
+                  Write-Host "✅ Version changes committed and pushed"
+                } else {
+                  Write-Host "ℹ️  No version changes to commit"
+                }
+              } else {
+                Write-Host "Skipping version commit (dry run mode)"
+              }
+            displayName: 'Commit version changes'
+            condition: succeeded()
           
           # Final summary
           - powershell: |
