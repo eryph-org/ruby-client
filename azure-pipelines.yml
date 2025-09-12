@@ -170,8 +170,14 @@ stages:
         npx pnpm install
       displayName: 'Install Node.js dependencies'
 
-    # Show current changeset status
+    # Fix detached HEAD for changeset and show status
     - powershell: |
+        Write-Host "Fixing detached HEAD for changeset..."
+        # Create a proper branch reference from detached HEAD
+        git checkout -b temp-main
+        git fetch origin main
+        git branch --set-upstream-to=origin/main temp-main
+        
         Write-Host "Current changeset status:"
         npx pnpm changeset:status
       displayName: 'Show changeset status'
@@ -257,65 +263,21 @@ stages:
               npx pnpm install
             displayName: 'Install Node.js dependencies'
           
-          # Publish gems to RubyGems.org
+          # Publish gems using existing changeset workflow
           - powershell: |
-              # Set up Ruby path
-              $env:PATH = "$(RUBY_PATH);$env:PATH"
-              
               # Set RubyGems API token from secret variable
               $env:GEM_HOST_API_KEY = "$(RUBYGEMS_API_TOKEN)"
               
               if ('${{ parameters.dryRun }}' -eq 'true') {
-                Write-Host "=== DRY RUN MODE - No gems will be published ==="
-                ruby scripts/publish-gems.rb --dry-run
+                Write-Host "=== DRY RUN MODE - Testing publish workflow ==="
+                npx pnpm publish:gems --dry-run
               } else {
                 Write-Host "=== PUBLISHING GEMS TO RUBYGEMS.ORG ==="
-                ruby scripts/publish-gems.rb
+                npx pnpm changeset:publish
               }
             displayName: 'Publish gems to RubyGems'
             env:
-              RUBY_PATH: $(RUBY_PATH)
               GEM_HOST_API_KEY: $(RUBYGEMS_API_TOKEN)
-          
-          # Create git tags for published versions
-          - powershell: |
-              if ('${{ parameters.dryRun }}' -eq 'false') {
-                Write-Host "Creating git tags for published versions..."
-                
-                # Set up Ruby path
-                $env:PATH = "$(RUBY_PATH);$env:PATH"
-                
-                # Get gem versions and create tags
-                ruby -e "
-                  require 'json'
-                  
-                  # Read package.json files to get versions
-                  packages = [
-                    { name: 'eryph-clientruntime', path: 'packages/clientruntime/package.json' },
-                    { name: 'eryph-compute', path: 'packages/compute-client/package.json' }
-                  ]
-                  
-                  packages.each do |pkg|
-                    if File.exist?(pkg[:path])
-                      data = JSON.parse(File.read(pkg[:path]))
-                      version = data['version']
-                      tag = \"#{pkg[:name]}-v#{version}\"
-                      
-                      puts \"Creating tag: #{tag}\"
-                      system(\"git tag #{tag}\")
-                    end
-                  end
-                "
-                
-                Write-Host "Pushing tags to repository..."
-                git push origin --tags
-              } else {
-                Write-Host "Skipping git tag creation (dry run mode)"
-              }
-            displayName: 'Create and push git tags'
-            condition: succeeded()
-            env:
-              RUBY_PATH: $(RUBY_PATH)
           
           # Final summary
           - powershell: |
