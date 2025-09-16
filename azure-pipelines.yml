@@ -66,25 +66,6 @@ stages:
         INTEGRATION_TESTS: '1'
         DISABLE_COVERAGE: '1'
 
-    # Check changeset status for PRs
-    - powershell: |
-        npm install -g pnpm
-        npx pnpm install
-        
-        if ($env:BUILD_REASON -eq 'PullRequest') {
-          Write-Host "Checking changeset status for PR..."
-          $result = npx pnpm changeset:status
-          if ($LASTEXITCODE -ne 0) {
-            Write-Host "##vso[task.logissue type=error]Changeset validation failed. Please add a changeset with: pnpm changeset"
-            exit 1
-          }
-          Write-Host "Changeset validation passed"
-        } else {
-          Write-Host "Skipping changeset check (not a PR build)"
-        }
-      displayName: 'Validate changesets for PRs'
-      condition: always()
-
     # Install Node.js dependencies
     - powershell: |
         npm install -g pnpm

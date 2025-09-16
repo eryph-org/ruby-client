@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
 
   s.metadata = {
     'bug_tracker_uri' => 'https://github.com/eryph-org/ruby-client/issues',
-    'changelog_uri' => 'https://github.com/eryph-org/ruby-client/blob/main/CHANGELOG.md',
+    'changelog_uri' => 'https://github.com/eryph-org/ruby-client/blob/main/packages/clientruntime/CHANGELOG.md',
     'source_code_uri' => 'https://github.com/eryph-org/ruby-client',
     'homepage_uri' => 'https://eryph.io',
     'documentation_uri' => 'https://www.eryph.io/docs',
@@ -32,7 +32,7 @@ Gem::Specification.new do |s|
     'lib/eryph/clientruntime.rb',
     'lib/eryph/clientruntime/**/*',
     'README.md',
-    'CHANGELOG.md',
+    'packages/clientruntime/CHANGELOG.md',
     'LICENSE',
     '*.gemspec'
   ].select { |f| File.file?(f) }
