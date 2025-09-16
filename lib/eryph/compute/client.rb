@@ -83,7 +83,7 @@ module Eryph
       # Test the connection and authentication
       # @return [Boolean] true if connection and authentication work
       def test_connection
-        # For now, just test if we can get a token
+        # Test authentication by ensuring we can get a valid token
         token = @token_provider.ensure_access_token
         !token.nil? && !token.empty?
       rescue StandardError => e
@@ -110,43 +110,43 @@ module Eryph
       end
 
       # Access the catlets API
-      # @return [Eryph::ComputeClient::CatletsApi, PlaceholderApiClient] catlets API client
+      # @return [Eryph::ComputeClient::CatletsApi] catlets API client
       def catlets
         @catlets ||= create_api_client('catlets', 'CatletsApi')
       end
 
       # Access the operations API
-      # @return [Eryph::ComputeClient::OperationsApi, PlaceholderApiClient] operations API client
+      # @return [Eryph::ComputeClient::OperationsApi] operations API client
       def operations
         @operations ||= create_api_client('operations', 'OperationsApi')
       end
 
       # Access the projects API
-      # @return [Eryph::ComputeClient::ProjectsApi, PlaceholderApiClient] projects API client
+      # @return [Eryph::ComputeClient::ProjectsApi] projects API client
       def projects
         @projects ||= create_api_client('projects', 'ProjectsApi')
       end
 
       # Access the virtual disks API
-      # @return [Eryph::ComputeClient::VirtualDisksApi, PlaceholderApiClient] virtual disks API client
+      # @return [Eryph::ComputeClient::VirtualDisksApi] virtual disks API client
       def virtual_disks
         @virtual_disks ||= create_api_client('virtual_disks', 'VirtualDisksApi')
       end
 
       # Access the virtual networks API
-      # @return [Eryph::ComputeClient::VirtualNetworksApi, PlaceholderApiClient] virtual networks API client
+      # @return [Eryph::ComputeClient::VirtualNetworksApi] virtual networks API client
       def virtual_networks
         @virtual_networks ||= create_api_client('virtual_networks', 'VirtualNetworksApi')
       end
 
       # Access the genes API
-      # @return [Eryph::ComputeClient::GenesApi, PlaceholderApiClient] genes API client
+      # @return [Eryph::ComputeClient::GenesApi] genes API client
       def genes
         @genes ||= create_api_client('genes', 'GenesApi')
       end
 
       # Access the version API
-      # @return [Eryph::ComputeClient::VersionApi, PlaceholderApiClient] version API client
+      # @return [Eryph::ComputeClient::VersionApi] version API client
       def version
         @version ||= create_api_client('version', 'VersionApi')
       end
@@ -351,9 +351,9 @@ module Eryph
         # Wrap the API client to handle errors
         ErrorHandlingApiClientWrapper.new(raw_client, self)
       rescue LoadError, NameError => e
-        # Fall back to placeholder if generated client is not available
-        @logger.warn "Generated client not available for #{api_name}, using placeholder: #{e.class}: #{e.message}"
-        PlaceholderApiClient.new(api_name, self)
+        # Generated client must be available - fail fast
+        raise ClientRuntime::ConfigurationError,
+              "Generated client not available for #{api_name}: #{e.class}: #{e.message}"
       end
 
       def create_generated_api_client
@@ -413,30 +413,5 @@ module Eryph
       end
     end
 
-    # Placeholder API client until generated client is available
-    class PlaceholderApiClient
-      def initialize(api_name, parent_client)
-        @api_name = api_name
-        @parent_client = parent_client
-      end
-
-      def method_missing(method_name, *args, **kwargs)
-        @parent_client.logger.info "#{@api_name.capitalize} API call: #{method_name} " \
-                                   '(placeholder - requires generated client)'
-
-        # Return a simple response structure
-        {
-          api: @api_name,
-          method: method_name,
-          args: args,
-          kwargs: kwargs,
-          message: 'This is a placeholder response. Please run the generator script to create the actual API client.',
-        }
-      end
-
-      def respond_to_missing?(_method_name, _include_private = false)
-        true
-      end
-    end
   end
 end

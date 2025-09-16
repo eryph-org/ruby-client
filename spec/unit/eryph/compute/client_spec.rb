@@ -609,29 +609,6 @@ RSpec.describe Eryph::Compute::Client do
     end
   end
 
-  describe 'fallback behavior when generated client unavailable' do
-    let(:client) { described_class.new(config_name, environment: mock_environment) }
-
-    it 'creates placeholder API clients when generated client fails to load' do
-      # Mock the create_api_client method to return PlaceholderApiClient directly
-      allow(client).to receive(:create_api_client) do |api_name, _api_class_name|
-        Eryph::Compute::PlaceholderApiClient.new(api_name, client)
-      end
-
-      catlets_client = client.catlets
-      expect(catlets_client.class.name).to eq('Eryph::Compute::PlaceholderApiClient')
-    end
-
-    it 'creates placeholder API clients when generated classes unavailable' do
-      # Mock the create_api_client method to return PlaceholderApiClient directly
-      allow(client).to receive(:create_api_client) do |api_name, _api_class_name|
-        Eryph::Compute::PlaceholderApiClient.new(api_name, client)
-      end
-
-      catlets_client = client.catlets
-      expect(catlets_client.class.name).to eq('Eryph::Compute::PlaceholderApiClient')
-    end
-  end
 
   describe 'default logger creation' do
     it 'creates default logger when none provided' do
