@@ -126,33 +126,10 @@ module Eryph
           return result
         end
 
-        # Fallback to common local endpoints if no runtime info found
-        fallback_zero_endpoints
+        # No fallback - if runtime info not found, return empty hash
+        {}
       end
 
-      # Fallback endpoint discovery for eryph-zero when runtime file is not available
-      # @return [Hash] endpoint name -> URL mapping
-      def fallback_zero_endpoints
-        endpoints = {}
-
-        # Try common local endpoints for eryph-zero
-        zero_candidates = [
-          'https://localhost:8080',
-          'https://127.0.0.1:8080',
-          'http://localhost:8080',
-          'http://127.0.0.1:8080',
-        ]
-
-        zero_candidates.each do |candidate_url|
-          next unless test_zero_endpoint(candidate_url)
-
-          endpoints['identity'] = candidate_url
-          endpoints['compute'] = "#{candidate_url}/compute"
-          break
-        end
-
-        endpoints
-      end
 
       # Get endpoints for eryph-local configuration
       # This discovers running eryph-local instances from runtime lock files
@@ -193,34 +170,6 @@ module Eryph
         {}
       end
 
-      # Test if a URL hosts an eryph-zero instance
-      # @param base_url [String] base URL to test
-      # @return [Boolean] true if eryph-zero is detected
-      def test_zero_endpoint(base_url)
-        # This is a simplified test - in a full implementation you might:
-        # 1. Make an HTTP request to check for eryph-zero health endpoint
-        # 2. Check for specific response headers or content
-        # 3. Verify SSL certificates if applicable
-
-        # In test environments, don't activate fallback endpoints
-        # This prevents tests from accidentally finding "running" services
-        # when they're testing the "not running" scenario
-        return false if @reader.environment.instance_of?(::TestEnvironment)
-
-        # For now, we'll just check if the URL format is valid
-        # In production, this might make actual HTTP requests
-        begin
-          uri = URI.parse(base_url)
-          # Check if scheme, host, and explicit port are present
-          has_scheme = !uri.scheme.nil?
-          has_host = !uri.host.nil? && !uri.host.empty?
-          has_explicit_port = base_url.include?(':') && base_url.match(/:(\d+)/)
-
-          !(has_scheme && has_host && has_explicit_port).nil?
-        rescue URI::InvalidURIError
-          false
-        end
-      end
     end
   end
 end
