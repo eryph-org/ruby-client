@@ -162,7 +162,8 @@ module Eryph
       end
 
       def request_new_token
-        client_assertion = create_client_assertion
+        audience, token_type = resolve_assertion_format
+        client_assertion = create_client_assertion(audience, token_type)
 
         request_body = {
           'grant_type' => 'client_credentials',
@@ -176,19 +177,77 @@ module Eryph
         parse_token_response(response)
       end
 
-      def create_client_assertion
+      # Discovery metadata flag advertised by OpenIddict 7+ eryph servers. When present with the
+      # value "issuer", the server requires the issuer as the client-assertion audience together
+      # with the "client-authentication+jwt" token type. Older servers omit it and expect the
+      # token endpoint as the audience.
+      CLIENT_ASSERTION_AUDIENCE_METADATA = 'eryph_client_assertion_audience'.freeze
+      CLIENT_ASSERTION_AUDIENCE_ISSUER = 'issuer'.freeze
+      CLIENT_AUTHENTICATION_JWT_TYPE = 'client-authentication+jwt'.freeze
+      LEGACY_CLIENT_ASSERTION_JWT_TYPE = 'JWT'.freeze
+
+      # Determine the client-assertion audience and token type the server expects by reading its
+      # discovery document. Fails closed: every eryph server serves a discovery document, so a
+      # failure to read it is a real error rather than a silent downgrade to a format the server
+      # would reject.
+      # @return [Array(String, String)] the audience and JWT "typ" header value
+      def resolve_assertion_format
+        metadata_url = @credentials.token_endpoint.sub(
+          %r{/connect/token/?\z}, '/.well-known/openid-configuration'
+        )
+
+        begin
+          response = create_faraday_connection.get(metadata_url) do |req|
+            req.headers['User-Agent'] = @http_config[:user_agent]
+          end
+        rescue Faraday::Error => e
+          raise TokenRequestError, "Could not read the identity provider's discovery document: #{e.message}"
+        end
+
+        unless response.success?
+          raise TokenRequestError, "Could not read the identity provider's discovery document (#{response.status})"
+        end
+
+        begin
+          discovery = JSON.parse(response.body)
+        rescue JSON::ParserError => e
+          raise TokenRequestError, "Could not parse the identity provider's discovery document: #{e.message}"
+        end
+
+        advertises_issuer =
+          discovery[CLIENT_ASSERTION_AUDIENCE_METADATA].to_s.casecmp(CLIENT_ASSERTION_AUDIENCE_ISSUER).zero?
+
+        if advertises_issuer
+          # The server explicitly requires the issuer as the audience, so a discovery document that
+          # advertises this but omits the issuer is invalid and must fail rather than downgrade to a
+          # legacy assertion the server would reject.
+          issuer = discovery['issuer']
+          if issuer.nil? || issuer.empty?
+            raise TokenRequestError,
+                  'The identity provider requires the issuer as the client-assertion audience, ' \
+                  'but its discovery document does not contain an issuer.'
+          end
+
+          [issuer, CLIENT_AUTHENTICATION_JWT_TYPE]
+        else
+          # Older servers don't advertise the flag and expect the token endpoint as the audience.
+          [@credentials.token_endpoint, LEGACY_CLIENT_ASSERTION_JWT_TYPE]
+        end
+      end
+
+      def create_client_assertion(audience, token_type)
         now = Time.now.to_i
 
         claims = {
           'iss' => @credentials.client_id,      # issuer
           'sub' => @credentials.client_id,      # subject
-          'aud' => @credentials.token_endpoint, # audience
+          'aud' => audience,                    # audience (issuer or token endpoint)
           'jti' => SecureRandom.uuid,           # JWT ID
           'iat' => now,                         # issued at
           'exp' => now + 300, # expires in 5 minutes
         }
 
-        JWT.encode(claims, @credentials.private_key, 'RS256')
+        JWT.encode(claims, @credentials.private_key, 'RS256', { 'typ' => token_type })
       end
 
       def make_token_request(request_body)

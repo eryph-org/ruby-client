@@ -10,6 +10,23 @@ WebMock.disable_net_connect!(
 
 # Helper methods for common HTTP mocks
 module WebMockHelpers
+  # Stub the OpenID Connect discovery document the token provider reads to negotiate the
+  # client-assertion audience format. By default it advertises the OpenIddict 7 issuer audience.
+  def stub_discovery(token_endpoint:, advertise_issuer_audience: true, issuer: nil)
+    metadata_url = token_endpoint.sub(%r{/connect/token/?\z}, '/.well-known/openid-configuration')
+    issuer ||= token_endpoint.sub(%r{/connect/token/?\z}, '')
+
+    body = { issuer: issuer }
+    body['eryph_client_assertion_audience'] = 'issuer' if advertise_issuer_audience
+
+    stub_request(:get, metadata_url)
+      .to_return(
+        status: 200,
+        body: body.to_json,
+        headers: { 'Content-Type' => 'application/json' }
+      )
+  end
+
   def stub_token_request(endpoint:, response: {})
     default_response = {
       access_token: 'test_access_token',

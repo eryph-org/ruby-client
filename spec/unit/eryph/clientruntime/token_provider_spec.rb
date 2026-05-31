@@ -5,6 +5,11 @@ RSpec.describe Eryph::ClientRuntime::TokenProvider do
   let(:credentials) { build(:credentials) }
   let(:token_provider) { described_class.new(credentials) }
 
+  # The token provider reads the discovery document to negotiate the client-assertion audience
+  # before every token request. Stub it for the default credentials so unit tests can focus on
+  # the token request itself; individual examples override this stub to test the negotiation.
+  before { stub_discovery(token_endpoint: credentials.token_endpoint) }
+
   describe '#initialize' do
     it 'creates a token provider with credentials' do
       expect(token_provider.credentials).to eq(credentials)
@@ -221,8 +226,10 @@ RSpec.describe Eryph::ClientRuntime::TokenProvider do
   end
 
   describe '#create_client_assertion (private)' do
-    let(:assertion) { token_provider.send(:create_client_assertion) }
-    let(:decoded_claims) { JWT.decode(assertion, nil, false)[0] }
+    let(:assertion) { token_provider.send(:create_client_assertion, credentials.token_endpoint, 'JWT') }
+    let(:decoded) { JWT.decode(assertion, nil, false) }
+    let(:decoded_claims) { decoded[0] }
+    let(:decoded_header) { decoded[1] }
 
     it 'creates valid JWT with required claims' do
       expect(decoded_claims['iss']).to eq(credentials.client_id)
@@ -231,6 +238,16 @@ RSpec.describe Eryph::ClientRuntime::TokenProvider do
       expect(decoded_claims['jti']).to be_a(String)
       expect(decoded_claims['iat']).to be_a(Integer)
       expect(decoded_claims['exp']).to be_a(Integer)
+    end
+
+    it 'sets the requested token type in the JWT header' do
+      issuer_assertion = token_provider.send(
+        :create_client_assertion, 'https://test.eryph.local/identity', 'client-authentication+jwt'
+      )
+      header = JWT.decode(issuer_assertion, nil, false)[1]
+      expect(header['typ']).to eq('client-authentication+jwt')
+      claims = JWT.decode(issuer_assertion, nil, false)[0]
+      expect(claims['aud']).to eq('https://test.eryph.local/identity')
     end
 
     it 'sets expiration to 5 minutes from now' do
@@ -244,6 +261,49 @@ RSpec.describe Eryph::ClientRuntime::TokenProvider do
       expect do
         JWT.decode(assertion, public_key, true, { algorithm: 'RS256' })
       end.not_to raise_error
+    end
+  end
+
+  describe '#resolve_assertion_format (private)' do
+    let(:metadata_url) { 'https://test.eryph.local/identity/.well-known/openid-configuration' }
+
+    it 'uses the issuer audience when the server advertises the flag' do
+      stub_discovery(token_endpoint: credentials.token_endpoint, advertise_issuer_audience: true,
+                     issuer: 'https://test.eryph.local/identity')
+
+      audience, token_type = token_provider.send(:resolve_assertion_format)
+
+      expect(audience).to eq('https://test.eryph.local/identity')
+      expect(token_type).to eq('client-authentication+jwt')
+    end
+
+    it 'falls back to the token endpoint for legacy servers without the flag' do
+      stub_discovery(token_endpoint: credentials.token_endpoint, advertise_issuer_audience: false)
+
+      audience, token_type = token_provider.send(:resolve_assertion_format)
+
+      expect(audience).to eq(credentials.token_endpoint)
+      expect(token_type).to eq('JWT')
+    end
+
+    it 'fails closed when the issuer audience is required but the issuer is missing' do
+      stub_request(:get, metadata_url).to_return(
+        status: 200,
+        body: { 'eryph_client_assertion_audience' => 'issuer' }.to_json,
+        headers: { 'Content-Type' => 'application/json' }
+      )
+
+      expect do
+        token_provider.send(:resolve_assertion_format)
+      end.to raise_error(Eryph::ClientRuntime::TokenRequestError, /does not contain an issuer/)
+    end
+
+    it 'fails closed when the discovery document cannot be read' do
+      stub_request(:get, metadata_url).to_return(status: 404, body: 'not found')
+
+      expect do
+        token_provider.send(:resolve_assertion_format)
+      end.to raise_error(Eryph::ClientRuntime::TokenRequestError, /discovery document/)
     end
   end
 
@@ -440,7 +500,7 @@ RSpec.describe Eryph::ClientRuntime::TokenProvider do
 
       it 'propagates JWT errors' do
         expect do
-          token_provider.send(:create_client_assertion)
+          token_provider.send(:create_client_assertion, credentials.token_endpoint, 'JWT')
         end.to raise_error(JWT::EncodeError, 'Invalid key')
       end
     end
